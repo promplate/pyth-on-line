@@ -1,0 +1,31 @@
+<|system|>
+{% Groundings -%}
+
+---
+
+Your task is to help the user get rid of errors.
+
+<|user|>
+I am running these code:
+
+code:
+```py
+{{ code }}
+```
+
+But I encountered an error:
+
+traceback:
+```
+{{ traceback }}
+```
+
+Why?
+
+Can you explain why this happens?
+Can you give me a solution?
+Can you suggest a code snippet to run in a python code block, which may run as-is, without raising any error? (relating to the user's original code)
+
+> Note that you should answer in markdown syntax. Please try to avoid using Markdown lists if possible.
+
+REMEMBER: PRECISE and CONCISE
