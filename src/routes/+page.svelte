@@ -9,7 +9,7 @@
   import Modal from "$lib/components/Modal.svelte";
   import { patchSource, reformatInputSource } from "$lib/pyodide/translate";
   import { pyodideReady } from "$lib/stores";
-  import { onMount } from "svelte";
+  import { afterUpdate, beforeUpdate, onMount } from "svelte";
   import { cubicIn, cubicOut } from "svelte/easing";
   import { scale } from "svelte/transition";
 
@@ -77,6 +77,8 @@
   }
 
   function handleInput() {
+    if (!pyConsole)
+      return;
     push(input);
     pushHistory(input);
     input = "";
@@ -146,6 +148,24 @@
       }
     }
   };
+
+  let autoscroll = false;
+
+  beforeUpdate(() => {
+    if (!inputRef)
+      return;
+
+    const d = document.documentElement;
+
+    const offsetBottom = d.scrollHeight - d.clientHeight - d.scrollTop;
+
+    autoscroll = offsetBottom < 200;
+  });
+
+  afterUpdate(() => {
+    const d = document.documentElement;
+    autoscroll && d.scrollTo({ top: d.scrollHeight });
+  });
 </script>
 
 <svelte:document on:keydown={onKeyDown} on:paste|preventDefault={onPaste} on:click={() => focusedError || inputRef.focus()} />
