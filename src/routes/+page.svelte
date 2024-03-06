@@ -1,24 +1,17 @@
 <script lang="ts">
-  import type { ActionData } from "./playground/$types";
   import type { AutoComplete, Item } from "$lib/components/console/HeadlessConsole.svelte";
-  import type { Source } from "$lib/utils/source";
   import type { PyProxy } from "pyodide/ffi";
   import type { KeyboardEventHandler } from "svelte/elements";
 
-  import { page } from "$app/stores";
   import { Err, In, Out, Repr } from "$lib/components/console";
   import HeadlessConsole from "$lib/components/console/HeadlessConsole.svelte";
   import ConsolePrompt from "$lib/components/ConsolePrompt.svelte";
   import Modal from "$lib/components/Modal.svelte";
-  import { patchSource, reformatInputSource } from "$lib/pyodide/translate";
+  import { reformatInputSource } from "$lib/pyodide/translate";
   import { pyodideReady } from "$lib/stores";
   import { onMount } from "svelte";
   import { cubicIn, cubicOut } from "svelte/easing";
   import { scale } from "svelte/transition";
-
-  export let form: ActionData;
-
-  const { sources } = (form ?? $page.state) as { sources?: Source[] };
 
   let log: Item[] = [];
 
@@ -64,13 +57,6 @@
   }
 
   let ready: boolean;
-
-  $: if (ready) {
-    (async () => {
-      if (sources?.length)
-        for (const { source, hidden, wait } of sources) await pushMany(patchSource(source).split("\n"), Boolean(wait), hidden);
-    })();
-  }
 
   function handleInput() {
     push(input);
