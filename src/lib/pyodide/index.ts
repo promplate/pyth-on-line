@@ -1,2 +1,2 @@
 export { default } from "./entries";
-export { getPy, initConsole } from "./init";
+export { getPy, initConsole, getPyodide } from "./init";

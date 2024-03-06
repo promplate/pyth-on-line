@@ -23,7 +23,7 @@ async function initPyodide() {
   return py;
 }
 
-const getPyodide = cacheSingleton(withToast(initPyodide, { loading: "loading pyodide runtime" }));
+export const getPyodide = cacheSingleton(withToast(initPyodide, { loading: "loading pyodide runtime" }));
 
 async function initPy() {
   const [py, { OpenAI }, version, { default: initCode }] = await Promise.all([

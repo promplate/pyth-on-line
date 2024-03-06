@@ -1,13 +1,13 @@
 <script lang="ts">
   import type { AutoComplete, Item } from "$lib/components/console/HeadlessConsole.svelte";
   import type { PyProxy } from "pyodide/ffi";
-  import type { KeyboardEventHandler } from "svelte/elements";
+  import type { ClipboardEventHandler, KeyboardEventHandler } from "svelte/elements";
 
   import { Err, In, Out, Repr } from "$lib/components/console";
   import HeadlessConsole from "$lib/components/console/HeadlessConsole.svelte";
   import ConsolePrompt from "$lib/components/ConsolePrompt.svelte";
   import Modal from "$lib/components/Modal.svelte";
-  import { reformatInputSource } from "$lib/pyodide/translate";
+  import { patchSource, reformatInputSource } from "$lib/pyodide/translate";
   import { pyodideReady } from "$lib/stores";
   import { onMount } from "svelte";
   import { cubicIn, cubicOut } from "svelte/easing";
@@ -40,8 +40,6 @@
     focusedError = { traceback, code };
   }
 
-  let pushLog: (item: Item, behind?: Item) => Item | undefined;
-
   let push: (source: string) => Promise<void>;
 
   onMount(async () => {
@@ -49,21 +47,38 @@
     inputRef.focus();
   });
 
-  async function pushMany(lines: string[], wait: boolean, hidden?: boolean) {
+  async function pushMany(lines: string[], wait = true, hidden = false) {
     for (const line of lines) {
-      const promise = hidden ? pyConsole.push(line) : push(line);
+      let promise: Promise<any>;
+      if (hidden) {
+        promise = pyConsole.push(line);
+      }
+      else {
+        pushHistory(line);
+        promise = push(line);
+      }
       wait && (await promise);
     }
   }
 
+  async function pushBlock(source: string, wait = true, hidden = false) {
+    const lines = patchSource(source.replaceAll("\r\n", "\n")).split("\n");
+    lines.length > 1 && (await pushMany(lines.slice(0, -1), wait, hidden));
+    input = lines.at(-1)!;
+  }
+
   let ready: boolean;
+
+  function pushHistory(source: string) {
+    if (source.trim() && source !== history[0]) {
+      history.unshift(source);
+      localStorage.setItem("console-history", JSON.stringify(history));
+    }
+  }
 
   function handleInput() {
     push(input);
-    if (input.trim() && input !== history[0]) {
-      history.unshift(input);
-      localStorage.setItem("console-history", JSON.stringify(history));
-    }
+    pushHistory(input);
     input = "";
   }
 
@@ -71,7 +86,14 @@
     requestAnimationFrame(() => inputRef.setSelectionRange(input.length, input.length));
   }
 
-  const onKeyDown: KeyboardEventHandler<HTMLInputElement> = (event) => {
+  const onPaste: ClipboardEventHandler<Document> = async (event) => {
+    const text = event.clipboardData?.getData("text") ?? "";
+    await pushBlock(text);
+  };
+
+  const onKeyDown: KeyboardEventHandler<Document> = (event) => {
+    inputRef.focus();
+
     switch (event.key) {
       case "ArrowUp": {
         const text = history.at(++index);
@@ -126,9 +148,11 @@
   };
 </script>
 
-<div class="my-4 w-[calc(100vw-2rem)] flex flex-row gap-4 p-3 text-neutral-3 <lg:(my-3 w-[calc(100vw-1.5rem)] gap-3 p-2 text-sm) <sm:(my-2 w-[calc(100vw-1rem)] gap-2 p-1 text-xs) [&>div]:(overflow-x-scroll rounded bg-white/3 p-5 <lg:p-4 <sm:p-3)">
+<svelte:document on:keydown={onKeyDown} on:paste|preventDefault={onPaste} on:click={() => focusedError || inputRef.focus()} />
+
+<div class="my-4 w-[calc(100vw-2rem)] flex flex-row gap-4 break-all p-3 text-neutral-3 <lg:(my-3 w-[calc(100vw-1.5rem)] gap-3 p-2 text-sm) <sm:(my-2 w-[calc(100vw-1rem)] gap-2 p-1 text-xs) [&>div]:(overflow-x-scroll rounded bg-white/3 p-5 <lg:p-4 <sm:p-3)">
   <div class="w-full flex flex-col gap-0.7 whitespace-pre-wrap font-mono [&>div:hover]:(rounded-sm bg-white/2 px-1.7 py-0.6 -mx-1.7 -my-0.6)">
-    <HeadlessConsole bind:ready bind:log bind:push bind:pushLog bind:complete bind:pyConsole let:status let:loading>
+    <HeadlessConsole bind:ready bind:log bind:push bind:complete bind:pyConsole let:status let:loading>
       {#each log as { type, text }, index}
         {#if type === "out"}
           <Out {text} />
@@ -143,13 +167,13 @@
       <div class="group flex flex-row" class:animate-pulse={loading || !ready}>
         <ConsolePrompt prompt={status === "incomplete" ? "..." : ">>>"} />
         <!-- svelte-ignore a11y-autofocus -->
-        <input autofocus bind:this={inputRef} class="w-full bg-transparent outline-none" bind:value={input} type="text" on:keydown={onKeyDown} />
+        <input autofocus bind:this={inputRef} class="w-full bg-transparent outline-none" bind:value={input} type="text" />
       </div>
     </HeadlessConsole>
   </div>
 </div>
 
-<Modal show={!$pyodideReady}>
+<Modal show={!$pyodideReady || !ready}>
   <svelte:fragment slot="content">
     {#await Promise.resolve() then _}
       <div in:scale={{ easing: cubicOut, start: 0.8 }} out:scale|global={{ easing: cubicIn, start: 0.9 }} class="rounded-lg bg-white/3 p-4 text-white/70">
