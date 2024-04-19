@@ -12,7 +12,7 @@ let indexURL: string | undefined;
 if (typeof window === "undefined")
   indexURL = undefined;
 else if (dev)
-  indexURL = env.PUBLIC_PYODIDE_INDEX_URL ?? "https://cdn.jsdelivr.net/pyodide/v0.25.0/full/";
+  indexURL = env.PUBLIC_PYODIDE_INDEX_URL ?? "https://cdn.jsdelivr.net/pyodide/v0.25.1/full/";
 else
   indexURL = env.PUBLIC_PYODIDE_INDEX_URL ?? "/pyodide/";
 
