@@ -5,7 +5,7 @@ from micropip import install
 await install(
     [
         "promplate==0.3.4.2",
-        "promplate-pyodide==0.0.3.1",
+        "promplate-pyodide==0.0.3.2",
     ]
 )
 del install
