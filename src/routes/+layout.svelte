@@ -46,6 +46,10 @@
     --uno: bg-white/15;
   }
 
+  :global(body) {
+    --uno: min-h-screen;
+  }
+
   :global(body)::-webkit-scrollbar {
     --uno: bg-neutral-9 w-1 sm:w-1.5 md:w-2 lg:w-2.5 xl:w-3 2xl:w-3.5;
   }

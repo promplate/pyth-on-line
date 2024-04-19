@@ -90,12 +90,10 @@
 
   const onPaste: ClipboardEventHandler<Document> = async (event) => {
     const text = event.clipboardData?.getData("text") ?? "";
-    await pushBlock(text);
+    await pushBlock(input + text);
   };
 
   const onKeyDown: KeyboardEventHandler<Document> = (event) => {
-    inputRef.focus();
-
     switch (event.key) {
       case "ArrowUp": {
         const text = history.at(++index);
@@ -168,7 +166,9 @@
   });
 </script>
 
-<svelte:document on:keydown={onKeyDown} on:paste|preventDefault={onPaste} on:click={() => focusedError || inputRef.focus()} />
+<svelte:document on:keydown={onKeyDown} on:paste|preventDefault={onPaste} />
+
+<svelte:body on:click|self={() => inputRef.focus()} />
 
 <div class="my-4 w-[calc(100vw-2rem)] flex flex-row gap-4 break-all p-3 text-neutral-3 <lg:(my-3 w-[calc(100vw-1.5rem)] gap-3 p-2 text-sm) <sm:(my-2 w-[calc(100vw-1rem)] gap-2 p-1 text-xs) [&>div]:(overflow-x-scroll rounded bg-white/3 p-5 <lg:p-4 <sm:p-3)">
   <div class="w-full flex flex-col gap-0.7 whitespace-pre-wrap font-mono [&>div:hover]:(rounded-sm bg-white/2 px-1.7 py-0.6 -mx-1.7 -my-0.6)">
