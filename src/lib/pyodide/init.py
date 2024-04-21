@@ -1,14 +1,17 @@
 # type: ignore
 
-from micropip import install
+from functools import partial, wraps
 
-await install(
+import micropip as pip
+
+pip.install = wraps(pip.install)(partial(pip.install, index_urls=["/simple"]))
+
+await pip.install(
     [
         "promplate==0.3.4.2",
         "promplate-pyodide==0.0.3.2",
     ]
 )
-del install
 
 from promplate_pyodide import patch_all
 
