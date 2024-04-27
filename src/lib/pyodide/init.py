@@ -4,11 +4,11 @@ from functools import partial, wraps
 
 import micropip as pip
 
-pip.install = wraps(pip.install)(partial(pip.install, index_urls=["/simple"]))
+pip.install = wraps(pip.install)(partial(pip.install, index_urls=["/simple", "https://pypi.org/simple"]))
 
 await pip.install(
     [
-        "promplate==0.3.4.2",
+        "promplate==0.3.4.3",
         "promplate-pyodide==0.0.3.2",
     ]
 )
