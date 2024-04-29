@@ -1,4 +1,4 @@
-name: python examples checks
+name: python checks
 
 on: [push, pull_request]
 
@@ -13,7 +13,7 @@ jobs:
           python-version: "3.12"
       - name: Install dependencies
         run: |
-          pip install promplate[all] promplate-pyodide isort black pyodide-py
+          pip install promplate-pyodide isort black ruff pyodide-py
           yarn global add pyright
       - name: Run isort check
         run: |
@@ -21,6 +21,10 @@ jobs:
       - name: Run black check
         run: |
           black . --check --diff
+      - name: Run Ruff check
+        run: |
+          ruff check --output-format github
+          ruff format --check --diff
       - name: Run pyright check
         run: |
           pyright
