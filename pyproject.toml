@@ -1,0 +1,49 @@
+[project]
+requires-python = ">=3.11"
+dependencies = [
+    "ruff~=0.3.7",
+    "micropip~=0.6.0",
+    "pyodide-py~=0.25.1",
+    "promplate-pyodide~=0.0.3",
+]
+
+[tool.pdm]
+distribution = false
+
+[tool.pdm.scripts]
+fmt = { composite = ["ruff check --fix --exit-zero", "ruff format"] }
+
+[tool.black]
+line-length = 200
+
+[tool.isort]
+profile = "black"
+
+[tool.ruff]
+line-length = 200
+
+[tool.ruff.lint]
+select = [
+    # isort
+    "I",
+    # pep8-naming
+    "N",
+    # pyflakes
+    "F",
+    # pycodestyle
+    "E",
+    "W",
+    # ruff
+    "RUF",
+]
+ignore = [
+    # Failed to parse pyproject.toml: missing field `name`
+    "RUF200",
+    # Module level import not at top of file
+    "E402",
+    "F402",
+    # `... import *` used; unable to detect undefined names
+    "F403",
+    # `await` statement outside of a function
+    "F704",
+]

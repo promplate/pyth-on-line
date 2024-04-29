@@ -1,6 +1,7 @@
 import antfu from "@antfu/eslint-config";
 
 export default antfu({
+  toml: false,
   svelte: true,
   typescript: true,
   stylistic: {

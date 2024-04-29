@@ -6,12 +6,7 @@ import micropip as pip
 
 pip.install = wraps(pip.install)(partial(pip.install, index_urls=["/simple", "https://pypi.org/simple"]))
 
-await pip.install(
-    [
-        "promplate==0.3.4.3",
-        "promplate-pyodide==0.0.3.2",
-    ]
-)
+await pip.install(["promplate==0.3.4.4", "promplate-pyodide==0.0.3.2"])
 
 from promplate_pyodide import patch_all
 

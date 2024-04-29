@@ -13,3 +13,4 @@ vite.config.ts.timestamp-*
 .vscode
 .vercel
 .netlify
+/.pdm-python
