@@ -100,6 +100,9 @@
   };
 
   const onKeyDown: KeyboardEventHandler<Document> = (event) => {
+    if (!event.ctrlKey && !event.metaKey && !event.altKey && !event.shiftKey && event.key.length === 1)
+      inputRef.focus();
+
     switch (event.key) {
       case "ArrowUp": {
         const text = history.at(++index);
@@ -214,7 +217,7 @@
       <div class="group flex flex-row" class:animate-pulse={loading || !ready}>
         <ConsolePrompt prompt={status === "incomplete" ? "..." : ">>>"} />
         <!-- svelte-ignore a11y-autofocus -->
-        <input autofocus bind:this={inputRef} class="w-full bg-transparent outline-none" bind:value={input} type="text" />
+        <input autofocus bind:this={inputRef} class="w-full bg-transparent outline-none" bind:value={input} type="text" on:blur={setCusorToEnd} />
       </div>
     </HeadlessConsole>
   </div>
