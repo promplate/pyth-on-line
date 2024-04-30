@@ -91,7 +91,12 @@
 
   const onPaste: ClipboardEventHandler<Document> = async (event) => {
     const text = event.clipboardData?.getData("text") ?? "";
-    await pushBlock(input + text);
+    const textBefore = input.slice(0, inputRef.selectionStart!);
+    const textAfter = input.slice(inputRef.selectionEnd!);
+    const distanceToEnd = input.length - inputRef.selectionEnd!;
+    await pushBlock(textBefore + text + textAfter);
+    if (distanceToEnd)
+      inputRef.setSelectionRange(input.length - distanceToEnd, input.length - distanceToEnd);
   };
 
   const onKeyDown: KeyboardEventHandler<Document> = (event) => {
