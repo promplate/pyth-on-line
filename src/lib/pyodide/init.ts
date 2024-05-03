@@ -6,6 +6,7 @@ import * as env from "$env/static/public";
 import { cacheSingleton } from "$lib/utils/cache";
 import { getEnv } from "$lib/utils/env";
 import { withToast } from "$lib/utils/toast";
+import { tick } from "svelte";
 
 let indexURL: string | undefined;
 
@@ -16,14 +17,20 @@ else if (dev)
 else
   indexURL = env.PUBLIC_PYODIDE_INDEX_URL ?? "/pyodide/";
 
+async function sleep(ms?: number) {
+  await tick();
+  return new Promise(resolve => ms ? setTimeout(resolve, ms) : requestAnimationFrame(resolve));
+}
+
 async function initPyodide() {
   const { loadPyodide } = await import("pyodide");
   const py = await loadPyodide({ indexURL, env: getEnv(), packages: ["micropip", "typing-extensions"] });
+  py.globals.set("with_toast", withToast);
   pyodideReady.set(true);
   return py;
 }
 
-export const getPyodide = cacheSingleton(withToast(initPyodide, { loading: "loading pyodide runtime" }));
+export const getPyodide = cacheSingleton(withToast({ loading: "loading pyodide runtime" })(initPyodide));
 
 async function initPy() {
   const [py, { OpenAI }, version, { default: initCode }] = await Promise.all([
@@ -45,7 +52,8 @@ async function initPy() {
 
   py.registerJsModule("openai", { OpenAI: PatchedOpenAI, version, __all__: [] });
 
-  await withToast(py.runPythonAsync.bind(null, initCode), { loading: "installing extra python dependencies", duration: 300 })();
+  await sleep(200);
+  await py.runPythonAsync(initCode);
 
   return py;
 }
