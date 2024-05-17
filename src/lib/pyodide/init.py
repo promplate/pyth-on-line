@@ -1,5 +1,6 @@
 # type: ignore
 
+from contextlib import suppress
 from functools import partial, wraps
 from pathlib import Path
 from re import compile
@@ -34,17 +35,16 @@ async def install_with_toast(*args, **kwargs):
     @with_toast(loading=f"pip install {' '.join(r)}")
     @create_once_callable
     async def _():
-        try:
+        with suppress(ValueError):
             return await partial(install, index_urls=["/simple", "https://pypi.org/simple"])(*args, **kwargs)
-        except ValueError:
-            return await install(*args, **kwargs)
+        return install(*args, **kwargs)
 
     return await _()
 
 
 micropip.install = install_with_toast
 
-await install_with_toast(["promplate==0.3.4.4", "promplate-pyodide==0.0.3.2"])
+await install_with_toast(["promplate==0.3.4.6", "promplate-pyodide==0.0.3.2"])
 
 from promplate_pyodide import patch_all
 

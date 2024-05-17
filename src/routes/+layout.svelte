@@ -33,7 +33,7 @@
   <meta property="twitter:description" content={ogDescription} />
 </svelte:head>
 
-<Toaster theme="dark" />
+<Toaster theme="dark" toastOptions={{ class: "text-xs font-mono" }} />
 
 <slot />
 

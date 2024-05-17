@@ -83,7 +83,8 @@
         }
       }
       catch (e) {
-        pushLog({ type: "err", text: future.formatted_error ?? (e as PythonError).message }, inputLog);
+        const err = (future.formatted_error ?? (e as PythonError).message);
+        pushLog({ type: "err", text: err.slice(err.lastIndexOf("Traceback (most recent call last):")) }, inputLog);
       }
       finally {
         loading--;
