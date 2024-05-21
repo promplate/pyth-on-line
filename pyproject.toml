@@ -1,9 +1,9 @@
 [project]
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 dependencies = [
     "ruff~=0.3.7",
     "micropip~=0.6.0",
-    "pyodide-py~=0.25.1",
+    "pyodide-py~=0.26.0a5",
     "promplate-pyodide~=0.0.3",
 ]
 

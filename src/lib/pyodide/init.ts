@@ -13,7 +13,7 @@ let indexURL: string | undefined;
 if (typeof window === "undefined")
   indexURL = undefined;
 else if (dev)
-  indexURL = env.PUBLIC_PYODIDE_INDEX_URL ?? "https://cdn.jsdelivr.net/pyodide/v0.25.1/full/";
+  indexURL = env.PUBLIC_PYODIDE_INDEX_URL ?? "https://cdn.jsdelivr.net/pyodide/v0.26.0a5/full/";
 else
   indexURL = env.PUBLIC_PYODIDE_INDEX_URL ?? "/pyodide/";
 
@@ -52,7 +52,7 @@ async function initPy() {
 
   py.registerJsModule("openai", { OpenAI: PatchedOpenAI, version, __all__: [] });
 
-  await sleep(200);
+  await sleep(150);
   await py.runPythonAsync(initCode);
 
   return py;
