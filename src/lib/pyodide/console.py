@@ -13,4 +13,12 @@ def complete(source: str):
     return to_js(console.complete(source), depth=2)
 
 
+def input(prompt=""):
+    from js import window
+
+    return window.prompt(prompt) or ""
+
+
+builtins.input = input
+
 console = PyodideConsole({"__name__": "__main__", "__builtins__": builtins})

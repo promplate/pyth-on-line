@@ -13,7 +13,7 @@ jobs:
           python-version: "3.12"
       - name: Install dependencies
         run: |
-          pip install promplate-pyodide isort black ruff pyodide-py
+          pip install promplate-pyodide isort black ruff pyodide-py webtypy
           yarn global add pyright
       - name: Run isort check
         run: |
