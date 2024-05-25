@@ -1,7 +1,6 @@
 # type: ignore
 
-from contextlib import suppress
-from functools import partial, wraps
+from functools import wraps
 from pathlib import Path
 from re import compile
 from typing import TYPE_CHECKING
@@ -14,7 +13,7 @@ from pyodide.ffi import create_once_callable
 if TYPE_CHECKING:
     from stub import with_toast
 
-INDEX_URLS.insert(1, "/simple")
+INDEX_URLS.insert(0, "/simple")
 
 pattern = compile(r"[\w-]+")
 
@@ -35,8 +34,6 @@ async def install_with_toast(*args, **kwargs):
     @with_toast(loading=f"pip install {' '.join(r)}")
     @create_once_callable
     async def _():
-        with suppress(ValueError):
-            return await partial(install, index_urls=["/simple", "https://pypi.org/simple"])(*args, **kwargs)
         return install(*args, **kwargs)
 
     return await _()
