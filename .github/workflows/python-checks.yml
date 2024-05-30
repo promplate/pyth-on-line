@@ -12,15 +12,20 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install dependencies
+        env:
+          UV_SYSTEM_PYTHON: true
         run: |
-          pip install promplate-pyodide isort black ruff pyodide-py webtypy
+          pip install uv
+          uv pip install pdm isort black --compile-bytecode
+          pdm export --pyproject > requirements.txt
+          uv pip install -r requirements.txt
           yarn global add pyright
       - name: Run isort check
         run: |
-          isort . --check --diff
+          python -m isort . --check --diff
       - name: Run black check
         run: |
-          black . --check --diff
+          python -m black . --check --diff
       - name: Run Ruff check
         run: |
           ruff check --output-format github
