@@ -1,2 +1,2 @@
-/pyodide/* https://cdn.jsdelivr.net/pyodide/v0.26.0/full/:splat 200
+/pyodide/* https://cdn.jsdelivr.net/pyodide/v0.26.1/full/:splat 200
 /packages/* https://files.pythonhosted.org/packages/:splat 200
