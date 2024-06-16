@@ -19,6 +19,7 @@ line-length = 200
 
 [tool.isort]
 profile = "black"
+known_first_party = ["__main__"]
 
 [tool.ruff]
 line-length = 200
@@ -51,3 +52,4 @@ ignore = [
 
 [tool.pyright]
 reportMissingModuleSource = false
+reportWildcardImportFromLibrary = false

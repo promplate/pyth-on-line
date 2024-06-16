@@ -1,5 +1,3 @@
-# type: ignore
-
 from functools import wraps
 from pathlib import Path
 from re import compile
@@ -9,6 +7,8 @@ import micropip
 from micropip import install
 from micropip.package_index import INDEX_URLS
 from pyodide.ffi import create_once_callable
+
+from __main__ import *
 
 if TYPE_CHECKING:
     from stub import with_toast
@@ -22,7 +22,7 @@ def get_package_name(package: str):
     if package.endswith(".whl"):
         return Path(package).stem
 
-    return pattern.search(package).group()
+    return pattern.search(package).group()  # type: ignore
 
 
 @wraps(install)
@@ -36,16 +36,23 @@ async def install_with_toast(*args, **kwargs):
     async def _():
         return install(*args, **kwargs)
 
-    return await _()
+    return await _()  # type: ignore
 
 
 micropip.install = install_with_toast
 
-await install_with_toast(["promplate==0.3.4.6", "promplate-pyodide==0.0.3.2"])
 
-from promplate_pyodide import patch_all
+async def install_promplate():
+    await install_with_toast(["promplate==0.3.4.6", "promplate-pyodide==0.0.3.2"])
 
-await patch_all()
+    from promplate_pyodide import patch_all
 
-from promplate import *
-from promplate.llm.openai import *
+    await patch_all()  # type: ignore
+
+
+def main():
+    import __main__
+
+    from .app import console
+
+    __main__.__dict__["consoleModule"] = console

@@ -1,6 +1,7 @@
 # This is a stub file for global variables provided by the js side of pyodide.
 
-from typing import Callable, TypeVar
+from collections.abc import Callable
+from typing import TypeVar
 
 Function = TypeVar("Function", bound=Callable)
 

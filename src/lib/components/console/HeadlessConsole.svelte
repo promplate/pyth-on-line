@@ -12,7 +12,7 @@
 </script>
 
 <script lang="ts">
-  import { getPy, getPyodide, initConsole } from "$lib/pyodide";
+  import { getPy } from "$lib/pyodide";
   import { onMount } from "svelte";
 
   export let ready = false;
@@ -26,12 +26,11 @@
   let getWrapped: (future: PyAwaitable) => Promise<[unknown, string]>;
 
   onMount(async () => {
-    getPy();
-    await initConsole();
-    const py = await getPyodide();
-    pyConsole = py.globals.get("console");
-    complete = py.globals.get("complete");
-    getWrapped = py.globals.get("get_wrapped");
+    const py = await getPy();
+    const consoleModule = py.globals.get("consoleModule");
+    pyConsole = consoleModule.console;
+    complete = consoleModule.complete;
+    getWrapped = consoleModule.get_wrapped;
 
     pyConsole.stdout_callback = (text: string) => pushLog({ type: "out", text });
     pyConsole.stderr_callback = (text: string) => pushLog({ type: "err", text });
