@@ -1,4 +1,5 @@
 from functools import wraps
+from os import getenv
 from pathlib import Path
 from re import compile
 from typing import TYPE_CHECKING
@@ -13,7 +14,9 @@ from __main__ import *
 if TYPE_CHECKING:
     from stub import with_toast
 
-INDEX_URLS.insert(0, "/simple")
+
+if index_url := getenv("PYPI_INDEX_URL"):
+    INDEX_URLS.insert(0, index_url)
 
 pattern = compile(r"[\w-]+")
 
