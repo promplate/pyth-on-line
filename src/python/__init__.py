@@ -1,3 +1,4 @@
+from asyncio import get_running_loop
 from functools import wraps
 from os import getenv
 from pathlib import Path
@@ -48,17 +49,27 @@ async def install_with_toast(*args, **kwargs):
 micropip.install = install_with_toast
 
 
-async def install_promplate():
+def register_to_globals(value, name=""):
+    import __main__
+
+    __main__.__dict__[name or value.__name__] = value
+
+
+async def asynchronous_bootstrap():
     await install_with_toast(["promplate==0.3.4.8", "promplate-pyodide==0.0.3.3"])
 
     from promplate_pyodide import patch_all
 
     await patch_all()  # type: ignore
 
+    from .app.explain import explain
+
+    register_to_globals(explain)
+
 
 def main():
-    import __main__
-
     from .app import console
 
-    __main__.__dict__["consoleModule"] = console
+    register_to_globals(console, "consoleModule")
+
+    return get_running_loop().create_task(asynchronous_bootstrap())

@@ -50,8 +50,6 @@ async function initPy() {
 
   pyodideReady.set(true);
 
-  (async () => (await py.runPython("install_promplate")()))();
-
   return py;
 }
 
