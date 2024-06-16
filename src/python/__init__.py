@@ -22,7 +22,10 @@ def get_package_name(package: str):
     if package.endswith(".whl"):
         return Path(package).stem
 
-    return pattern.search(package).group()  # type: ignore
+    if match := pattern.search(package):
+        return match.group()
+    else:
+        return package
 
 
 @wraps(install)
@@ -43,7 +46,7 @@ micropip.install = install_with_toast
 
 
 async def install_promplate():
-    await install_with_toast(["promplate==0.3.4.6", "promplate-pyodide==0.0.3.2"])
+    await install_with_toast(["promplate==0.3.4.8", "promplate-pyodide==0.0.3.3"])
 
     from promplate_pyodide import patch_all
 
