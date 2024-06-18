@@ -2,13 +2,13 @@
   export let html: string;
 </script>
 
-<article class="min-w-full text-sm font-sans prose [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
+<article class="min-w-full text-sm text-neutral-2 font-sans prose [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
   {@html html}
 </article>
 
 <style>
   article :global(:where(h1, h2, h3, h4, h5, h6)) {
-    --uno: font-bold \!text-base text-white m-0;
+    --uno: font-bold text-1.1em text-white m-0;
   }
 
   article :global(strong) {
