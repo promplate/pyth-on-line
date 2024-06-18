@@ -22,6 +22,6 @@
   }
 </script>
 
-<button on:click={jump} class="absolute right-4 top-4 grid place-items-center rounded bg-transparent p-1 outline-none [&>div]:(p-2 sm:p-2.5) focus:(ring-1.2 ring-white/20 transition-background-color hover:bg-white/10)" on:mouseenter|once={preload} on:focus|once={preload} on:focus={() => (focused = true)} on:blur={() => (focused = false)} on:mouseenter={() => (hovered = true)} on:mouseleave={() => (hovered = false)}>
+<button on:click={jump} class="absolute right-4 top-4 grid place-items-center rounded p-1 outline-none [&>div]:(p-2 sm:p-2.5) focus:(ring-1.2 ring-white/20 transition-background-color hover:bg-white/10)" on:mouseenter|once={preload} on:focus|once={preload} on:focus={() => (focused = true)} on:blur={() => (focused = false)} on:mouseenter={() => (hovered = true)} on:mouseleave={() => (hovered = false)}>
   <div class={hovered || focused ? "i-ph-rocket-launch-fill" : "i-ph-rocket-launch"}></div>
 </button>

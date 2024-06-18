@@ -35,7 +35,7 @@
           error explainer
         </div>
       </div>
-      <button class="rounded-md bg-transparent p-1.5 text-white/80 transition-colors hover:(bg-red-3/10 text-red-3/80)" on:click={() => (errorInfo = undefined)}>
+      <button class="rounded-md p-1.5 text-white/80 transition-colors hover:(bg-red-3/10 text-red-3/80)" on:click={() => (errorInfo = undefined)}>
         <div class="i-material-symbols-close-rounded" />
       </button>
     </div>
