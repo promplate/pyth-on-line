@@ -233,10 +233,10 @@
   </svelte:fragment>
 </Modal>
 
-<Modal show={focusedError !== undefined}>
-  <svelte:fragment slot="content">
-    {#await import("$lib/components/ErrorExplainer.svelte") then { default: ErrorExplain }}
-      <svelte:component this={ErrorExplain} bind:errorInfo={focusedError} />
-    {/await}
-  </svelte:fragment>
-</Modal>
+{#await import("$lib/components/ErrorExplainer.svelte") then { default: ErrorExplainer }}
+  <Modal show={focusedError !== undefined}>
+    <svelte:fragment slot="content">
+      <svelte:component this={ErrorExplainer} bind:errorInfo={focusedError} />
+    </svelte:fragment>
+  </Modal>
+{/await}
