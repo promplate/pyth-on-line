@@ -18,8 +18,8 @@
   export let ready = false;
   export let status: Status = "complete";
   export let log: Item[] = [];
-  export let pyConsole: PyProxy;
-  export let complete: AutoComplete;
+  export let pyConsole: PyProxy | undefined;
+  export let complete: AutoComplete | undefined;
 
   let loading = 0;
 
@@ -32,8 +32,8 @@
     complete = consoleModule.complete;
     getWrapped = consoleModule.get_wrapped;
 
-    pyConsole.stdout_callback = (text: string) => pushLog({ type: "out", text });
-    pyConsole.stderr_callback = (text: string) => pushLog({ type: "err", text });
+    pyConsole!.stdout_callback = (text: string) => pushLog({ type: "out", text });
+    pyConsole!.stderr_callback = (text: string) => pushLog({ type: "err", text });
 
     ready = true;
   });
@@ -61,7 +61,7 @@
   }
 
   export async function push(source: string) {
-    const future: PyAwaitable & { syntax_check: Status; formatted_error: string } = pyConsole.push(source);
+    const future: PyAwaitable & { syntax_check: Status; formatted_error: string } = pyConsole!.push(source);
 
     let inputLog: Item = { type: "in", text: source, incomplete: status === "incomplete" };
     inputLog = pushLog(inputLog) ?? inputLog;
@@ -78,7 +78,7 @@
         const [result, repr] = await getWrapped(future);
         if (result != null) {
           pushLog({ type: "repr", text: repr }, inputLog);
-          pyConsole.globals.set("_", result);
+          pyConsole!.globals.set("_", result);
         }
       }
       catch (e) {
