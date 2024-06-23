@@ -4,13 +4,10 @@ from sys import path as sys_path
 from tempfile import TemporaryDirectory
 from typing import TYPE_CHECKING
 
-from pyodide.http import pyfetch
-
 if TYPE_CHECKING:
     from ...python import main
 
-
-sources: dict[str, str] = await (await pyfetch("/sources")).json()  # type: ignore
+    sources: dict[str, str] = {}
 
 
 temp = TemporaryDirectory()

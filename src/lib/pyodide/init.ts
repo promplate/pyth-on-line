@@ -1,11 +1,14 @@
 import type { ClientOptions } from "openai";
 
 import { pyodideReady } from "../stores";
+import initCode from "./load-sources.py?raw";
 import { dev } from "$app/environment";
 import * as env from "$env/static/public";
 import { cacheSingleton } from "$lib/utils/cache";
 import { getEnv } from "$lib/utils/env";
 import { withToast } from "$lib/utils/toast";
+import { OpenAI } from "openai";
+import * as version from "openai/version";
 
 let indexURL: string | undefined;
 
@@ -26,23 +29,23 @@ async function initPyodide() {
 
 const getPyodide = cacheSingleton(withToast({ loading: "loading pyodide runtime" })(initPyodide));
 
-async function initPy() {
-  const [py, { OpenAI }, version, { default: initCode }] = await Promise.all([
-    getPyodide(),
-    import("openai"),
-    import("openai/version"),
-    import("./load-sources.py?raw"),
-  ]);
-
-  class PatchedOpenAI extends OpenAI {
-    constructor(options: ClientOptions) {
-      if (!options.apiKey)
-        (options.apiKey = env.PUBLIC_OPENAI_API_KEY);
-      if (!options.baseURL)
-        options.baseURL = env.PUBLIC_OPENAI_BASE_URL;
-      super(options);
-    }
+class PatchedOpenAI extends OpenAI {
+  constructor(options: ClientOptions) {
+    if (!options.apiKey)
+      (options.apiKey = env.PUBLIC_OPENAI_API_KEY);
+    if (!options.baseURL)
+      options.baseURL = env.PUBLIC_OPENAI_BASE_URL;
+    super(options);
   }
+}
+
+async function getSources(): Promise<Record<string, string>> {
+  return await (await fetch("/sources")).json();
+}
+
+export const getPy = cacheSingleton(async () => {
+  const [py, sources] = await Promise.all([getPyodide(), getSources()]);
+  py.globals.set("sources", py.toPy(sources));
 
   py.registerJsModule("openai", { OpenAI: PatchedOpenAI, version, __all__: [] });
 
@@ -51,6 +54,4 @@ async function initPy() {
   pyodideReady.set(true);
 
   return py;
-}
-
-export const getPy = cacheSingleton(initPy);
+});
