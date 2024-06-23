@@ -38,7 +38,7 @@ sw.addEventListener("activate", (event) => {
 });
 
 sw.addEventListener("fetch", (event) => {
-  if (event.request.method !== "GET")
+  if (event.request.method !== "GET" || !event.request.url.startsWith("http"))
     return;
 
   async function respond() {
