@@ -1,5 +1,6 @@
 import type { ClientOptions } from "openai";
 
+import sources from "../../python";
 import { pyodideReady } from "../stores";
 import initCode from "./load-sources.py?raw";
 import { dev } from "$app/environment";
@@ -39,12 +40,8 @@ class PatchedOpenAI extends OpenAI {
   }
 }
 
-async function getSources(): Promise<Record<string, string>> {
-  return await (await fetch("/sources")).json();
-}
-
 export const getPy = cacheSingleton(async () => {
-  const [py, sources] = await Promise.all([getPyodide(), getSources()]);
+  const py = await getPyodide();
   py.globals.set("sources", py.toPy(sources));
 
   py.registerJsModule("openai", { OpenAI: PatchedOpenAI, version, __all__: [] });
