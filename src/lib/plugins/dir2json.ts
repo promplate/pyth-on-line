@@ -43,7 +43,7 @@ export default (): PluginOption => {
         const [parentPath, entries] = dirEntries.pop()!;
         const absoluteParentPath = path.join(dirPath, parentPath);
         promises.push(...entries.map(async (entry) => {
-          if (entry.isFile()) {
+          if (entry.isFile() && !entry.name.endsWith(".pyi") && !entry.name.endsWith(".d.ts")) {
             const filePath = path.join(absoluteParentPath, entry.name);
             const relativePath = path.relative(dirPath, filePath);
             const content = await fs.readFile(filePath, "utf-8");

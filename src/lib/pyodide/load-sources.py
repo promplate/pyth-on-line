@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     sources: dict[str, str] = {}
 
 
-temp = TemporaryDirectory()
+temp = TemporaryDirectory(prefix="runtime_")
 root = Path(temp.name)
 for path, source in sources.items():
     file = root / path
