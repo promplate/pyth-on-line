@@ -22,7 +22,7 @@ else
 
 async function initPyodide() {
   const { loadPyodide } = await import("pyodide");
-  const py = await loadPyodide({ indexURL, env: getEnv(), packages: ["micropip", "typing-extensions"] });
+  const py = await loadPyodide({ indexURL, env: getEnv(), packages: ["micropip"], args: dev ? [] : ["-O"] });
   py.globals.set("with_toast", withToast);
   pyodideReady.set(true);
   return py;
