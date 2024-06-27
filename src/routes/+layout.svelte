@@ -1,6 +1,7 @@
 <script>
   import "@unocss/reset/tailwind.css";
   import "uno.css";
+  import "@fontsource-variable/fira-code";
 
   import { dev } from "$app/environment";
   import { page } from "$app/stores";

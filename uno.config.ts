@@ -4,7 +4,7 @@ import { defineConfig, presetIcons, presetTypography, presetUno, presetWebFonts,
 const config = defineConfig({
   extractors: [extractorSvelte()],
   transformers: [transformerVariantGroup(), transformerDirectives()],
-  presets: [presetUno(), presetWebFonts({ provider: "bunny", fonts: { mono: "Fira Code:300,400,500,600,700" } }), presetIcons(), presetTypography()],
+  presets: [presetUno(), presetWebFonts({ provider: "none", fonts: { mono: "Fira Code Variable" } }), presetIcons(), presetTypography()],
 });
 
 export default config;
