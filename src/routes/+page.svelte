@@ -48,24 +48,28 @@
     inputRef.focus();
   });
 
-  async function pushMany(lines: string[], wait = true, hidden = false) {
+  async function pushMany(lines: string[], wait = true, hidden = false, finallySetInput = "") {
+    let promise: Promise<any> | null = null;
     for (const line of lines) {
-      let promise: Promise<any>;
       if (hidden) {
         promise = pyConsole.push(line);
       }
       else {
+        promise && (input = line);
+        wait && (await promise);
         pushHistory(line);
         promise = push(line);
       }
-      wait && (await promise);
     }
+    input = finallySetInput;
+    wait && (await promise);
   }
 
   async function pushBlock(source: string, wait = true, hidden = false) {
     const lines = patchSource(source.replaceAll("\r\n", "\n")).split("\n");
-    lines.length > 1 && (await pushMany(lines.slice(0, -1), wait, hidden));
-    input = lines.at(-1)!;
+    if (lines.length > 1) {
+      await pushMany(lines.slice(0, -1), wait, hidden, lines.at(-1)!);
+    }
   }
 
   let ready: boolean;
