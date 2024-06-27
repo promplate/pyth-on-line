@@ -1,4 +1,4 @@
-from importlib import import_module
+from importlib import import_module, invalidate_caches
 from pathlib import Path
 from sys import path as sys_path
 from tempfile import TemporaryDirectory
@@ -20,7 +20,10 @@ for path, source in sources.items():
 
 sys_path.insert(0, root.parent.as_posix())
 globals().update(import_module(root.name).__dict__)
-sys_path.pop(0)
 
-background_tasks = main()
-background_tasks.add_done_callback(lambda _: temp.cleanup())
+
+@main().add_done_callback
+def _(_):
+    temp.cleanup()
+    sys_path.pop(0)
+    invalidate_caches()

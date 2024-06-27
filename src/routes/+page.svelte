@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { AutoComplete, Item, Status } from "$lib/components/console/HeadlessConsole.svelte";
-  import type { PyProxy } from "pyodide/ffi";
+  import type { Console } from "$py/app/console";
   import type { ClipboardEventHandler, KeyboardEventHandler } from "svelte/elements";
 
   import { Err, In, Out, Repr } from "$lib/components/console";
@@ -21,7 +21,7 @@
   let input = "";
   let inputRef: HTMLInputElement;
 
-  let pyConsole: PyProxy;
+  let pyConsole: Console;
   let complete: AutoComplete;
   let status: Status;
 
@@ -52,7 +52,7 @@
     let promise: Promise<any> | null = null;
     for (const line of lines) {
       if (hidden) {
-        promise = pyConsole.push(line);
+        promise = pyConsole.push(line).future;
       }
       else {
         promise && (input = line);

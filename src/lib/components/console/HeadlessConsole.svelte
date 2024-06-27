@@ -1,5 +1,5 @@
 <script context="module" lang="ts">
-  import type { PyAwaitable, PyProxy, PythonError } from "pyodide/ffi";
+  import type { PyProxy, PythonError } from "pyodide/ffi";
 
   export interface Item {
     type: "out" | "err" | "in" | "repr";
@@ -12,28 +12,28 @@
 </script>
 
 <script lang="ts">
+  import type { Console } from "$py/app/console";
+
   import { getPy } from "$lib/pyodide";
   import { onMount } from "svelte";
 
   export let ready = false;
   export let status: Status = "complete";
   export let log: Item[] = [];
-  export let pyConsole: PyProxy | undefined;
+  export let pyConsole: Console;
   export let complete: AutoComplete | undefined;
 
   let loading = 0;
 
-  let getWrapped: (future: PyAwaitable) => Promise<[unknown, string]>;
-
   onMount(async () => {
     const py = await getPy();
-    const consoleModule = py.globals.get("consoleModule");
-    pyConsole = consoleModule.console;
-    complete = consoleModule.complete;
-    getWrapped = consoleModule.get_wrapped;
+    const consoleModule: PyProxy = py.globals.get("consoleModule");
+    pyConsole = consoleModule.Console();
+    consoleModule.destroy();
+    complete = pyConsole.complete;
 
-    pyConsole!.stdout_callback = (text: string) => pushLog({ type: "out", text });
-    pyConsole!.stderr_callback = (text: string) => pushLog({ type: "err", text });
+    pyConsole.console.stdout_callback = text => pushLog({ type: "out", text });
+    pyConsole.console.stderr_callback = text => pushLog({ type: "err", text });
 
     ready = true;
   });
@@ -61,33 +61,31 @@
   }
 
   export async function push(source: string) {
-    const future: PyAwaitable & { syntax_check: Status; formatted_error: string } = pyConsole!.push(source);
+    const res = pyConsole.push(source);
+    const { status } = res;
 
     let inputLog: Item = { type: "in", text: source, incomplete: status === "incomplete" };
     inputLog = pushLog(inputLog) ?? inputLog;
 
-    status = future.syntax_check;
     if (status === "syntax-error") {
-      pushLog({ type: "err", text: `Traceback (most recent call last):\n${future.formatted_error}` }, inputLog);
-      future.exception(); // to prevent an annoying warning
-      future.destroy();
+      pushLog({ type: "err", text: `Traceback (most recent call last):\n${res.formatted_error}` }, inputLog);
     }
     else if (status === "complete") {
       loading++;
       try {
-        const [result, repr] = await getWrapped(future);
-        if (result != null) {
+        const [proxy, repr] = await res.get_value_and_repl();
+        if (proxy != null) {
           pushLog({ type: "repr", text: repr }, inputLog);
-          pyConsole!.globals.set("_", result);
+          proxy.destroy && proxy.destroy();
         }
       }
       catch (e) {
-        const err = (future.formatted_error ?? (e as PythonError).message);
+        const err = (res.formatted_error ?? (e as PythonError).message);
         pushLog({ type: "err", text: err.slice(err.lastIndexOf("Traceback (most recent call last):")) }, inputLog);
       }
       finally {
+        res.destroy();
         loading--;
-        future.destroy();
       }
     }
   }
