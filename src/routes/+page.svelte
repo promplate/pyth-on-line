@@ -44,7 +44,7 @@
   let push: (source: string) => Promise<void>;
 
   onMount(async () => {
-    history.unshift(...(JSON.parse(localStorage.getItem("console-history") || "[]") as string[]).slice(0, 200));
+    history.unshift(...(JSON.parse(localStorage.getItem("console-history") || "[]") as string[]));
     inputRef.focus();
   });
 
@@ -77,7 +77,7 @@
   function pushHistory(source: string) {
     if (source.trim() && source !== history[0]) {
       history.unshift(source);
-      localStorage.setItem("console-history", JSON.stringify(history));
+      localStorage.setItem("console-history", JSON.stringify(history.slice(0, 200)));
     }
   }
 
@@ -104,8 +104,10 @@
   };
 
   const onKeyDown: KeyboardEventHandler<Document> = (event) => {
-    if (!event.ctrlKey && !event.metaKey && !event.altKey && !event.shiftKey && event.key.length === 1)
+    if (!event.ctrlKey && !event.metaKey && !event.altKey && event.key.length === 1)
       inputRef.focus();
+    else if (document.activeElement !== inputRef)
+      return;
 
     switch (event.key) {
       case "ArrowUp": {
