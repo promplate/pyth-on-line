@@ -67,9 +67,7 @@
 
   async function pushBlock(source: string, wait = true, hidden = false) {
     const lines = patchSource(source.replaceAll("\r\n", "\n")).split("\n");
-    if (lines.length > 1) {
-      await pushMany(lines.slice(0, -1), wait, hidden, lines.at(-1)!);
-    }
+    await pushMany(lines.slice(0, -1), wait, hidden, lines.at(-1));
   }
 
   let ready: boolean;
@@ -160,7 +158,7 @@
         if (inputRef.selectionStart === 0 && inputRef.selectionEnd === 0 && status === "incomplete") {
           const item = log.at(-1)!;
           const lines = item.text.split("\n");
-          pyConsole.buffer.pop();
+          pyConsole.console.buffer.pop();
           if (lines.length === 1) {
             log = [...log.slice(0, -1)];
             input = lines[0] + input;
