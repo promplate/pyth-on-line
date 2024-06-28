@@ -166,7 +166,7 @@
           }
           else {
             const lastLine = lines.pop()!;
-            log = [...log.slice(0, -1), { type: "in", text: lines.join("\n") }];
+            log = [...log.slice(0, -1), { type: "in", text: lines.join("\n"), incomplete: true }];
             input = lastLine + input;
           }
           history.pop();
