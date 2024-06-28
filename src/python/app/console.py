@@ -38,6 +38,7 @@ class Result:
 class EnhancedConsole(PyodideConsole):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        patch_linecache()
 
         with TemporaryDirectory(delete=False) as tempdir:
             sys.path.append(tempdir)
@@ -52,15 +53,30 @@ class EnhancedConsole(PyodideConsole):
     def _append_source_file(self, source: str):
         source += "\n"
         self.line_offset += source.count("\n")
+
         with self.fake_file.open("a+", encoding="utf-8") as file:
             file.write(source)
 
-    def runsource(self, source: str, filename="<console>"):
-        patch_linecache()
+    def _redo_append(self, source: str):
+        content = self.fake_file.read_text()
+        source += "\n"
+        self.line_offset -= source.count("\n")
 
+        assert content.endswith(source)
+        self.fake_file.write_text(content.removesuffix(source))
+
+    def runsource(self, source: str, filename="<console>"):
         fake_source = "\n" * self.line_offset + source
         self._append_source_file(source)
-        return super().runsource(fake_source, filename)
+
+        future = super().runsource(fake_source, filename)
+
+        @future.add_done_callback
+        def _(_):
+            if future.syntax_check == "incomplete":
+                self._redo_append(source)
+
+        return future
 
     def pop(self):
         assert self.buffer
