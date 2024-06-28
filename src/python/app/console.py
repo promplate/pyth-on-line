@@ -1,11 +1,16 @@
 import builtins
+import sys
 from collections import ChainMap
+from contextlib import suppress
 from functools import cached_property
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from typing import TYPE_CHECKING
 
 from pyodide.console import ConsoleFuture, PyodideConsole
 
 from .utils.bridge import js_api
+from .utils.patches import patch_linecache
 
 
 class ConsoleGlobals(ChainMap, dict):  # type: ignore
@@ -28,6 +33,34 @@ class Result:
         res = await self.future
         if res is not None:
             return repr(res)
+
+
+class EnhancedConsole(PyodideConsole):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        with TemporaryDirectory(delete=False) as tempdir:
+            sys.path.append(tempdir)
+            self.fake_file = Path(tempdir) / self.filename
+
+        self.line_offset = 0
+
+    def __del__(self):
+        with suppress(Exception):
+            sys.path.remove(str(self.fake_file.parent))
+
+    def _append_source_file(self, source: str):
+        source += "\n"
+        self.line_offset += source.count("\n")
+        with self.fake_file.open("a+", encoding="utf-8") as file:
+            file.write(source)
+
+    def runsource(self, source: str, filename="<console>"):
+        patch_linecache()
+
+        fake_source = "\n" * self.line_offset + source
+        self._append_source_file(source)
+        return super().runsource(fake_source, filename)
 
 
 class Console:
@@ -55,7 +88,7 @@ class Console:
 
             context.maps.append(Proxy())
 
-        return PyodideConsole(context)
+        return EnhancedConsole(context)
 
     @js_api
     def complete(self, source: str):

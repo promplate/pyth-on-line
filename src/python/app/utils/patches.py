@@ -1,6 +1,15 @@
 from functools import cache
+from inspect import getsource
 
 from .lock import with_lock
+
+
+@cache
+def patch_linecache():
+    import linecache
+
+    source = getsource(linecache).replace(" or (filename.startswith('<') and filename.endswith('>'))", "", 1)
+    exec(source, linecache.__dict__)
 
 
 @cache
