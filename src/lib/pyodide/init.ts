@@ -10,6 +10,7 @@ import { getEnv } from "$lib/utils/env";
 import { withToast } from "$lib/utils/toast";
 import { OpenAI } from "openai";
 import * as version from "openai/version";
+import { toast } from "svelte-sonner";
 
 let indexURL: string | undefined;
 
@@ -24,6 +25,7 @@ async function initPyodide() {
   const { loadPyodide } = await import("pyodide");
   const py = await loadPyodide({ indexURL, env: getEnv(), packages: ["micropip"], args: dev ? [] : ["-O"] });
   py.globals.set("with_toast", withToast);
+  py.globals.set("toast", toast);
   pyodideReady.set(true);
   return py;
 }

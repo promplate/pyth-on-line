@@ -1,6 +1,7 @@
 import builtins
 from collections import ChainMap
 from functools import cached_property
+from typing import TYPE_CHECKING
 
 from pyodide.console import ConsoleFuture, PyodideConsole
 
@@ -32,7 +33,7 @@ class Result:
 class Console:
     @cached_property
     def builtins_layer(self):
-        return {"__name__": "__main__", "__builtins__": builtins}
+        return {"__name__": "__main__", "__builtins__": builtins, "__doc__": None}
 
     @cached_property
     def console(self):
@@ -41,7 +42,18 @@ class Console:
         if __debug__:
             import __main__
 
-            context.maps.append(__main__.__dict__)
+            if TYPE_CHECKING:
+                from ..stub import toast
+            else:
+                toast = __main__.toast
+
+            class Proxy(dict):
+                def __getitem__(self, key: str):
+                    res = __main__.__dict__[key]  # raise KeyError if not found
+                    toast.warning(f"used {key} from __main__")
+                    return res
+
+            context.maps.append(Proxy())
 
         return PyodideConsole(context)
 
