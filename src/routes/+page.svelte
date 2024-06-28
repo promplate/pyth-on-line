@@ -48,6 +48,14 @@
     inputRef.focus();
   });
 
+  $: if ($pyodideReady && pyConsole) {
+    if (location.hash) {
+      const source = atob(decodeURIComponent(location.hash.slice(1)));
+      location.hash = "";
+      pushBlock(source);
+    }
+  }
+
   async function pushMany(lines: string[], wait = true, hidden = false, finallySetInput = "") {
     let promise: Promise<any> | null = null;
     for (const line of lines) {

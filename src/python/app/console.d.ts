@@ -1,5 +1,6 @@
-export class Result {
+export class Result<T> {
   status: "complete" | "incomplete" | "syntax-error";
+  future: Promise<T>;
   formatted_error?: string;
   async get_repr(): Promise<string | undefined>;
 }
@@ -13,5 +14,5 @@ class EnhancedConsole {
 export class ConsoleAPI {
   complete(source: string): [string[], number];
   console: EnhancedConsole;
-  async push(line: string): Result;
+  push(line: string): Result<any>;
 }
