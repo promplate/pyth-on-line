@@ -5,6 +5,7 @@
     type: "out" | "err" | "in" | "repr";
     text: string;
     incomplete?: boolean;
+    isTraceback?: boolean;
   }
 
   export type AutoComplete = (source: string) => [string[], number];
@@ -42,7 +43,7 @@
 
     const last = log.at(-1)!;
 
-    if (last.type === item.type && (item.type === "out" || (item.type === "in" && last.incomplete))) {
+    if (last.type === item.type && (item.type === "out" || (item.type === "in" && last.incomplete) || (item.type === "err" && !last.isTraceback && !item.isTraceback))) {
       last.text += item.type === "in" ? `\n${item.text}` : item.text;
       log = [...log];
       return last;
@@ -66,7 +67,7 @@
     inputLog = pushLog(inputLog) ?? inputLog;
 
     if (status === "syntax-error") {
-      pushLog({ type: "err", text: `Traceback (most recent call last):\n${res.formatted_error}` }, inputLog);
+      pushLog({ type: "err", text: `Traceback (most recent call last):\n${res.formatted_error}`, isTraceback: true }, inputLog);
     }
     else if (status === "complete") {
       loading++;
@@ -78,7 +79,7 @@
       }
       catch (e) {
         const err = (res.formatted_error ?? (e as PythonError).message);
-        pushLog({ type: "err", text: err.slice(err.lastIndexOf("Traceback (most recent call last):")) }, inputLog);
+        pushLog({ type: "err", text: err.slice(err.lastIndexOf("Traceback (most recent call last):")), isTraceback: true }, inputLog);
       }
       finally {
         loading--;
