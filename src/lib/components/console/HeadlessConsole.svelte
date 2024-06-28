@@ -45,6 +45,7 @@
 
     if (last.type === item.type && (item.type === "out" || (item.type === "in" && last.incomplete) || (item.type === "err" && !last.isTraceback && !item.isTraceback))) {
       last.text += item.type === "in" ? `\n${item.text}` : item.text;
+      last.incomplete = item.incomplete;
       log = [...log];
       return last;
     }
