@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite dev",
     "lint": "eslint .",
-    "build": "vite build",
+    "build": "vite build --sourcemap",
     "preview": "vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"

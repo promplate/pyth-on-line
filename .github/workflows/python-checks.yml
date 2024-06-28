@@ -1,6 +1,6 @@
 name: python checks
 
-on: [push, pull_request]
+on: [push, pull_request, workflow_dispatch]
 
 jobs:
   check:
@@ -17,8 +17,7 @@ jobs:
         run: |
           pip install uv
           uv pip install pdm isort black --compile-bytecode
-          pdm export --pyproject > requirements.txt
-          uv pip install -r requirements.txt
+          pdm export --pyproject | uv pip install -r -
           yarn global add pyright
       - name: Run isort check
         run: |
