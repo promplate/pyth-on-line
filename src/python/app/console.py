@@ -71,7 +71,7 @@ class EnhancedConsole(PyodideConsole):
         self.fake_file.write_text(source[: source.rindex("\n", None, -1) + 1])
 
 
-class Console:
+class ConsoleAPI:
     @cached_property
     def builtins_layer(self):
         return {"__name__": "__main__", "__builtins__": builtins, "__doc__": None}
@@ -102,7 +102,6 @@ class Console:
     def complete(self, source: str):
         return self.console.complete(source)
 
-    @js_api
     def push(self, line: str):
         res = Result(future := self.console.push(line))
 

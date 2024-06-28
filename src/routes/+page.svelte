@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { AutoComplete, Item, Status } from "$lib/components/console/HeadlessConsole.svelte";
-  import type { Console } from "$py/app/console";
+  import type { ConsoleAPI } from "$py/app/console";
   import type { ClipboardEventHandler, KeyboardEventHandler } from "svelte/elements";
 
   import { Err, In, Out, Repr } from "$lib/components/console";
@@ -21,7 +21,7 @@
   let input = "";
   let inputRef: HTMLInputElement;
 
-  let pyConsole: Console;
+  let pyConsole: ConsoleAPI;
   let complete: AutoComplete;
   let status: Status;
 

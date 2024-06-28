@@ -13,7 +13,7 @@
 </script>
 
 <script lang="ts">
-  import type { Console } from "$py/app/console";
+  import type { ConsoleAPI } from "$py/app/console";
 
   import { getPy } from "$lib/pyodide";
   import { onMount } from "svelte";
@@ -21,14 +21,14 @@
   export let ready = false;
   export let status: Status = "complete";
   export let log: Item[] = [];
-  export let pyConsole: Console;
+  export let pyConsole: ConsoleAPI;
   export let complete: AutoComplete | undefined;
 
   let loading = 0;
 
   onMount(async () => {
     const py = await getPy();
-    pyConsole = py.runPython("consoleModule.Console()");
+    pyConsole = py.runPython("consoleModule.ConsoleAPI()");
     complete = pyConsole.complete;
 
     pyConsole.console.stdout_callback = text => pushLog({ type: "out", text });

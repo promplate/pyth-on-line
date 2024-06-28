@@ -1,19 +1,17 @@
-import type { PyProxy } from "pyodide/ffi";
-
-export class Result extends PyProxy {
+export class Result {
   status: "complete" | "incomplete" | "syntax-error";
   formatted_error?: string;
   async get_repr(): Promise<string | undefined>;
 }
 
-class PyodideConsole extends PyProxy {
+class EnhancedConsole {
   stdout_callback(out: string);
   stderr_callback(err: string);
   pop(): void;
 }
 
-export class Console {
+export class ConsoleAPI {
   complete(source: string): [string[], number];
-  console: PyodideConsole;
+  console: EnhancedConsole;
   async push(line: string): Result;
 }
