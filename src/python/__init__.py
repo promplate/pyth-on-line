@@ -12,7 +12,7 @@ from pyodide.ffi import create_once_callable
 
 from __main__ import *
 
-from .app.utils.patches import patch_input
+from .app.utils.patches import patch_console, patch_input
 
 if TYPE_CHECKING:
     from stub import with_toast
@@ -75,5 +75,6 @@ def main():
     register_to_globals(console, "consoleModule")
 
     patch_input()
+    patch_console()
 
     return get_running_loop().create_task(asynchronous_bootstrap())

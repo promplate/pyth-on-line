@@ -1,5 +1,14 @@
 from functools import cache
 
+from .lock import with_lock
+
+
+@cache
+def patch_console():
+    from pyodide.console import PyodideConsole
+
+    PyodideConsole.runcode = with_lock(PyodideConsole.runcode)
+
 
 @cache
 def patch_input():
