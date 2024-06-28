@@ -1,5 +1,5 @@
 <script context="module" lang="ts">
-  import type { PyProxy, PythonError } from "pyodide/ffi";
+  import type { PythonError } from "pyodide/ffi";
 
   export interface Item {
     type: "out" | "err" | "in" | "repr";
@@ -27,9 +27,7 @@
 
   onMount(async () => {
     const py = await getPy();
-    const consoleModule: PyProxy = py.globals.get("consoleModule");
-    pyConsole = consoleModule.Console();
-    consoleModule.destroy();
+    pyConsole = py.runPython("consoleModule.Console()");
     complete = pyConsole.complete;
 
     pyConsole.console.stdout_callback = text => pushLog({ type: "out", text });
@@ -83,7 +81,6 @@
         pushLog({ type: "err", text: err.slice(err.lastIndexOf("Traceback (most recent call last):")) }, inputLog);
       }
       finally {
-        res.destroy();
         loading--;
       }
     }
