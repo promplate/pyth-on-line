@@ -1,4 +1,4 @@
-import type { PyProxy, PyProxyWithLength } from "pyodide/ffi";
+import type { PyProxy } from "pyodide/ffi";
 
 export class Result extends PyProxy {
   status: "complete" | "incomplete" | "syntax-error";
@@ -9,9 +9,7 @@ export class Result extends PyProxy {
 class PyodideConsole extends PyProxy {
   stdout_callback(out: string);
   stderr_callback(err: string);
-  buffer: PyProxyWithLength & {
-    pop: (index = -1) => string;
-  };
+  pop(): void;
 }
 
 export class Console {

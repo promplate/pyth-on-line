@@ -62,6 +62,14 @@ class EnhancedConsole(PyodideConsole):
         self._append_source_file(source)
         return super().runsource(fake_source, filename)
 
+    def pop(self):
+        assert self.buffer
+        self.buffer.pop()
+        self.line_offset -= 1
+
+        source = self.fake_file.read_text()
+        self.fake_file.write_text(source[: source.rindex("\n", None, -1) + 1])
+
 
 class Console:
     @cached_property
