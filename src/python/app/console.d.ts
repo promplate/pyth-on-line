@@ -3,8 +3,7 @@ import type { PyProxy } from "pyodide/ffi";
 export class Result extends PyProxy {
   status: "complete" | "incomplete" | "syntax-error";
   formatted_error?: string;
-  future: Promise<any>;
-  async get_value_and_repl(): Promise<[PyProxy | null, string]>;
+  async get_repr(): Promise<string | undefined>;
 }
 
 class PyodideConsole extends PyProxy {

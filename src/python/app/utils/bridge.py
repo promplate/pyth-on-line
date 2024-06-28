@@ -2,7 +2,7 @@ from asyncio import ensure_future
 from functools import wraps
 from inspect import isawaitable
 
-from pyodide.ffi import JsProxy, create_proxy, to_js
+from pyodide.ffi import JsProxy, to_js
 from pyodide.webloop import PyodideTask
 
 
@@ -26,14 +26,3 @@ def js_api(func):
     setattr(wrapper, "_is_js_api", True)
 
     return wrapper
-
-
-def patch_api_methods(obj):
-    for k, v in obj.__dict__.items():
-        if callable(v) and getattr(v, "_is_js_api", True):
-            setattr(obj, k, create_proxy(v))
-
-
-class JsAPI:
-    def __init__(self):
-        patch_api_methods(self)

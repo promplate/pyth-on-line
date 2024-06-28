@@ -73,10 +73,9 @@
     else if (status === "complete") {
       loading++;
       try {
-        const [proxy, repr] = await res.get_value_and_repl();
-        if (proxy != null) {
-          pushLog({ type: "repr", text: repr }, inputLog);
-          proxy.destroy && proxy.destroy();
+        const text = await res.get_repr();
+        if (text !== undefined) {
+          pushLog({ type: "repr", text }, inputLog);
         }
       }
       catch (e) {

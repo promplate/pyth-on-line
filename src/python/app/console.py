@@ -3,23 +3,8 @@ from collections import ChainMap
 from functools import cached_property
 
 from pyodide.console import ConsoleFuture, PyodideConsole
-from pyodide.ffi import JsArray, to_js
 
-from .utils.bridge import JsAPI, js_api
-
-
-async def get_wrapped(future: ConsoleFuture):
-    res = await future
-    return to_js([res, None if res is None else repr(res)], depth=1)
-
-
-def input(prompt=""):
-    from js import window
-
-    return window.prompt(prompt) or ""
-
-
-builtins.input = input
+from .utils.bridge import js_api
 
 
 class ConsoleGlobals(ChainMap, dict):  # type: ignore
@@ -27,22 +12,24 @@ class ConsoleGlobals(ChainMap, dict):  # type: ignore
         return repr(self.maps[0])
 
 
-class Result(JsAPI):
+class Result:
     def __init__(self, future: ConsoleFuture):
-        super().__init__()
         self.future = future
         self.status = future.syntax_check
+
+        future.add_done_callback(lambda fut: fut.exception())  # to prevent an annoying warning
 
     @property
     def formatted_error(self):
         return self.future.formatted_error
 
-    @js_api
-    async def get_value_and_repl(self):
-        return await get_wrapped(self.future)
+    async def get_repr(self):
+        res = await self.future
+        if res is not None:
+            return repr(res)
 
 
-class Console(JsAPI):
+class Console:
     @cached_property
     def builtins_layer(self):
         return {"__name__": "__main__", "__builtins__": builtins}
@@ -59,8 +46,8 @@ class Console(JsAPI):
         return PyodideConsole(context)
 
     @js_api
-    def complete(self, source: str) -> JsArray:
-        return to_js(self.console.complete(source), depth=2)
+    def complete(self, source: str):
+        return self.console.complete(source)
 
     @js_api
     def push(self, line: str):
@@ -68,7 +55,7 @@ class Console(JsAPI):
 
         @future.add_done_callback
         def _(_):
-            if future.syntax_check == "complete" and (res := future.result()) is not None:
-                self.builtins_layer["_"] = res
+            if future.syntax_check == "complete" and future.exception() is None:
+                self.builtins_layer["_"] = future.result()
 
         return res
