@@ -44,7 +44,7 @@
 
     const last = log.at(-1)!;
 
-    if (last.type === item.type && (item.type === "out" || (item.type === "in" && item.incomplete))) {
+    if (last.type === item.type && (item.type === "out" || (item.type === "in" && last.incomplete))) {
       last.text += item.type === "in" ? `\n${item.text}` : item.text;
       log = [...log];
       return last;
@@ -62,7 +62,7 @@
 
   export async function push(source: string) {
     const res = pyConsole.push(source);
-    const { status } = res;
+    status = res.status;
 
     let inputLog: Item = { type: "in", text: source, incomplete: status === "incomplete" };
     inputLog = pushLog(inputLog) ?? inputLog;
