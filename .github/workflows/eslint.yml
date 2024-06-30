@@ -1,6 +1,6 @@
 name: eslint check
 
-on: [push, pull_request, workflow_dispatch]
+on: [push, pull_request, workflow_dispatch, workflow_call]
 
 jobs:
   check:
@@ -10,6 +10,8 @@ jobs:
     runs-on: ${{ matrix.os }}-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Pull changes
+        run: git pull
       - uses: oven-sh/setup-bun@v1
       - name: Install modules
         run: bun install
