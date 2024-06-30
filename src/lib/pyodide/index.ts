@@ -1,1 +1,1 @@
-export { getPy } from "./init";
+export { getPy } from "./get-py";
