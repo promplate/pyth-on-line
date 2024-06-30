@@ -1,7 +1,42 @@
-from functools import cache
+from functools import cache, wraps
 from inspect import getsource
+from os import getenv
+from typing import TYPE_CHECKING
+
+import micropip
+from pyodide.ffi import create_once_callable
 
 from .lock import with_lock
+from .package import get_package_name
+
+if TYPE_CHECKING:
+    from stub import with_toast
+else:
+    from __main__ import with_toast
+
+
+@cache
+def patch_install():
+    from micropip import install
+    from micropip.package_index import INDEX_URLS
+
+    if index_url := getenv("PYPI_INDEX_URL"):
+        INDEX_URLS.insert(0, index_url)
+
+    @wraps(install)
+    async def install_with_toast(*args, **kwargs):
+        r = kwargs.get("requirements") or args[0]
+        r = [r] if isinstance(r, str) else r
+        r = list(map(get_package_name, r))
+
+        @with_toast(loading=f"pip install {' '.join(r)}")
+        @create_once_callable
+        async def _():
+            return install(*args, **kwargs)
+
+        return await _()  # type: ignore
+
+    micropip.install = install_with_toast
 
 
 @cache

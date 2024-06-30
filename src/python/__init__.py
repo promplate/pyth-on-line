@@ -1,54 +1,8 @@
-from asyncio import get_running_loop
-from functools import wraps
-from os import getenv
-from pathlib import Path
-from re import compile
-from typing import TYPE_CHECKING
-
-import micropip
-from micropip import install
-from micropip.package_index import INDEX_URLS
-from pyodide.ffi import create_once_callable
+from asyncio import ensure_future
 
 from __main__ import *
 
-from .app.utils.patches import patch_console, patch_input
-
-if TYPE_CHECKING:
-    from stub import with_toast
-
-
-if index_url := getenv("PYPI_INDEX_URL"):
-    INDEX_URLS.insert(0, index_url)
-
-pattern = compile(r"[\w-]+")
-
-
-def get_package_name(package: str):
-    if package.endswith(".whl"):
-        return Path(package).stem
-
-    if match := pattern.search(package):
-        return match.group()
-    else:
-        return package
-
-
-@wraps(install)
-async def install_with_toast(*args, **kwargs):
-    r = kwargs.get("requirements") or args[0]
-    r = [r] if isinstance(r, str) else r
-    r = list(map(get_package_name, r))
-
-    @with_toast(loading=f"pip install {' '.join(r)}")
-    @create_once_callable
-    async def _():
-        return install(*args, **kwargs)
-
-    return await _()  # type: ignore
-
-
-micropip.install = install_with_toast
+from .app.utils.patches import patch_console, patch_input, patch_install
 
 
 def register_to_globals(value, name=""):
@@ -58,7 +12,9 @@ def register_to_globals(value, name=""):
 
 
 async def asynchronous_bootstrap():
-    await install_with_toast(["promplate==0.3.4.8", "promplate-pyodide==0.0.3.3"])
+    from micropip import install
+
+    await install(["promplate==0.3.4.8", "promplate-pyodide==0.0.3.3"])
 
     from promplate_pyodide import patch_all
 
@@ -74,7 +30,8 @@ def main():
 
     register_to_globals(console, "consoleModule")
 
+    patch_install()
     patch_input()
     patch_console()
 
-    return get_running_loop().create_task(asynchronous_bootstrap())
+    return ensure_future(asynchronous_bootstrap())
