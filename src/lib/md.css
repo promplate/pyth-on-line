@@ -1,0 +1,19 @@
+.prose :where(h1, h2, h3, h4, h5, h6) {
+  @apply m-0 text-1.1em text-white font-bold;
+}
+
+.prose strong {
+  @apply text-white font-bold;
+}
+
+.prose pre {
+  @apply px-3 py-4 leading-relaxed;
+}
+
+.prose pre code {
+  @apply translate-none whitespace-pre bg-transparent;
+}
+
+.prose code {
+  @apply mx-0.2 inline-block whitespace-normal rounded bg-white/10 px-1 py-0.2 text-0.8em text-white font-normal -my-0.2 -translate-y-0.1em after:content-none before:content-none;
+}
