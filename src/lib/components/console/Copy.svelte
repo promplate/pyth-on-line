@@ -1,6 +1,5 @@
 <script lang="ts">
   import Markdown from "../Markdown.svelte";
-  import { md } from "$lib/markdown";
   import { toast } from "svelte-sonner";
 
   export let text: string;
@@ -10,9 +9,7 @@
 
     const n = text.split("\n").length;
 
-    const html = await md`successfully copied \`${n}\` ${n === 1 ? "line" : "lines"} to clipboard`;
-
-    toast.success(Markdown, { componentProps: { html } });
+    toast.success(Markdown, { componentProps: { text: `successfully copied \`${n}\` ${n === 1 ? "line" : "lines"} to clipboard` } });
     navigator.clipboard.writeText(text);
   }
 </script>
