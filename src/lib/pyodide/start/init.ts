@@ -1,7 +1,7 @@
 import type { PyProxy } from "pyodide/ffi";
 
-import patches from "../../python/patches";
-import source from "./load-sources.py?raw";
+import patches from "../../../python/patches";
+import loader from "./loader.py?raw";
 import { dev } from "$app/environment";
 import * as env from "$env/static/public";
 import { cacheSingleton } from "$lib/utils/cache";
@@ -18,7 +18,7 @@ else if (dev)
 else
   indexURL = env.PUBLIC_PYODIDE_INDEX_URL ?? "/pyodide/";
 
-export const getMinimalPyodide = cacheSingleton(withToast({ loading: "loading pyodide runtime" })(async () => {
+const getMinimalPyodide = cacheSingleton(withToast({ loading: "loading pyodide runtime" })(async () => {
   const { loadPyodide } = await import("pyodide");
   const py = await loadPyodide({ indexURL, env: getEnv(), packages: ["micropip"], args: dev ? [] : ["-O"] });
   py.globals.set("with_toast", withToast);
@@ -26,15 +26,20 @@ export const getMinimalPyodide = cacheSingleton(withToast({ loading: "loading py
   return py;
 }));
 
-export const getSetupModule = cacheSingleton(async () => {
+const getSetupModule = cacheSingleton(async () => {
   const py = await getMinimalPyodide();
-  return py.runPython(source) as (sources: Record<string, string>, moduleName: string) => PyProxy;
+  return py.runPython(loader) as (sources: Record<string, string>, moduleName: string) => PyProxy;
 });
 
-export const getAtomicPy = cacheSingleton(async () => {
+export async function setupModule(sources: Record<string, string>, moduleName: string) {
   const setupModule = await getSetupModule();
   const py = await getMinimalPyodide();
-  setupModule(py.toPy(patches), "patches");
+  setupModule(py.toPy(sources), moduleName);
+}
+
+export const getPyodide = cacheSingleton(async () => {
+  const py = await getMinimalPyodide();
+  await setupModule(patches, "patches");
   py.pyimport("patches.patches");
   return py;
 });

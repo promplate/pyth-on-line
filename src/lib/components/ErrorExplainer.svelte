@@ -2,7 +2,7 @@
   import Markdown from "./Markdown.svelte";
   import { draggable } from "@neodrag/svelte";
   import { renderMarkdown } from "$lib/markdown";
-  import { explain } from "$lib/pyodide/explain";
+  import { explain } from "$lib/pyodide/start/chat";
   import { onMount } from "svelte";
   import { cubicIn, cubicOut } from "svelte/easing";
   import { scale } from "svelte/transition";

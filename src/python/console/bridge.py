@@ -23,6 +23,4 @@ def js_api(func):
     def wrapper(*args, **kwargs):
         return _to_js(func(*map(_to_py, args), **{k: _to_py(v) for k, v in kwargs.items()}))
 
-    setattr(wrapper, "_is_js_api", True)
-
     return wrapper

@@ -1,10 +1,8 @@
 import type { ClientOptions } from "openai";
 
-import console from "../../python/console";
-import { loadChat } from "./explain";
-import { getAtomicPy as getAtomicPyodide, getSetupModule } from "./init";
+import chat from "../../../python/chat";
+import { getPyodide, setupModule } from "./init";
 import * as env from "$env/static/public";
-import { pyodideReady } from "$lib/stores";
 import { cacheSingleton } from "$lib/utils/cache";
 import { OpenAI } from "openai";
 import * as version from "openai/version";
@@ -19,17 +17,16 @@ class PatchedOpenAI extends OpenAI {
   }
 }
 
-export const getPy = cacheSingleton(async () => {
-  const py = await getAtomicPyodide();
-  const setupModule = await getSetupModule();
-
+export const loadChat = cacheSingleton(async () => {
+  const py = await getPyodide();
   py.registerJsModule("openai", { OpenAI: PatchedOpenAI, version, __all__: [] });
-
-  setupModule(py.toPy(console), "console");
-
-  pyodideReady.set(true);
-
-  loadChat();
-
-  return py;
+  await setupModule(chat, "chat");
+  await py.pyimport("chat.install_requirements");
 });
+
+export async function* explain(traceback: string, code: string): AsyncGenerator<string> {
+  const py = await getPyodide();
+  await loadChat();
+  const explain = py.pyimport("chat.explain").explain;
+  yield * explain(traceback, code);
+}

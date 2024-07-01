@@ -15,7 +15,7 @@
 <script lang="ts">
   import type { ConsoleAPI } from "$py/console/console";
 
-  import { getPy } from "$lib/pyodide";
+  import getPy from "$lib/pyodide";
   import { onDestroy, onMount } from "svelte";
 
   export let ready = false;
@@ -27,7 +27,7 @@
   let loading = 0;
 
   onMount(async () => {
-    const py = await getPy();
+    const py = await getPy({ console: true });
     pyConsole = (py.pyimport("console.console")).ConsoleAPI();
     complete = pyConsole.complete;
 
