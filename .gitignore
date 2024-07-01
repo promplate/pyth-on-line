@@ -14,3 +14,4 @@ vite.config.ts.timestamp-*
 .vercel
 .netlify
 /.pdm-python
+/src/python/**/index.d.ts

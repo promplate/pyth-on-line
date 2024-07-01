@@ -58,7 +58,13 @@ export default ({ includes }: { includes: string[] }): PluginOption => {
         promises.length = 0;
       }
       await Promise.all(promises);
-      return `export default ${JSON.stringify(files)};`;
+
+      const fileContent = `export default ${JSON.stringify(files)};`;
+
+      // generate .d.ts file for this directory
+      await fs.writeFile(path.join(dirPath, "index.d.ts"), fileContent, "utf-8");
+
+      return fileContent;
     },
   };
 };
