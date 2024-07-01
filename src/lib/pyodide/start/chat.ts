@@ -23,10 +23,3 @@ export const loadChat = cacheSingleton(async () => {
   await setupModule(chat, "chat");
   await py.pyimport("chat.install_requirements");
 });
-
-export async function* explain(traceback: string, code: string): AsyncGenerator<string> {
-  const py = await getPyodide();
-  await loadChat();
-  const explain = py.pyimport("chat.explain").explain;
-  yield * explain(traceback, code);
-}
