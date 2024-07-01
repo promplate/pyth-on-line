@@ -64,3 +64,9 @@ def patch_input():
         return window.prompt(prompt) or ""
 
     builtins.input = input
+
+
+patch_install()
+patch_linecache()
+patch_console()
+patch_input()

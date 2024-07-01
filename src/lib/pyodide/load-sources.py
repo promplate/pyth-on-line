@@ -1,29 +1,22 @@
 from pathlib import Path
 from sys import modules
 from sys import path as sys_path
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    sources: dict[str, str] = {}
-
 
 root = Path("/runtime_sources/python")
-for path, source in sources.items():
-    file = root / path
-    if not file.parent.is_dir():
-        file.parent.mkdir(parents=True)
-    file.write_text(source, "utf-8")
 
-sys_path.insert(0, root.parent.as_posix())
-for name in list(modules):
-    if name.startswith("python"):
-        del modules[name]
-        print(f"unloaded {name}")
+sys_path.insert(0, root.as_posix())
 
 
-from python import main
+def setup_module(sources: dict[str, str], module_name: str):
+    for path, source in sources.items():
+        file = root / module_name / path
+        print(file)
+        if not file.parent.is_dir():
+            file.parent.mkdir(parents=True)
+        file.write_text(source, "utf-8")
+
+        if __debug__ and (name := path.replace("/", ".")) in modules:
+            del modules[name]  # reload module at dev time
 
 
-@main().add_done_callback
-def _(_):
-    sys_path.pop(0)
+setup_module

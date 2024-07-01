@@ -1,9 +1,10 @@
 import type { ClientOptions } from "openai";
 
-import sources from "../../python";
-import { getPyodide } from "./init";
-import initCode from "./load-sources.py?raw";
+import console from "../../python/console";
+import { loadChat } from "./explain";
+import { getAtomicPy as getAtomicPyodide, getSetupModule } from "./init";
 import * as env from "$env/static/public";
+import { pyodideReady } from "$lib/stores";
 import { cacheSingleton } from "$lib/utils/cache";
 import { OpenAI } from "openai";
 import * as version from "openai/version";
@@ -19,12 +20,16 @@ class PatchedOpenAI extends OpenAI {
 }
 
 export const getPy = cacheSingleton(async () => {
-  const py = await getPyodide();
-  py.globals.set("sources", py.toPy(sources));
+  const py = await getAtomicPyodide();
+  const setupModule = await getSetupModule();
 
   py.registerJsModule("openai", { OpenAI: PatchedOpenAI, version, __all__: [] });
 
-  await py.runPythonAsync(initCode);
+  setupModule(py.toPy(console), "console");
+
+  pyodideReady.set(true);
+
+  loadChat();
 
   return py;
 });

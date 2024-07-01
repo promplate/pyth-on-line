@@ -9,8 +9,7 @@ from typing import TYPE_CHECKING
 
 from pyodide.console import ConsoleFuture, PyodideConsole
 
-from .utils.bridge import js_api
-from .utils.patches import patch_linecache
+from .bridge import js_api
 
 
 class ConsoleGlobals(ChainMap, dict):  # type: ignore
@@ -38,7 +37,6 @@ class Result:
 class EnhancedConsole(PyodideConsole):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        patch_linecache()
 
         for path in sys.path[:]:
             if (file := Path(path) / self.filename).is_file():

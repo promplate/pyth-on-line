@@ -1,8 +1,8 @@
 <script lang="ts">
   import Markdown from "./Markdown.svelte";
   import { draggable } from "@neodrag/svelte";
-  import { explain } from "$lib/examples/explain";
   import { renderMarkdown } from "$lib/markdown";
+  import { explain } from "$lib/pyodide/explain";
   import { onMount } from "svelte";
   import { cubicIn, cubicOut } from "svelte/easing";
   import { scale } from "svelte/transition";

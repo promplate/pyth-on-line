@@ -13,7 +13,7 @@
 </script>
 
 <script lang="ts">
-  import type { ConsoleAPI } from "$py/app/console";
+  import type { ConsoleAPI } from "$py/console/console";
 
   import { getPy } from "$lib/pyodide";
   import { onDestroy, onMount } from "svelte";
@@ -28,7 +28,7 @@
 
   onMount(async () => {
     const py = await getPy();
-    pyConsole = py.runPython("consoleModule.ConsoleAPI()");
+    pyConsole = (py.pyimport("console.console")).ConsoleAPI();
     complete = pyConsole.complete;
 
     pyConsole.console.stdout_callback = text => pushLog({ type: "out", text });
