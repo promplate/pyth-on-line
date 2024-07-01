@@ -107,6 +107,7 @@
     await pushBlock(textBefore + text + textAfter);
     if (distanceToEnd)
       inputRef.setSelectionRange(input.length - distanceToEnd, input.length - distanceToEnd);
+    setCusorToEnd();
   };
 
   const onKeyDown: KeyboardEventHandler<Document> = (event) => {
