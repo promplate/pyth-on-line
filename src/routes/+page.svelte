@@ -105,9 +105,9 @@
     const textAfter = input.slice(inputRef.selectionEnd!);
     const distanceToEnd = input.length - inputRef.selectionEnd!;
     await pushBlock(textBefore + text + textAfter);
+    inputRef.focus();
     if (distanceToEnd)
       inputRef.setSelectionRange(input.length - distanceToEnd, input.length - distanceToEnd);
-    setCusorToEnd();
   };
 
   const onKeyDown: KeyboardEventHandler<Document> = (event) => {

@@ -13,6 +13,6 @@ const transformers: ShikiTransformer[] = [
   { pre: (node) => { node.properties.tabindex = "-1"; } },
 ];
 
-export async function highlight(lang: string, code: string) {
+export async function highlight(lang = "text", code: string) {
   return (await getHighlighter(lang)).codeToHtml(code, { lang, theme: "vitesse-dark", transformers });
 }

@@ -7,7 +7,7 @@
   export let code: string;
   export let collapse = false;
   export let portal = false;
-  export let lang = "python";
+  export let lang = "text";
 
   export let id: string | null = null;
   export let previous: SourceRef[] = [];
@@ -20,7 +20,7 @@
 
 </script>
 
-<section class:shrink-0={!collapse} class="not-prose relative overflow-y-scroll b-1 b-white/10 rounded-md bg-#121212 [&>pre]:!line-height-relaxed">
+<section class:shrink-0={!collapse} class="not-prose relative overflow-y-scroll rounded-md [&>pre]:!line-height-relaxed">
   {#key code}
     {#await highlight(lang, code)}
       <pre class="text-white/70">{code}</pre>
@@ -35,7 +35,7 @@
 
 <style>
   section :global(pre) {
-    --uno: p-5 text-xs sm:text-sm font-mono w-fit;
+    --uno: font-mono;
   }
 
   section :global(pre *) {
