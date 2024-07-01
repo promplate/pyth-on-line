@@ -2,7 +2,7 @@ import { type Dirent, existsSync, promises as fs } from "node:fs";
 import path from "node:path";
 import { type PluginOption, normalizePath } from "vite";
 
-export default (): PluginOption => {
+export default ({ includes }: { includes: string[] }): PluginOption => {
   return {
     name: "dir-as-json",
 
@@ -43,7 +43,7 @@ export default (): PluginOption => {
         const [parentPath, entries] = dirEntries.pop()!;
         const absoluteParentPath = path.join(dirPath, parentPath);
         promises.push(...entries.map(async (entry) => {
-          if (entry.isFile() && !entry.name.endsWith(".pyi") && !entry.name.endsWith(".d.ts")) {
+          if (entry.isFile() && includes.some(ext => entry.name.endsWith(ext))) {
             const filePath = path.join(absoluteParentPath, entry.name);
             this.addWatchFile(filePath);
             const relativePath = path.relative(dirPath, filePath);

@@ -4,6 +4,6 @@ import Unocss from "unocss/vite";
 import { defineConfig } from "vite";
 
 export default defineConfig({
-  plugins: [Unocss(), sveltekit(), dir2json()],
+  plugins: [Unocss(), sveltekit(), dir2json({ includes: ["py", "j2"] })],
   assetsInclude: ["src/python/**/*"],
 });
