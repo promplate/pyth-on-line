@@ -40,6 +40,11 @@ class EnhancedConsole(PyodideConsole):
         super().__init__(*args, **kwargs)
         patch_linecache()
 
+        for path in sys.path[:]:
+            if (file := Path(path) / self.filename).is_file():
+                file.unlink()
+                sys.path.remove(path)
+
         with TemporaryDirectory(delete=False) as tempdir:
             sys.path.append(tempdir)
             self.fake_file = Path(tempdir) / self.filename
@@ -48,6 +53,7 @@ class EnhancedConsole(PyodideConsole):
 
     def __del__(self):
         with suppress(Exception):
+            self.fake_file.unlink()
             sys.path.remove(str(self.fake_file.parent))
 
     def _append_source_file(self, source: str):

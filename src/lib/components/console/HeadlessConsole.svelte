@@ -16,7 +16,7 @@
   import type { ConsoleAPI } from "$py/app/console";
 
   import { getPy } from "$lib/pyodide";
-  import { onMount } from "svelte";
+  import { onDestroy, onMount } from "svelte";
 
   export let ready = false;
   export let status: Status = "complete";
@@ -36,6 +36,8 @@
 
     ready = true;
   });
+
+  onDestroy(() => pyConsole?.destroy());
 
   export function pushLog(item: Item, behind?: Item) {
     if (!log.length)

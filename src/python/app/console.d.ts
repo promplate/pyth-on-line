@@ -1,3 +1,5 @@
+import type { PyProxy } from "pyodide/ffi";
+
 export class Result<T> {
   status: "complete" | "incomplete" | "syntax-error";
   future: Promise<T>;
@@ -11,7 +13,7 @@ class EnhancedConsole {
   pop(): void;
 }
 
-export class ConsoleAPI {
+export class ConsoleAPI extends PyProxy {
   complete(source: string): [string[], number];
   console: EnhancedConsole;
   push(line: string): Result<any>;
