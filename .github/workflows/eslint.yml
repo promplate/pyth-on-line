@@ -12,6 +12,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Pull changes
         run: git pull
+        continue-on-error: true
       - uses: oven-sh/setup-bun@v1
       - name: Install modules
         run: bun install

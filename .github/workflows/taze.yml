@@ -30,7 +30,6 @@ jobs:
           git add package.json
           git commit -m 'chore(deps): update dependencies'
           git push
-          echo "::set-output name=updated::true"
       - name: Set output
         id: set-output
         if: steps.taze.outcome == 'failure'
