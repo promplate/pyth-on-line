@@ -7,7 +7,7 @@
 }
 
 .prose pre {
-  @apply px-3 py-4 leading-relaxed;
+  @apply p-0.9em leading-relaxed;
 }
 
 .prose pre code {

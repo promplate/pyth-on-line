@@ -7,7 +7,7 @@
   import HeadlessConsole from "$lib/components/console/HeadlessConsole.svelte";
   import ConsolePrompt from "$lib/components/ConsolePrompt.svelte";
   import Modal from "$lib/components/Modal.svelte";
-  import { pyodideReady } from "$lib/stores";
+  import { currentPushBlock, pyodideReady } from "$lib/stores";
   import { patchSource, reformatInputSource } from "$lib/utils/formatSource";
   import { afterUpdate, beforeUpdate, onMount } from "svelte";
   import { cubicIn, cubicOut } from "svelte/easing";
@@ -37,6 +37,8 @@
       .slice(0, index)
       .map(({ text, type }) => (type === "in" ? reformatInputSource(text) : text))
       .join("\n");
+
+    $currentPushBlock = source => pushBlock(source, false);
 
     focusedError = { traceback, code };
   }
