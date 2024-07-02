@@ -22,10 +22,12 @@ def setup_module(sources: dict[str, str], module_name: str):
         console.log(source)
         console.groupEnd()
 
-        if __debug__ and (name := path.replace("/", ".")) in modules:
-            del modules[name]  # reload module at dev time
-
     console.groupEnd()
+
+    if __debug__:
+        for mod in list(modules):
+            if mod.startswith(module_name):
+                del modules[mod]  # reload module at dev time
 
 
 setup_module
