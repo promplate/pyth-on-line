@@ -8,6 +8,14 @@
   export let node: Node;
 
   $: code = node as Code;
+
+  function run(source: string) {
+    if (source.split("\n").at(-1)!.startsWith(" ")) // heuristic to detect multiline input
+      $currentPushBlock(`${source}\n\n`);
+    else
+      $currentPushBlock(`${source}\n`);
+  }
+
 </script>
 
 <div class="group relative flex flex-col">
@@ -17,7 +25,7 @@
       <button on:click={handleClick}><div class="i-icon-park-twotone-copy" /></button>
     </UseCopy>
     {#if "python".startsWith(code.lang ?? "")}
-      <button on:click={() => $currentPushBlock(`${code.value.trimEnd()}\n`)}><div class="i-mingcute-play-fill" /></button>
+      <button on:click={() => run(`${code.value.trimEnd()}`)}><div class="i-mingcute-play-fill" /></button>
     {/if}
   </div>
 </div>
