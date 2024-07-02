@@ -49,9 +49,20 @@ def patch_linecache():
 
 @cache
 def patch_console():
-    from pyodide.console import PyodideConsole
+    from pyodide.console import Console, PyodideConsole
 
-    PyodideConsole.runcode = with_lock(PyodideConsole.runcode)
+    @with_lock
+    @wraps(PyodideConsole.runcode)
+    async def runcode(self: PyodideConsole, source: str, code):
+        from .imports import find_packages_to_install
+
+        packages = find_packages_to_install(source)
+        if packages:
+            await micropip.install(packages)
+
+        return await Console.runcode(self, source, code)
+
+    PyodideConsole.runcode = runcode
 
 
 @cache
