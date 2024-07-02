@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 from pyodide.console import ConsoleFuture, PyodideConsole
 
 from .bridge import js_api
-from .source import FakeFile
+from .source import SourceFile
 
 
 class ConsoleGlobals(ChainMap, dict):  # type: ignore
@@ -35,11 +35,11 @@ class EnhancedConsole(PyodideConsole):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.fake_file = FakeFile(self.filename)
+        self.source = SourceFile(self.filename)
 
     def runsource(self, source: str, filename="<console>"):
-        fake_source = "\n" * (len(self.fake_file.lines) - len(self.buffer) + 1) + source
-        self.fake_file.push(self.buffer[-1])
+        fake_source = "\n" * (len(self.source.lines) - len(self.buffer) + 1) + source
+        self.source.push(self.buffer[-1])
 
         future = super().runsource(fake_source, filename)
 
@@ -48,7 +48,7 @@ class EnhancedConsole(PyodideConsole):
     def pop(self):
         assert self.buffer
         self.buffer.pop()
-        self.fake_file.pop()
+        self.source.pop()
 
 
 class ConsoleAPI:

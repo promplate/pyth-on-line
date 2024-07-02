@@ -4,14 +4,14 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 
-class FakeFile:
+class SourceFile:
     def __init__(self, filename: str):
         for path in sys.path[:]:
             if (file := Path(path) / filename).is_file():
                 file.unlink()
                 sys.path.remove(path)
 
-        with TemporaryDirectory(delete=False) as tempdir:
+        with TemporaryDirectory(delete=False, prefix="console-") as tempdir:
             sys.path.append(tempdir)
             self.file = Path(tempdir) / filename
 
