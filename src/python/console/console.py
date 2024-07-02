@@ -1,15 +1,12 @@
 import builtins
-import sys
 from collections import ChainMap
-from contextlib import suppress
 from functools import cached_property
-from pathlib import Path
-from tempfile import TemporaryDirectory
 from typing import TYPE_CHECKING
 
 from pyodide.console import ConsoleFuture, PyodideConsole
 
 from .bridge import js_api
+from .source import FakeFile
 
 
 class ConsoleGlobals(ChainMap, dict):  # type: ignore
@@ -38,57 +35,20 @@ class EnhancedConsole(PyodideConsole):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        for path in sys.path[:]:
-            if (file := Path(path) / self.filename).is_file():
-                file.unlink()
-                sys.path.remove(path)
-
-        with TemporaryDirectory(delete=False) as tempdir:
-            sys.path.append(tempdir)
-            self.fake_file = Path(tempdir) / self.filename
-
-        self.line_offset = 0
-
-    def __del__(self):
-        with suppress(Exception):
-            self.fake_file.unlink()
-            sys.path.remove(str(self.fake_file.parent))
-
-    def _append_source_file(self, source: str):
-        source += "\n"
-        self.line_offset += source.count("\n")
-
-        with self.fake_file.open("a+", encoding="utf-8") as file:
-            file.write(source)
-
-    def _redo_append(self, source: str):
-        content = self.fake_file.read_text()
-        source += "\n"
-        self.line_offset -= source.count("\n")
-
-        assert content.endswith(source)
-        self.fake_file.write_text(content.removesuffix(source))
+        self.fake_file = FakeFile(self.filename)
 
     def runsource(self, source: str, filename="<console>"):
-        fake_source = "\n" * self.line_offset + source
-        self._append_source_file(source)
+        fake_source = "\n" * (len(self.fake_file.lines) - len(self.buffer) + 1) + source
+        self.fake_file.push(self.buffer[-1])
 
         future = super().runsource(fake_source, filename)
-
-        @future.add_done_callback
-        def _(_):
-            if future.syntax_check == "incomplete":
-                self._redo_append(source)
 
         return future
 
     def pop(self):
         assert self.buffer
         self.buffer.pop()
-        self.line_offset -= 1
-
-        source = self.fake_file.read_text()
-        self.fake_file.write_text(source[: source.rindex("\n", None, -1) + 1])
+        self.fake_file.pop()
 
 
 class ConsoleAPI:
