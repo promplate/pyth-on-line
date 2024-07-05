@@ -15,7 +15,7 @@
     "@antfu/eslint-config": "^2.21.2",
     "@ethercorps/sveltekit-og": "^3.0.0",
     "@fontsource-variable/fira-code": "^5.0.18",
-    "@iconify/json": "^2.2.224",
+    "@iconify/json": "^2.2.225",
     "@neodrag/svelte": "^2.0.6",
     "@shikijs/rehype": "^1.10.1",
     "@sveltejs/adapter-netlify": "^4.3.0",
