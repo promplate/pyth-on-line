@@ -97,7 +97,7 @@
     input = "";
   }
 
-  function setCusorToEnd() {
+  function setCursorToEnd() {
     requestAnimationFrame(() => inputRef.setSelectionRange(input.length, input.length));
   }
 
@@ -123,7 +123,7 @@
         const text = history.at(++index);
         if (text) {
           input = text;
-          setCusorToEnd();
+          setCursorToEnd();
         }
         else {
           index = history.length;
@@ -139,7 +139,7 @@
           break;
         }
         input = history.at(index)!;
-        setCusorToEnd();
+        setCursorToEnd();
         break;
       }
 
@@ -152,7 +152,7 @@
           const [results, position] = complete(input);
           if (results.length === 1) {
             input = input.slice(0, position) + results[0];
-            setCusorToEnd();
+            setCursorToEnd();
           }
         }
         index = -1;
@@ -233,7 +233,7 @@
       <div class="group flex flex-row" class:animate-pulse={loading || !ready}>
         <ConsolePrompt prompt={status === "incomplete" ? "..." : ">>>"} />
         <!-- svelte-ignore a11y-autofocus -->
-        <input autofocus bind:this={inputRef} class="w-full bg-transparent outline-none" bind:value={input} type="text" on:blur={setCusorToEnd} />
+        <input autofocus bind:this={inputRef} class="w-full bg-transparent outline-none" bind:value={input} type="text" on:blur={setCursorToEnd} />
       </div>
     </HeadlessConsole>
   </div>
