@@ -1,17 +1,19 @@
 [project]
 requires-python = ">=3.12"
 dependencies = [
-    "ruff~=0.3.7",
+    "ruff~=0.5.1",
     "webtypy~=0.1.7",
     "micropip~=0.6.0",
     "pyodide-py~=0.26.1",
-    "promplate-pyodide~=0.0.3",
+    "promplate-pyodide~=0.0.3.3",
+    "pre-commit~=3.7.1",
 ]
 
 [tool.pdm]
 distribution = false
 
 [tool.pdm.scripts]
+post_install = "pre-commit install"
 fmt = { composite = ["ruff check --fix --exit-zero", "ruff format"] }
 
 [tool.black]
