@@ -145,14 +145,25 @@
 
       case "Tab": {
         event.preventDefault();
-        if (!input.trim()) {
-          input += " ".repeat(4);
+        const { selectionStart, selectionEnd } = inputRef;
+        if (event.shiftKey || selectionStart !== selectionEnd || !input.slice(0, selectionStart!).trim()) {
+          const startDistance = input.length - selectionStart!;
+          const endDistance = input.length - selectionEnd!;
+          if (event.shiftKey)
+            input = input.replace(/ {0,4}/, "");
+          else
+            input = `    ${input}`;
+          const start = Math.max(0, input.length - startDistance);
+          const end = Math.max(0, input.length - endDistance);
+          requestAnimationFrame(() => inputRef.setSelectionRange(start, end));
         }
         else {
-          const [results, position] = complete(input);
+          const [results, position] = complete(input.slice(0, selectionStart!));
           if (results.length === 1) {
-            input = input.slice(0, position) + results[0];
-            setCursorToEnd();
+            const [result] = results;
+            input = input.slice(0, position) + result + input.slice(selectionEnd!);
+            const selectionPosition = position + result.length;
+            requestAnimationFrame(() => inputRef.setSelectionRange(selectionPosition, selectionPosition));
           }
         }
         index = -1;
