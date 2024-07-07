@@ -9,6 +9,7 @@
   import Modal from "$lib/components/Modal.svelte";
   import { currentPushBlock, pyodideReady } from "$lib/stores";
   import { patchSource, reformatInputSource } from "$lib/utils/formatSource";
+  import { needScroll, scrollToBottom } from "$lib/utils/scroll";
   import { afterUpdate, beforeUpdate, onMount } from "svelte";
   import { cubicIn, cubicOut } from "svelte/easing";
   import { scale } from "svelte/transition";
@@ -47,7 +48,7 @@
 
   onMount(async () => {
     history.unshift(...(JSON.parse(localStorage.getItem("console-history") || "[]") as string[]));
-    inputRef.focus();
+    focusToInput();
   });
 
   $: if ($pyodideReady && pyConsole) {
@@ -97,8 +98,12 @@
     input = "";
   }
 
-  function setCursorToEnd() {
-    requestAnimationFrame(() => inputRef.setSelectionRange(input.length, input.length));
+  function focusToInput(start?: number, end?: number) {
+    inputRef.scrollIntoView({ block: "center" });
+    inputRef.focus();
+    if (start !== undefined) {
+      requestAnimationFrame(() => inputRef.setSelectionRange(start, end ?? start));
+    }
   }
 
   const onPaste: ClipboardEventHandler<Document> = async (event) => {
@@ -107,14 +112,12 @@
     const textAfter = input.slice(inputRef.selectionEnd!);
     const distanceToEnd = input.length - inputRef.selectionEnd!;
     await pushBlock(textBefore + text + textAfter);
-    inputRef.focus();
-    if (distanceToEnd)
-      inputRef.setSelectionRange(input.length - distanceToEnd, input.length - distanceToEnd);
+    focusToInput(input.length - distanceToEnd);
   };
 
   const onKeyDown: KeyboardEventHandler<Document> = (event) => {
     if (!event.ctrlKey && !event.metaKey && !event.altKey && event.key.length === 1)
-      inputRef.focus();
+      focusToInput();
     else if (document.activeElement !== inputRef)
       return;
 
@@ -123,7 +126,7 @@
         const text = history.at(++index);
         if (text) {
           input = text;
-          setCursorToEnd();
+          focusToInput(input.length);
         }
         else {
           index = history.length;
@@ -139,7 +142,7 @@
           break;
         }
         input = history.at(index)!;
-        setCursorToEnd();
+        focusToInput();
         break;
       }
 
@@ -155,15 +158,14 @@
             input = `    ${input}`;
           const start = Math.max(0, input.length - startDistance);
           const end = Math.max(0, input.length - endDistance);
-          requestAnimationFrame(() => inputRef.setSelectionRange(start, end));
+          focusToInput(start, end);
         }
         else {
           const [results, position] = complete(input.slice(0, selectionStart!));
           if (results.length === 1) {
             const [result] = results;
             input = input.slice(0, position) + result + input.slice(selectionEnd!);
-            const selectionPosition = position + result.length;
-            requestAnimationFrame(() => inputRef.setSelectionRange(selectionPosition, selectionPosition));
+            focusToInput(position + result.length);
           }
         }
         index = -1;
@@ -207,25 +209,15 @@
   let autoscroll = false;
 
   beforeUpdate(() => {
-    if (!inputRef)
-      return;
-
-    const d = document.documentElement;
-
-    const offsetBottom = d.scrollHeight - d.clientHeight - d.scrollTop;
-
-    autoscroll = offsetBottom < 200;
+    autoscroll = needScroll(document.documentElement, 500);
   });
 
   afterUpdate(() => {
-    const d = document.documentElement;
-    autoscroll && d.scrollTo({ top: d.scrollHeight });
+    autoscroll && scrollToBottom(document.documentElement);
   });
 </script>
 
 <svelte:document on:keydown={onKeyDown} on:paste|preventDefault={onPaste} />
-
-<svelte:body on:click|self={() => inputRef.focus()} />
 
 <div class="my-4 w-[calc(100vw-2rem)] flex flex-row gap-4 break-all p-3 text-neutral-3 <lg:(my-3 w-[calc(100vw-1.5rem)] gap-3 p-2 text-sm) <sm:(my-2 w-[calc(100vw-1rem)] gap-2 p-1 text-xs) [&>div]:(overflow-x-scroll rounded bg-white/3 p-5 <lg:p-4 <sm:p-3)">
   <div class="w-full flex flex-col gap-0.7 whitespace-pre-wrap font-mono [&>div:hover]:(rounded-sm bg-white/2 px-1.7 py-0.6 -mx-1.7 -my-0.6)">
@@ -244,7 +236,7 @@
       <div class="group flex flex-row" class:animate-pulse={loading || !ready}>
         <ConsolePrompt prompt={status === "incomplete" ? "..." : ">>>"} />
         <!-- svelte-ignore a11y-autofocus -->
-        <input autofocus bind:this={inputRef} class="w-full bg-transparent outline-none" bind:value={input} type="text" on:blur={setCursorToEnd} />
+        <input autofocus bind:this={inputRef} class="w-full bg-transparent outline-none" bind:value={input} type="text" />
       </div>
     </HeadlessConsole>
   </div>
