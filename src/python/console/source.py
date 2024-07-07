@@ -25,10 +25,13 @@ class SourceFile:
     def sync(self):
         self.file.write_text("\n".join(self.lines))
 
-    def push(self, line: str):
-        self.lines.append(line)
+    def push(self, source: str):
+        self.lines.extend(source.splitlines())
         self.sync()
 
-    def pop(self):
-        self.lines.pop()
-        self.sync()
+    @property
+    def offset(self):
+        return len(self.lines)
+
+    def shift_source(self, source: str):
+        return "\n" * self.offset + source

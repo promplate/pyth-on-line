@@ -10,11 +10,11 @@ export class Result<T> {
 class EnhancedConsole {
   stdout_callback(out: string);
   stderr_callback(err: string);
-  pop(): void;
 }
 
 export class ConsoleAPI extends PyProxy {
   complete(source: string): [string[], number];
   console: EnhancedConsole;
   push(line: string): Result<any>;
+  pop(): void;
 }

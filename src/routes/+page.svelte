@@ -169,7 +169,7 @@
         if (inputRef.selectionStart === 0 && inputRef.selectionEnd === 0 && status === "incomplete") {
           const item = log.at(-1)!;
           const lines = item.text.split("\n");
-          pyConsole.console.pop();
+          pyConsole.pop();
           if (lines.length === 1) {
             log = [...log.slice(0, -1)];
             input = lines[0] + input;

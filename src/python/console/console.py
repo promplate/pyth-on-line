@@ -49,20 +49,17 @@ class EnhancedConsole(PyodideConsole):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.source = SourceFile(self.filename)
+        self.file = SourceFile(self.filename)
 
     def runsource(self, source: str, filename="<console>"):
-        fake_source = "\n" * (len(self.source.lines) - len(self.buffer) + 1) + source
-        self.source.push(self.buffer[-1])
+        fake_source = self.file.shift_source(source)
 
         future = super().runsource(fake_source, filename)
 
-        return future
+        if future.syntax_check != "incomplete":
+            self.file.push(source)
 
-    def pop(self):
-        assert self.buffer
-        self.buffer.pop()
-        self.source.pop()
+        return future
 
 
 class ConsoleAPI:
@@ -91,3 +88,7 @@ class ConsoleAPI:
                 self.builtins["_"] = future.result()
 
         return res
+
+    def pop(self):
+        assert self.console.buffer
+        self.console.buffer.pop()
