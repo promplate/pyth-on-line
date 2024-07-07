@@ -1,8 +1,10 @@
+import builtins
 from functools import cache, wraps
-from inspect import getsource
+from inspect import Signature, getsource
 from os import getenv
 
 import micropip
+from js import window
 
 from .lock import with_lock
 from .package import get_package_name
@@ -57,17 +59,20 @@ def patch_console():
 
 @cache
 def patch_input():
-    import builtins
-
     def input(prompt=""):
-        from js import window
-
         return window.prompt(prompt) or ""
 
     builtins.input = input
+
+
+@cache
+def patch_exit():
+    window.close.__signature__ = Signature()  # type: ignore
+    builtins.exit = builtins.quit = window.close
 
 
 patch_install()
 patch_linecache()
 patch_console()
 patch_input()
+patch_exit()
