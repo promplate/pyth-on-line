@@ -21,7 +21,6 @@ else
 const getMinimalPyodide = cacheSingleton(withToast({ loading: "loading pyodide runtime" })(async () => {
   const { loadPyodide } = await import("pyodide");
   const py = await loadPyodide({ indexURL, env: getEnv(), packages: ["micropip"], args: dev ? [] : ["-O"] });
-  py.globals.set("with_toast", withToast);
   py.globals.set("toast", toast);
   return py;
 }));
