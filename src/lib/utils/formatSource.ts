@@ -1,7 +1,7 @@
 export function patchSource(source: string) {
   return (
     source.includes(">>> ")
-      ? source.split("\n").filter(line => line.startsWith(">>>") || line.startsWith("...")).map(line => line.slice(4)).join("\n")
+      ? source.split("\n").filter(line => line.startsWith(">>>") || line.startsWith("...") || !line.trim()).map(line => line.slice(4)).join("\n")
       : source
   );
 }
