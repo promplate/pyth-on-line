@@ -44,5 +44,8 @@
     "unified": "^11.0.5",
     "unocss": "^0.59.4",
     "vite": "^5.3.3"
+  },
+  "resolutions": {
+    "eslint-config-flat-gitignore": "0.1.5"
   }
 }
