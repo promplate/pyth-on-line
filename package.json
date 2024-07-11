@@ -12,7 +12,7 @@
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^2.21.3",
+    "@antfu/eslint-config": "^2.22.0",
     "@ethercorps/sveltekit-og": "^3.0.0",
     "@fontsource-variable/fira-code": "^5.0.18",
     "@iconify/json": "^2.2.226",
@@ -29,7 +29,7 @@
     "eslint": "^8.57.0",
     "eslint-plugin-format": "^0.1.2",
     "eslint-plugin-svelte": "^2.41.0",
-    "openai": "^4.52.4",
+    "openai": "^4.52.5",
     "pyodide": "0.26.1",
     "rehype-stringify": "^10.0.0",
     "remark-parse": "^11.0.0",
