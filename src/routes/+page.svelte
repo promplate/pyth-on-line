@@ -44,7 +44,7 @@
     focusedError = { traceback, code };
   }
 
-  let push: (source: string) => Promise<void>;
+  let push: (source: string) => Promise<any>;
 
   onMount(async () => {
     history.unshift(...(JSON.parse(localStorage.getItem("console-history") || "[]") as string[]));

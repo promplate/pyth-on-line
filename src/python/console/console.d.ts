@@ -1,3 +1,4 @@
+import type { Item } from "$lib/components/console/HeadlessConsole.svelte";
 import type { PyProxy } from "pyodide/ffi";
 
 export class Result<T> {
@@ -15,6 +16,7 @@ class EnhancedConsole {
 export class ConsoleAPI extends PyProxy {
   complete(source: string): [string[], number];
   console: EnhancedConsole;
+  get_items(): Item[];
   push(line: string): Result<any>;
   pop(): void;
 }
