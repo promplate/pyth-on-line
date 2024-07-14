@@ -11,10 +11,11 @@
   import Node from "./markdown/Node.svelte";
 
   export let text: string;
+  export let runCode: (source: string) => any;
 
   $: node = processor.parse(text);
 </script>
 
 <article class="min-w-full text-sm text-neutral-2 font-sans prose [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
-  <Node {node} />
+  <Node {node} {runCode} />
 </article>

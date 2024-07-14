@@ -9,6 +9,7 @@
   interface Error { traceback: string; code: string }
 
   export let errorInfo: Error | undefined;
+  export let pushBlock: (source: string) => any;
 
   let output = "";
 
@@ -37,7 +38,7 @@
       </button>
     </div>
     <div class="cursor-auto overflow-y-scroll pb-2.5 lg:pb-3.5 sm:pb-3 [&>article]:(<sm:text-xs lg:text-base)" class:!pb-0={!output} bind:this={ref}>
-      <Markdown text={output} />
+      <Markdown text={output} runCode={pushBlock} />
     </div>
   </div>
 </div>

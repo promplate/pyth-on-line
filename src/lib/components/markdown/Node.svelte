@@ -7,6 +7,7 @@
   import Link from "./Link.svelte";
 
   export let node: Node;
+  export let runCode: (source: string) => any;
 
   function getTagName(node: Node): string {
     switch (node.type) {
@@ -38,12 +39,12 @@
 {#if node.type === "root"}
 
   {#each children as child}
-    <svelte:self node={child} />
+    <svelte:self node={child} {runCode} />
   {/each}
 
 {:else if node.type === "code"}
 
-  <Code {node} />
+  <Code {node} {runCode} />
 
 {:else if node.type === "inlineCode"}
 

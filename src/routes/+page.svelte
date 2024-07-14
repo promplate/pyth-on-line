@@ -7,7 +7,7 @@
   import HeadlessConsole from "$lib/components/console/HeadlessConsole.svelte";
   import ConsolePrompt from "$lib/components/ConsolePrompt.svelte";
   import Modal from "$lib/components/Modal.svelte";
-  import { currentPushBlock, pyodideReady } from "$lib/stores";
+  import { pyodideReady } from "$lib/stores";
   import { patchSource, reformatInputSource } from "$lib/utils/formatSource";
   import { needScroll, scrollToBottom } from "$lib/utils/scroll";
   import { afterUpdate, beforeUpdate, onMount } from "svelte";
@@ -38,8 +38,6 @@
       .slice(0, index)
       .map(({ text, type }) => (type === "in" ? reformatInputSource(text) : text))
       .join("\n");
-
-    $currentPushBlock = source => pushBlock(source, false);
 
     focusedError = { traceback, code };
   }
@@ -243,7 +241,7 @@
 {#await import("$lib/components/ErrorExplainer.svelte") then { default: ErrorExplainer }}
   <Modal show={focusedError !== undefined}>
     <svelte:fragment slot="content">
-      <svelte:component this={ErrorExplainer} bind:errorInfo={focusedError} />
+      <svelte:component this={ErrorExplainer} bind:errorInfo={focusedError} {pushBlock} />
     </svelte:fragment>
   </Modal>
 {/await}
