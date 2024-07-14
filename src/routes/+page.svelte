@@ -9,8 +9,7 @@
   import Modal from "$lib/components/Modal.svelte";
   import { pyodideReady } from "$lib/stores";
   import { patchSource, reformatInputSource } from "$lib/utils/formatSource";
-  import { needScroll, scrollToBottom } from "$lib/utils/scroll";
-  import { afterUpdate, beforeUpdate, onMount } from "svelte";
+  import { onMount } from "svelte";
   import { cubicIn, cubicOut } from "svelte/easing";
   import { scale } from "svelte/transition";
 
@@ -191,16 +190,6 @@
       }
     }
   };
-
-  let autoscroll = false;
-
-  beforeUpdate(() => {
-    autoscroll = needScroll(document.documentElement, 500);
-  });
-
-  afterUpdate(() => {
-    autoscroll && scrollToBottom(document.documentElement);
-  });
 </script>
 
 <svelte:document on:keydown={onKeyDown} on:paste|preventDefault={onPaste} />

@@ -14,7 +14,8 @@
   import type { ConsoleAPI } from "$py/console/console";
 
   import getPy from "$lib/pyodide";
-  import { onDestroy, onMount } from "svelte";
+  import { needScroll, scrollToBottom } from "$lib/utils/scroll";
+  import { afterUpdate, beforeUpdate, onDestroy, onMount } from "svelte";
 
   export let ready = false;
   export let status: Status = "complete";
@@ -37,6 +38,16 @@
   });
 
   onDestroy(() => pyConsole?.destroy());
+
+  let autoscroll = false;
+
+  beforeUpdate(() => {
+    autoscroll = needScroll(document.documentElement, 500);
+  });
+
+  afterUpdate(() => {
+    autoscroll && scrollToBottom(document.documentElement);
+  });
 
   export async function push(source: string) {
     const res = pyConsole.push(source);
