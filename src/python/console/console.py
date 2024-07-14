@@ -75,6 +75,7 @@ class ConsoleAPI:
         self.console.stdin_callback = window.prompt  # type: ignore
         self.console.stdout_callback = lambda output: self.push_item({"type": "out", "text": output})  # type: ignore
         self.console.stderr_callback = lambda output: self.push_item({"type": "err", "text": output, "is_traceback": False})  # type: ignore
+        self.incomplete = False
 
     @cached_property
     def builtins(self):
@@ -100,43 +101,47 @@ class ConsoleAPI:
         return self.console.complete(source)
 
     @js_api
-    def get_items(self):
+    def get_items(self) -> list[Item]:
+        if self.incomplete:
+            assert self.console.buffer
+            return [*self.items, {"type": "in", "text": "\n".join(self.console.buffer), "incomplete": True}]
         return self.items
 
     @staticmethod
     def can_merge(last: Item, this: Item):
         if last["type"] != this["type"]:
             return False
-        if last["type"] == "in" and last.get("incomplete", False):  # incomplete input
-            return True
         if last["type"] == "out":  # both stdout
             return True
         if last["type"] == "err" and not last.get("is_traceback", False) and not this.get("is_traceback", False):  # both stderr
             return True
 
     def push_item(self, item: Item, behind: Item | None = None):
+        assert item["type"] != "in"  # input should be pushed by push method
+
         if not self.items:
-            self.sync()
+            assert behind is None
             self.items.append(item)
+            self.sync()
             return
 
         last = self.items[-1]
 
         if self.can_merge(last, item):
             last["text"] += f"\n{item["text"]}" if item["type"] == "in" else item["text"]
-            if "incomplete" in item:
-                last["incomplete"] = item["incomplete"]
             self.sync()
             return last
 
         elif behind is not None:
+            # not stdout/stderr
             index = -1
             for index, i in enumerate(self.items):
                 if i is behind:
                     break
             assert index != -1, "not found"
 
-            if index != len(self.items) - 1 and self.items[index + 1]["type"] == "out":
+            if index != len(self.items) - 1 and self.items[index + 1]["type"] in ("out", "err"):
+                assert self.items[index + 1].get("is_traceback", False) is False, "traceback should only be one"
                 index += 1  # repr follows stdout
             self.items.insert(index + 1, item)
 
@@ -145,33 +150,28 @@ class ConsoleAPI:
 
         self.sync()
 
-    def console_push(self, line: str):
-        res = Result(future := self.console.push(line))
-
-        @future.add_done_callback
-        def _(_):
-            if future.syntax_check == "complete" and future.exception() is None:
-                if (result := future.result()) is not None:
-                    self.builtins["_"] = result
-
-        return res
-
     def push(self, line: str):
-        res = self.console_push(line)
-        input_item = self.push_item(ii := {"type": "in", "text": line, "incomplete": res.status == "incomplete"}) or ii
+        source = "\n".join((*self.console.buffer, line)) if self.incomplete else line  # must run before pushing because after that buffer will be empty
+        res = Result(future := self.console.push(line))
+        self.incomplete = future.syntax_check == "incomplete"
         self.sync()
 
-        @ensure_future
-        @call
-        async def _():
-            match res.status:
-                case "syntax-error":
-                    assert res.formatted_error
-                    self.push_item({"type": "err", "text": res.formatted_error, "is_traceback": True}, behind=input_item)
-                case "complete":
+        if res.status != "incomplete":
+            self.items.append(input_item := {"type": "in", "text": source})
+
+            if res.status == "syntax-error":
+                assert res.formatted_error
+                self.push_item({"type": "err", "text": res.formatted_error, "is_traceback": True}, behind=input_item)
+            elif res.status == "complete":
+                self.sync()
+
+                @ensure_future
+                @call
+                async def _():
                     try:
                         if text := await res.get_repr():
                             self.push_item({"type": "repr", "text": text}, behind=input_item)
+                            self.builtins["_"] = res.future.result()
                     except Exception as e:
                         stderr = res.formatted_error or self.console.formattraceback(e)
                         self.push_item({"type": "err", "text": stderr, "is_traceback": True}, behind=input_item)
@@ -180,4 +180,11 @@ class ConsoleAPI:
 
     def pop(self):
         assert self.console.buffer
-        self.console.buffer.pop()
+        line = self.console.buffer.pop()
+
+        if not self.console.buffer:
+            self.incomplete = False
+
+        self.sync()
+
+        return line

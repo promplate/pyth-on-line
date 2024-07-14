@@ -7,7 +7,7 @@
   }
 
   export type AutoComplete = (source: string) => [string[], number];
-  export type Status = "incomplete" | "syntax-error" | "complete";
+  export type Status = "incomplete" | "complete";
 </script>
 
 <script lang="ts">
@@ -26,6 +26,7 @@
 
   function syncLog() {
     log = pyConsole.get_items();
+    status = pyConsole.incomplete ? "incomplete" : "complete";
   }
 
   onMount(async () => {
@@ -38,10 +39,11 @@
   onDestroy(() => pyConsole?.destroy());
 
   export async function push(source: string) {
-    loading++;
     const res = pyConsole.push(source);
-    status = res.status;
-    res.future.finally(() => loading--);
+    if (res.status === "complete") {
+      loading++;
+      res.future.add_done_callback(() => loading--);
+    }
     return res;
   }
 </script>

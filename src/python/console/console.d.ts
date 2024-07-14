@@ -1,22 +1,17 @@
 import type { Item } from "$lib/components/console/HeadlessConsole.svelte";
-import type { PyProxy } from "pyodide/ffi";
+import type { PyAwaitable, PyProxy } from "pyodide/ffi";
 
 export class Result<T> {
   status: "complete" | "incomplete" | "syntax-error";
-  future: Promise<T>;
-  formatted_error?: string;
-  async get_repr(): Promise<string | undefined>;
-}
-
-class EnhancedConsole {
-  stdout_callback(out: string);
-  stderr_callback(err: string);
+  future: PyAwaitable & {
+    add_done_callback: (callback: (future: Promise<T>) => any) => void ;
+  };
 }
 
 export class ConsoleAPI extends PyProxy {
   complete(source: string): [string[], number];
-  console: EnhancedConsole;
   get_items(): Item[];
+  incomplete: boolean;
   push(line: string): Result<any>;
-  pop(): void;
+  pop(): string;
 }

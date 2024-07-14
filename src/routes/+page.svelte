@@ -180,19 +180,7 @@
 
       case "Backspace": {
         if (inputRef.selectionStart === 0 && inputRef.selectionEnd === 0 && status === "incomplete") {
-          const item = log.at(-1)!;
-          const lines = item.text.split("\n");
-          pyConsole.pop();
-          if (lines.length === 1) {
-            log = [...log.slice(0, -1)];
-            input = lines[0] + input;
-            status = "complete";
-          }
-          else {
-            const lastLine = lines.pop()!;
-            log = [...log.slice(0, -1), { type: "in", text: lines.join("\n"), incomplete: true }];
-            input = lastLine + input;
-          }
+          input = pyConsole.pop();
           history.at(0) === input && history.shift();
           index = -1;
           event.preventDefault();
