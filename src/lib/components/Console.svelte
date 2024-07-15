@@ -190,31 +190,35 @@
       }
     }
   };
+
+  $: extras = ` ${$$restProps.class ?? "p-3"}`;
 </script>
 
 <svelte:document on:keydown={onKeyDown} on:paste|preventDefault={onPaste} />
 
-<div class="w-full flex flex-col gap-0.7 overflow-x-scroll whitespace-pre-wrap rounded bg-white/3 p-5 font-mono [&>div:hover]:(rounded-sm bg-white/2 px-1.7 py-0.6 -mx-1.7 -my-0.6) <lg:p-4 <sm:p-3">
+<div class="contents @container">
+  <div class="w-full flex flex-col gap-0.7 overflow-x-scroll whitespace-pre-wrap font-mono [&>div:hover]:(rounded-sm bg-white/2 px-1.7 py-0.6 -mx-1.7 -my-0.6){extras}">
 
-  <HeadlessConsole {container} bind:ready bind:log bind:push bind:complete bind:pyConsole bind:status let:loading>
-    {#each log as { type, text }, index}
-      {#if type === "out"}
-        <Out {text} />
-      {:else if type === "in"}
-        <In {text} on:click={() => push(text)} />
-      {:else if type === "err"}
-        <Err {text} on:click={() => showErrorExplain(index)} />
-      {:else if type === "repr"}
-        <Repr {text} />
-      {/if}
-    {/each}
-    <div class="group flex flex-row" class:animate-pulse={loading || !ready}>
-      <ConsolePrompt prompt={status === "incomplete" ? "..." : ">>>"} />
-      <!-- svelte-ignore a11y-autofocus -->
-      <input autofocus bind:this={inputRef} class="w-full bg-transparent outline-none" bind:value={input} type="text" />
-    </div>
-  </HeadlessConsole>
+    <HeadlessConsole {container} bind:ready bind:log bind:push bind:complete bind:pyConsole bind:status let:loading>
+      {#each log as { type, text }, index}
+        {#if type === "out"}
+          <Out {text} />
+        {:else if type === "in"}
+          <In {text} on:click={() => push(text)} />
+        {:else if type === "err"}
+          <Err {text} on:click={() => showErrorExplain(index)} />
+        {:else if type === "repr"}
+          <Repr {text} />
+        {/if}
+      {/each}
+      <div class="group flex flex-row" class:animate-pulse={loading || !ready}>
+        <ConsolePrompt prompt={status === "incomplete" ? "..." : ">>>"} />
+        <!-- svelte-ignore a11y-autofocus -->
+        <input autofocus bind:this={inputRef} class="w-full bg-transparent outline-none" bind:value={input} type="text" />
+      </div>
+    </HeadlessConsole>
 
+  </div>
 </div>
 
 {#await import("./ErrorExplainer.svelte") then { default: ErrorExplainer }}
