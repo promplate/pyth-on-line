@@ -1,12 +1,12 @@
 <script lang="ts">
-  import type { AutoComplete, Item, Status } from "$lib/components/console/HeadlessConsole.svelte";
+  import type { AutoComplete, Item, Status } from "./console/HeadlessConsole.svelte";
   import type { ConsoleAPI } from "$py/console/console";
   import type { ClipboardEventHandler, KeyboardEventHandler } from "svelte/elements";
 
-  import { Err, In, Out, Repr } from "$lib/components/console";
-  import HeadlessConsole from "$lib/components/console/HeadlessConsole.svelte";
-  import ConsolePrompt from "$lib/components/ConsolePrompt.svelte";
-  import Modal from "$lib/components/Modal.svelte";
+  import { Err, In, Out, Repr } from "./console";
+  import HeadlessConsole from "./console/HeadlessConsole.svelte";
+  import ConsolePrompt from "./ConsolePrompt.svelte";
+  import Modal from "./Modal.svelte";
   import { pyodideReady } from "$lib/stores";
   import { patchSource, reformatInputSource } from "$lib/utils/formatSource";
   import { onMount } from "svelte";
