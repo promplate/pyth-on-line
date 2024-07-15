@@ -11,7 +11,8 @@
   import { patchSource, reformatInputSource } from "$lib/utils/formatSource";
   import { onMount } from "svelte";
 
-  export let container: HTMLElement | undefined;
+  // eslint-disable-next-line no-undef-init
+  export let container: HTMLElement | undefined = undefined;
 
   let log: Item[] = [];
 
