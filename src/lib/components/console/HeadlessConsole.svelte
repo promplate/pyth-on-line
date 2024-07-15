@@ -22,6 +22,7 @@
   export let log: Item[] = [];
   export let pyConsole: ConsoleAPI;
   export let complete: AutoComplete | undefined;
+  export let container: HTMLElement | undefined;
 
   let loading = 0;
 
@@ -42,11 +43,11 @@
   let autoscroll = false;
 
   beforeUpdate(() => {
-    autoscroll = needScroll(document.documentElement, 500);
+    autoscroll = needScroll(container ?? document.documentElement, 500);
   });
 
   afterUpdate(() => {
-    autoscroll && scrollToBottom(document.documentElement);
+    autoscroll && scrollToBottom(container ?? document.documentElement);
   });
 
   export async function push(source: string) {
