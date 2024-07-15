@@ -11,6 +11,10 @@
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
   },
+  "stackblitz": {
+    "installDependencies": false,
+    "startCommand": "pnpm i && pnpm dev"
+  },
   "devDependencies": {
     "@antfu/eslint-config": "^2.22.2",
     "@ethercorps/sveltekit-og": "^3.0.0",
