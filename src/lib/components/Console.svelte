@@ -197,7 +197,7 @@
 
 <svelte:document on:keydown={onKeyDown} on:paste|preventDefault={onPaste} />
 
-<div class="contents @container">
+<div class="w-full @container">
   <div class="w-full flex flex-col gap-0.7 overflow-x-scroll whitespace-pre-wrap font-mono [&>div:hover]:(rounded-sm bg-white/2 px-1.7 py-0.6 -mx-1.7 -my-0.6){extras}">
 
     <HeadlessConsole {container} bind:ready bind:log bind:push bind:complete bind:pyConsole bind:status let:loading>
