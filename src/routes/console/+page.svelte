@@ -8,7 +8,7 @@
 
 <div class="my-4 w-[calc(100vw-2rem)] flex flex-row gap-4 break-all p-3 text-neutral-3 <lg:(my-3 w-[calc(100vw-1.5rem)] gap-3 p-2 text-sm) <sm:(my-2 w-[calc(100vw-1rem)] gap-2 p-1 text-xs)">
 
-  <Console let:ready>
+  <Console class="rounded bg-white/3 p-5 <lg:(p-4 text-sm) <sm:(p-3 text-xs)" let:ready>
 
     <Modal show={!$pyodideReady || !ready}>
       <svelte:fragment slot="content">
