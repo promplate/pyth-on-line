@@ -8,8 +8,8 @@
 </script>
 
 {#if text !== ""}
-  <div class="group relative flex flex-row [&_.line]:(min-h-4 lg:min-h-6 sm:min-h-5)">
-    <div class="min-h-1 flex flex-shrink-0 flex-col gap-0.7 lg:min-h-1.4 sm:min-h-1.2">
+  <div class="group relative flex flex-row">
+    <div class="flex flex-col gap-0.2em">
       <ConsolePrompt />
       {#each Array.from({ length: text.match(/\n/g)?.length ?? 0 }) as _}
         <ConsolePrompt prompt="..." />
