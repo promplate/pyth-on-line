@@ -40,7 +40,7 @@
 
 <style>
   :global(html) {
-    --uno: bg-neutral-9 text-white flex flex-col items-center overflow-x-hidden;
+    --uno: bg-neutral-9 text-white overflow-x-hidden;
   }
 
   :global(*)::selection {
@@ -52,7 +52,7 @@
   }
 
   :global(body)::-webkit-scrollbar-thumb {
-    --uno: bg-neutral-7/30 hover:bg-neutral-7/70 rounded-l-sm;
+    --uno: relative flex flex-col items-center rounded-l-sm bg-neutral-7/30 hover:bg-neutral-7/70;
   }
 
   :global(body *)::-webkit-scrollbar {
