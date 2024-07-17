@@ -6,16 +6,21 @@
   import { cubicIn, cubicOut } from "svelte/easing";
   import { scale } from "svelte/transition";
 
-  interface Error { traceback: string; code: string }
+  interface ErrorInfo { traceback: string; code: string }
 
-  export let errorInfo: Error | undefined;
+  export let errorInfo: ErrorInfo | undefined;
   export let pushBlock: (source: string) => any;
 
   let output = "";
+  let error: Error;
 
-  async function runExplain({ traceback, code }: Error) {
-    for await (const delta of explain(traceback, code)) {
-      output += delta;
+  async function runExplain({ traceback, code }: ErrorInfo) {
+    try {
+      for await (const delta of explain(traceback, code))
+        output += delta;
+    }
+    catch (e) {
+      error = e as Error;
     }
   }
 
@@ -25,7 +30,7 @@
 </script>
 
 <div class="mt-10 h-full max-w-[calc(100vw-40px)] w-full sm:mt-30vh lg:max-w-xl sm:max-w-lg sm:w-3/4">
-  <div in:scale|global={{ start: 0.9, easing: cubicOut }} out:scale|global={{ start: 0.95, easing: cubicIn }} use:draggable={{ applyUserSelectHack: false, cancel: ref, bounds: { left: 20, top: 20, right: 20, bottom: 20 } }} class="max-h-[calc(100vh-40px)] flex flex-col cursor-grab rounded-lg bg-neutral-8/60 p-3 ring-0.9 ring-white/20 backdrop-blur-md xl:max-w-3xl lg:p-4 sm:p-3.5 lg:ring-1.3 sm:ring-1.1" class:!pb-0={output} class:gap-3={output} class:sm:gap-4={output}>
+  <div in:scale|global={{ start: 0.9, easing: cubicOut }} out:scale|global={{ start: 0.95, easing: cubicIn }} use:draggable={{ applyUserSelectHack: false, cancel: ref, bounds: { left: 20, top: 20, right: 20, bottom: 20 } }} class="max-h-[calc(100vh-40px)] flex flex-col cursor-grab gap-3 rounded-lg bg-neutral-8/60 p-3 ring-0.9 ring-white/20 backdrop-blur-md xl:max-w-3xl sm:gap-4 lg:p-4 sm:p-3.5 lg:ring-1.3 sm:ring-1.1" class:!pb-0={output}>
     <div class="flex flex-row select-none items-center justify-between">
       <div class="flex flex-row items-center gap-1.5 rounded-md bg-emerald-3/10 px-1.5 py-1 text-emerald-3/80">
         <div class="i-majesticons-lightbulb-shine text-base text-emerald-3" />
@@ -37,8 +42,18 @@
         <div class="i-material-symbols-close-rounded" />
       </button>
     </div>
-    <div class="cursor-auto overflow-y-scroll pb-2.5 lg:pb-3.5 sm:pb-3 [&>article]:(<sm:text-xs lg:text-base)" class:!pb-0={!output} bind:this={ref}>
-      <Markdown text={output} runCode={pushBlock} />
+
+    <div class="contents cursor-auto" bind:this={ref}>
+      {#if error}
+        <div class="overflow-x-scroll overflow-x-scroll rounded-md bg-orange-3/5 text-xs text-orange-3">
+          <pre class="px-2.5 py-2">{error.message}</pre>
+        </div>
+      {/if}
+      {#if output}
+        <div class="overflow-y-scroll pb-2.5 lg:pb-3.5 sm:pb-3 [&>article]:(<sm:text-xs lg:text-base)">
+          <Markdown text={output} runCode={pushBlock} />
+        </div>
+      {/if}
     </div>
   </div>
 </div>
