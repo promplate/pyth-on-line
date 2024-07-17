@@ -12,7 +12,7 @@
   export let pushBlock: (source: string) => any;
 
   let output = "";
-  let error: Error;
+  let error: Error | undefined;
 
   async function runExplain({ traceback, code }: ErrorInfo) {
     try {
@@ -24,7 +24,15 @@
     }
   }
 
-  onMount(() => errorInfo && runExplain(errorInfo));
+  function invoke() {
+    if (errorInfo) {
+      output = "";
+      error = undefined;
+      runExplain(errorInfo);
+    }
+  }
+
+  onMount(invoke);
 
   let ref: HTMLDivElement;
 </script>
@@ -38,11 +46,15 @@
           error explainer
         </div>
       </div>
-      <button class="rounded p-1.5 text-white/80 transition-colors hover:(bg-red-3/10 text-red-3/80)" on:click={() => (errorInfo = undefined)}>
-        <div class="i-material-symbols-close-rounded" />
-      </button>
+      <div class="flex flex-row [&>button:active]:scale-90 [&>button]:(rounded p-1.5 text-white/80 transition-colors)">
+        <button class="hover:(bg-cyan-3/10 text-cyan-3/80)" title="regenerate" on:click={invoke}>
+          <div class="i-mingcute-refresh-2-fill" />
+        </button>
+        <button class="hover:(bg-red-3/10 text-red-3/80)" title="close" on:click={() => (errorInfo = undefined)}>
+          <div class="i-mingcute-close-fill" />
+        </button>
+      </div>
     </div>
-
     <div class="contents cursor-auto" bind:this={ref}>
       {#if error}
         <div class="overflow-x-scroll overflow-x-scroll rounded bg-orange-3/5 text-xs text-orange-3">
