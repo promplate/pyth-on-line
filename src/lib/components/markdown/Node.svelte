@@ -54,7 +54,7 @@
 
   <Link {node}>
     {#each children as child}
-      <svelte:self node={child} />
+      <svelte:self node={child} {runCode} />
     {/each}
   </Link>
 
@@ -62,7 +62,7 @@
 
   <svelte:element this={getTagName(node)}>
     {#each children as child}
-      <svelte:self node={child} />
+      <svelte:self node={child} {runCode} />
     {/each}
   </svelte:element>
 
