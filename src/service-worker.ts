@@ -3,6 +3,7 @@
 /// <reference lib="esnext" />
 /// <reference lib="webworker" />
 
+import { indexURL } from "./lib/pyodide/env";
 import { build, files, version } from "$service-worker";
 
 const sw = globalThis as unknown as ServiceWorkerGlobalScope;
@@ -10,16 +11,24 @@ const sw = globalThis as unknown as ServiceWorkerGlobalScope;
 // Create a unique cache name for this deployment
 const CACHE = `v-${version}`;
 
-const ASSETS = [
+const websiteAssets = [
   ...build, // the app itself
   ...files, // everything in `static`
+];
+
+const pyodideAssets = [
+  "pyodide.asm.js",
+  "pyodide.asm.wasm",
+  "python_stdlib.zip",
+  "pyodide-lock.json",
 ];
 
 sw.addEventListener("install", (event) => {
   // Create a new cache and add all files to it
   async function addFilesToCache() {
     const cache = await caches.open(CACHE);
-    await cache.addAll(ASSETS);
+    await cache.addAll(pyodideAssets.map(filename => `${indexURL?.replace(/\/$/, "") ?? ""}/${filename}`));
+    await cache.addAll(websiteAssets);
   }
 
   event.waitUntil(addFilesToCache());
@@ -46,7 +55,7 @@ sw.addEventListener("fetch", (event) => {
     const cache = await caches.open(CACHE);
 
     // `build`/`files` can always be served from the cache
-    if (ASSETS.includes(url.pathname)) {
+    if (websiteAssets.includes(url.pathname)) {
       const response = await cache.match(url.pathname);
 
       if (response) {
