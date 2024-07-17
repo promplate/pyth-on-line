@@ -4,7 +4,7 @@
 /// <reference lib="webworker" />
 
 import { indexURL } from "./lib/pyodide/env";
-import { build, files, version } from "$service-worker";
+import { build, files, prerendered, version } from "$service-worker";
 
 const sw = globalThis as unknown as ServiceWorkerGlobalScope;
 
@@ -12,6 +12,7 @@ const sw = globalThis as unknown as ServiceWorkerGlobalScope;
 const CACHE = `v-${version}`;
 
 const websiteAssets = [
+  ...prerendered, // prerendered pages and endpoints
   ...build, // the app itself
   ...files, // everything in `static`
 ];
@@ -22,6 +23,8 @@ const pyodideAssets = [
   "python_stdlib.zip",
   "pyodide-lock.json",
 ];
+
+const allAssets = [...websiteAssets, ...pyodideAssets];
 
 sw.addEventListener("install", (event) => {
   // Create a new cache and add all files to it
@@ -55,7 +58,7 @@ sw.addEventListener("fetch", (event) => {
     const cache = await caches.open(CACHE);
 
     // `build`/`files` can always be served from the cache
-    if (websiteAssets.includes(url.pathname)) {
+    if (allAssets.includes(url.pathname)) {
       const response = await cache.match(url.pathname);
 
       if (response) {
