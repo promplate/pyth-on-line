@@ -46,7 +46,7 @@
     "tslib": "^2.6.3",
     "typescript": "^5.5.3",
     "unified": "^11.0.5",
-    "unocss": "^0.59.4",
+    "unocss": "^0.61.5",
     "vite": "^5.3.4"
   },
   "resolutions": {
