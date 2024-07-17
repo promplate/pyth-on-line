@@ -12,7 +12,7 @@
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^2.22.3",
+    "@antfu/eslint-config": "^2.22.4",
     "@ethercorps/sveltekit-og": "^3.0.0",
     "@fontsource-variable/fira-code": "^5.0.18",
     "@iconify/json": "^2.2.228",
@@ -43,7 +43,7 @@
     "typescript": "^5.5.3",
     "unified": "^11.0.5",
     "unocss": "^0.59.4",
-    "vite": "^5.3.3"
+    "vite": "^5.3.4"
   },
   "resolutions": {
     "eslint-config-flat-gitignore": "0.1.5"
