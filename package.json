@@ -27,9 +27,9 @@
     "@sveltejs/vite-plugin-svelte": "^3.1.1",
     "@typescript-eslint/eslint-plugin": "^7.16.1",
     "@typescript-eslint/parser": "^7.16.1",
-    "@unocss/eslint-config": "^0.59.4",
-    "@unocss/extractor-svelte": "^0.59.4",
-    "@unocss/reset": "^0.59.4",
+    "@unocss/eslint-config": "^0.61.5",
+    "@unocss/extractor-svelte": "^0.61.5",
+    "@unocss/reset": "^0.61.5",
     "eslint": "^8.57.0",
     "eslint-plugin-format": "^0.1.2",
     "eslint-plugin-svelte": "^2.42.0",
@@ -46,7 +46,7 @@
     "tslib": "^2.6.3",
     "typescript": "^5.5.3",
     "unified": "^11.0.5",
-    "unocss": "^0.59.4",
+    "unocss": "^0.61.5",
     "vite": "^5.3.4"
   },
   "resolutions": {
