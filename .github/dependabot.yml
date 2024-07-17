@@ -9,6 +9,10 @@ updates:
     directory: /
     schedule:
       interval: daily
+    groups:
+      unocss:
+        patterns:
+          - "*unocss*"
   - package-ecosystem: github-actions
     directory: /
     schedule:
