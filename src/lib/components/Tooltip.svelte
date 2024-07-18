@@ -22,6 +22,10 @@
       left = rect.right - divWidth;
     }
 
+    if (left < 0) {
+      left = 0;
+    }
+
     position = { top, left };
   }
 
