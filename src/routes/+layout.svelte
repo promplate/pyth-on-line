@@ -47,12 +47,16 @@
     --uno: bg-white/15;
   }
 
+  :global(body) {
+    --uno: relative flex flex-col items-center items-stretch;
+  }
+
   :global(body)::-webkit-scrollbar {
     --uno: bg-neutral-9 w-1 sm:w-1.5 md:w-2 lg:w-2.5 xl:w-3 2xl:w-3.5;
   }
 
   :global(body)::-webkit-scrollbar-thumb {
-    --uno: relative flex flex-col items-center rounded-l-sm bg-neutral-7/30 hover:bg-neutral-7/70;
+    --uno: rounded-l-sm bg-neutral-7/30 hover:bg-neutral-7/70;
   }
 
   :global(body *)::-webkit-scrollbar {
