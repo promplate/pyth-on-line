@@ -44,7 +44,7 @@
 </script>
 
 <!-- svelte-ignore a11y-mouse-events-have-key-events -->
-<code class="p-4 -m-4" on:mouseover={() => show = true} on:mouseout={() => show = false} bind:this={ref}>{inlineCode.value}</code>
+<code on:mouseover={() => show = true} on:mouseout={() => show = false} bind:this={ref}>{inlineCode.value}</code>
 
 <Tooltip target={ref} show={show && inspection !== undefined}>
   <div class="{outerColor} max-w-lg flex flex-row items-center gap-1.5 overflow-x-hidden ws-nowrap rounded bg-neutral-8/80 p-1.5 pr-2 text-sm font-mono ring-(1.5 inset) backdrop-blur -translate-y-2">
