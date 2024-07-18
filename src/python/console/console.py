@@ -193,4 +193,16 @@ class ConsoleAPI:
     def inspect(self, name: str):
         if name.isidentifier() and (name in self.context or name in self.builtins):
             value = self.context.get(name) or self.builtins[name]
-            return {"value": repr(value), "type": type(value).__qualname__}
+
+            res = {"class": type(value).__qualname__}
+
+            match value:
+                case type():
+                    res |= {
+                        "value": f"{value.__qualname__}({', '.join(cls.__qualname__ for cls in value.__bases__)})",
+                        "type": "exception" if issubclass(value, BaseException) else "class",
+                    }
+                case _:
+                    res |= {"value": repr(value)}
+
+            return res
