@@ -188,3 +188,9 @@ class ConsoleAPI:
         self.sync()
 
         return line
+
+    @js_api
+    def inspect(self, name: str):
+        if name.isidentifier() and (name in self.context or name in self.builtins):
+            value = self.context.get(name) or self.builtins[name]
+            return {"value": repr(value), "type": type(value).__qualname__}

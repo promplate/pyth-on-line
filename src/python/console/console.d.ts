@@ -14,4 +14,5 @@ export class ConsoleAPI extends PyProxy {
   incomplete: boolean;
   push(line: string): Result<any>;
   pop(): string;
+  inspect(name: string): { value: string; type: string };
 }
