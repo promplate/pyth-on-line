@@ -209,8 +209,10 @@ class ConsoleAPI:
 
     @js_api
     def inspect(self, name: str):
-        if name.isidentifier() and (name in self.context or name in self.builtins):
-            return self._inspect(self.context.get(name) or self.builtins[name])
+        if name.isidentifier():
+            if name in self.context or name in self.builtins:
+                return self._inspect(self.context.get(name) or self.builtins[name])
+            return
 
         with suppress(ValueError, SyntaxError):
             return self._inspect(literal_eval(name))
