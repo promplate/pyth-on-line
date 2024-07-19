@@ -6,7 +6,7 @@ from .templates import explain_error
 
 
 async def explain(traceback: str, code: str):
-    generate = AsyncChatGenerate().bind(temperature=0, model=getenv("LLM_MODEL", "gpt-3.5-turbo-0125"))
+    generate = AsyncChatGenerate().bind(temperature=0, model=getenv("LLM_MODEL", "gpt-4o-mini"))
 
     async for i in generate(await explain_error.arender({"traceback": traceback, "code": code})):
         assert isinstance(i, str)
