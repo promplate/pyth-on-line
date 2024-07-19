@@ -61,7 +61,7 @@
     <div class="contents cursor-auto" bind:this={ref}>
       {#if error}
         <div class="overflow-x-scroll overflow-x-scroll rounded bg-orange-3/5 text-xs text-orange-3">
-          <pre class="px-2.5 py-2">{error.message}</pre>
+          <pre class="px-2.5 py-2 font-mono">{error.message}</pre>
         </div>
       {/if}
       {#if output}
