@@ -1,7 +1,7 @@
 import type { PyProxy } from "pyodide/ffi";
 
 import patches from "../../../python/patches";
-import { indexURL } from "../env";
+import { indexURL, preloadPackages } from "../common";
 import loader from "./loader.py?raw";
 import { dev } from "$app/environment";
 import { cacheSingleton } from "$lib/utils/cache";
@@ -11,7 +11,7 @@ import { toast } from "svelte-sonner";
 
 const getMinimalPyodide = cacheSingleton(withToast({ loading: "loading pyodide runtime" })(async () => {
   const { loadPyodide } = await import("pyodide");
-  const py = await loadPyodide({ indexURL, env: getEnv(), packages: ["micropip"], args: dev ? [] : ["-O"] });
+  const py = await loadPyodide({ indexURL, env: getEnv(), packages: preloadPackages, args: dev ? [] : ["-O"] });
   py.globals.set("toast", toast);
   return py;
 }));

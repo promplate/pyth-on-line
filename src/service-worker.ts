@@ -3,7 +3,9 @@
 /// <reference lib="esnext" />
 /// <reference lib="webworker" />
 
-import { indexURL } from "./lib/pyodide/env";
+import type lockfile from "pyodide/pyodide-lock.json";
+
+import { indexURL, preloadPackages } from "./lib/pyodide/common";
 import { build, files, prerendered, version } from "$service-worker";
 
 const sw = globalThis as unknown as ServiceWorkerGlobalScope;
@@ -26,11 +28,28 @@ const pyodideAssets = [
 
 const allAssets = [...websiteAssets, ...pyodideAssets];
 
+const baseURL = indexURL ? indexURL?.replace(/\/$/, "") : "";
+
 sw.addEventListener("install", (event) => {
   // Create a new cache and add all files to it
   async function addFilesToCache() {
     const cache = await caches.open(CACHE);
-    await cache.addAll(pyodideAssets.map(filename => `${indexURL?.replace(/\/$/, "") ?? ""}/${filename}`));
+    await cache.addAll(pyodideAssets.map(filename => `${baseURL}/${filename}`));
+
+    const { packages }: typeof lockfile = await cache.match(`${baseURL}/pyodide-lock.json`).then(res => res?.json());
+    function getUrls(names: string[]) {
+      const urls = new Set<string>();
+      for (const name of names) {
+        const info = packages[name as keyof typeof packages];
+        urls.add(info.file_name);
+        if (info.depends) {
+          getUrls(info.depends).forEach(url => urls.add(url));
+        }
+      }
+      return urls;
+    }
+    await cache.addAll([...getUrls(preloadPackages)].map(url => `${baseURL}/${url}`));
+
     await cache.addAll(websiteAssets);
   }
 
