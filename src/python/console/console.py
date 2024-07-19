@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import builtins
-from ast import literal_eval
+from ast import literal_eval, parse
 from asyncio import ensure_future
 from collections.abc import Callable
 from contextlib import suppress
@@ -14,6 +14,7 @@ from js import window
 from pyodide.console import ConsoleFuture, PyodideConsole
 
 from .bridge import js_api
+from .eval import install_pure_eval
 from .source import SourceFile
 
 
@@ -216,3 +217,17 @@ class ConsoleAPI:
 
         with suppress(ValueError, SyntaxError):
             return self._inspect(literal_eval(name))
+
+        if install_pure_eval().done():
+            with suppress(ValueError):
+                return self._inspect(self.literal_eval(name))
+
+    def literal_eval(self, source: str):
+        from pure_eval.core import Evaluator
+        from pure_eval.utils import CannotEval
+
+        with suppress(CannotEval, SyntaxError):
+            if value := getattr(parse(source).body[0], "value", None):
+                return Evaluator(self.context)[value]
+
+        raise ValueError
