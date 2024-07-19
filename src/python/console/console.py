@@ -3,11 +3,12 @@ from __future__ import annotations
 import builtins
 from ast import literal_eval
 from asyncio import ensure_future
+from collections.abc import Callable
 from contextlib import suppress
 from functools import cached_property
 from operator import call
 from pprint import pformat
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING
 
 from js import window
 from pyodide.console import ConsoleFuture, PyodideConsole

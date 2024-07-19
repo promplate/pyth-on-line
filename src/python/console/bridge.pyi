@@ -1,4 +1,5 @@
-from typing import Awaitable, Callable, overload
+from collections.abc import Awaitable, Callable
+from typing import overload
 
 @overload
 def _to_js[T](value: Awaitable[T]) -> Awaitable[T]: ...
