@@ -57,9 +57,9 @@ sw.addEventListener("fetch", (event) => {
     const url = new URL(event.request.url);
     const cache = await caches.open(CACHE);
 
-    // `build`/`files` can always be served from the cache
-    if (allAssets.includes(url.pathname)) {
-      const response = await cache.match(url.pathname);
+    // immutable assets always be served from the cache
+    if (allAssets.includes(url.pathname) || String(url).startsWith(indexURL)) {
+      const response = await cache.match(event.request);
 
       if (response) {
         return response;
