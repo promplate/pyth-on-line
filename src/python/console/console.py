@@ -227,3 +227,5 @@ class ConsoleAPI:
 
         if value := getattr(parse(source).body[0], "value", None):
             return Evaluator(self.context)[value]
+
+        raise SyntaxError
