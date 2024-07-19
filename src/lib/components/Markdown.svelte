@@ -8,14 +8,17 @@
 </script>
 
 <script lang="ts">
+  import type { ConsoleAPI } from "$py/console/console";
+
   import Node from "./markdown/Node.svelte";
 
   export let text: string;
   export let runCode: (source: string) => any;
+  export let inspect: typeof ConsoleAPI.prototype.inspect;
 
   $: node = processor.parse(text);
 </script>
 
 <article class="min-w-full text-sm text-neutral-2 font-sans prose [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
-  <Node {node} {runCode} />
+  <Node {node} {runCode} {inspect} />
 </article>

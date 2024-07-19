@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import builtins
+from ast import literal_eval
 from asyncio import ensure_future
+from contextlib import suppress
 from functools import cached_property
 from operator import call
 from pprint import pformat
@@ -188,3 +190,26 @@ class ConsoleAPI:
         self.sync()
 
         return line
+
+    @staticmethod
+    def _inspect(value):
+        res = {"class": type(value).__qualname__}
+
+        match value:
+            case type():
+                res |= {
+                    "value": f"{value.__qualname__}({', '.join(cls.__qualname__ for cls in value.__bases__)})",
+                    "type": "exception" if issubclass(value, BaseException) else "class",
+                }
+            case _:
+                res |= {"value": repr(value)}
+
+        return res
+
+    @js_api
+    def inspect(self, name: str):
+        if name.isidentifier() and (name in self.context or name in self.builtins):
+            return self._inspect(self.context.get(name) or self.builtins[name])
+
+        with suppress(ValueError, SyntaxError):
+            return self._inspect(literal_eval(name))
