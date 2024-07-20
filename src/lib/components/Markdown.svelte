@@ -19,6 +19,6 @@
   $: node = processor.parse(text);
 </script>
 
-<article class="min-w-full text-sm text-neutral-2 font-sans prose [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
+<article class="max-w-full text-sm text-neutral-2 font-sans prose [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
   <Node {node} {runCode} {inspect} />
 </article>

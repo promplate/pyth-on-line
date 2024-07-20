@@ -17,3 +17,7 @@
 .prose code {
   @apply mx-0.2 inline-block whitespace-normal rounded bg-white/10 px-1 py-0.2 text-0.8em text-white font-normal -my-0.2 -translate-y-0.1em after:content-none before:content-none;
 }
+
+.prose a {
+  @apply underline underline-(white op-30 offset-2) transition hover:(text-white underline-op-60);
+}
