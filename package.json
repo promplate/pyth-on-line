@@ -27,6 +27,7 @@
     "@unocss/eslint-config": "^0.61.5",
     "@unocss/extractor-svelte": "^0.61.5",
     "@unocss/reset": "^0.61.5",
+    "bits-ui": "^0.21.12",
     "openai": "^4.52.7",
     "pyodide": "0.26.1",
     "rehype-stringify": "^10.0.0",

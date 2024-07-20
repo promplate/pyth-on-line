@@ -2,6 +2,7 @@
   import type { Code, Node } from "mdast";
 
   import UseCopy from "../console/UseCopy.svelte";
+  import WithTooltip from "../reusable/WithTooltip.svelte";
   import CodeBlock from "$lib/components/CodeBlock.svelte";
 
   export let node: Node;
@@ -22,10 +23,14 @@
     <CodeBlock lang={code.lang ?? "text"} code={code.value} />
     <div class="absolute right-0.9em top-0.9em flex flex-row-reverse gap-0.3em transition group-not-hover:(pointer-events-none op-0) [&>button]:(rounded bg-white/5 p-0.6em text-0.725em transition) [&>button:hover]:(bg-white/10)">
       <UseCopy text={code.value} let:handleClick>
-        <button on:click={handleClick}><div class="i-icon-park-twotone-copy" /></button>
+        <WithTooltip let:builder tips="Copy">
+          <button on:click={handleClick} {...builder} use:builder.action><div class="i-icon-park-twotone-copy" /></button>
+        </WithTooltip>
       </UseCopy>
       {#if code.lang && "python".startsWith(code.lang)}
-        <button on:click={() => run(`${code.value.trimEnd()}`)}><div class="i-mingcute-play-fill" /></button>
+        <WithTooltip let:builder tips="Run">
+          <button on:click={() => run(code.value.trimEnd())} {...builder} use:builder.action><div class="i-mingcute-play-fill" /></button>
+        </WithTooltip>
       {/if}
     </div>
   </div>
