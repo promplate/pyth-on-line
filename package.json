@@ -13,10 +13,9 @@
   },
   "stackblitz": {
     "installDependencies": false,
-    "startCommand": "pnpm i && pnpm dev"
+    "startCommand": "pnpm i --prod && pnpm dev"
   },
-  "devDependencies": {
-    "@antfu/eslint-config": "^2.22.4",
+  "dependencies": {
     "@ethercorps/sveltekit-og": "^3.0.0",
     "@fontsource-variable/fira-code": "^5.0.18",
     "@iconify/json": "^2.2.228",
@@ -25,14 +24,9 @@
     "@sveltejs/adapter-netlify": "^4.3.1",
     "@sveltejs/kit": "^2.5.18",
     "@sveltejs/vite-plugin-svelte": "^3.1.1",
-    "@typescript-eslint/eslint-plugin": "^7.16.1",
-    "@typescript-eslint/parser": "^7.16.1",
     "@unocss/eslint-config": "^0.61.5",
     "@unocss/extractor-svelte": "^0.61.5",
     "@unocss/reset": "^0.61.5",
-    "eslint": "^8.57.0",
-    "eslint-plugin-format": "^0.1.2",
-    "eslint-plugin-svelte": "^2.42.0",
     "openai": "^4.52.7",
     "pyodide": "0.26.1",
     "rehype-stringify": "^10.0.0",
@@ -41,16 +35,17 @@
     "rollup-plugin-flatten-dir": "^1.0.1",
     "shiki": "^1.10.3",
     "svelte": "^4.2.18",
-    "svelte-check": "^3.8.4",
     "svelte-portal": "^2.2.1",
     "svelte-sonner": "0.3.27",
-    "tslib": "^2.6.3",
-    "typescript": "^5.5.3",
     "unified": "^11.0.5",
     "unocss": "^0.61.5",
     "vite": "^5.3.4"
   },
-  "resolutions": {
-    "eslint-config-flat-gitignore": "0.1.5"
+  "devDependencies": {
+    "@antfu/eslint-config": "^2.22.4",
+    "eslint": "^8.57.0",
+    "eslint-plugin-format": "^0.1.2",
+    "eslint-plugin-svelte": "^2.42.0",
+    "svelte-check": "^3.8.4"
   }
 }
