@@ -2,6 +2,7 @@
   import type { ConsoleAPI } from "$py/console/console";
 
   import Markdown from "./Markdown.svelte";
+  import WithTooltip from "./reusable/WithTooltip.svelte";
   import { draggable } from "@neodrag/svelte";
   import { explain } from "$lib/pyodide/api/explain";
   import { onMount } from "svelte";
@@ -50,12 +51,16 @@
         </div>
       </div>
       <div class="flex flex-row [&>button:active]:scale-90 [&>button]:(rounded p-1.5 text-white/80 transition-colors)">
-        <button class="hover:(bg-cyan-3/10 text-cyan-3/80)" title="regenerate" on:click={invoke}>
-          <div class="i-mingcute-refresh-2-fill" />
-        </button>
-        <button class="hover:(bg-red-3/10 text-red-3/80)" title="close" on:click={() => (errorInfo = undefined)}>
-          <div class="i-mingcute-close-fill" />
-        </button>
+        <WithTooltip tips="Regenerate" let:builder>
+          <button class="hover:(bg-cyan-3/10 text-cyan-3/80)" on:click={invoke} {...builder} use:builder.action>
+            <div class="i-mingcute-refresh-2-fill" />
+          </button>
+        </WithTooltip>
+        <WithTooltip tips="Close" let:builder>
+          <button class="hover:(bg-red-3/10 text-red-3/80)" on:click={() => (errorInfo = undefined)} {...builder} use:builder.action>
+            <div class="i-mingcute-close-fill" />
+          </button>
+        </WithTooltip>
       </div>
     </div>
     <div class="contents cursor-auto" bind:this={ref}>
