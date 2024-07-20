@@ -1,6 +1,7 @@
 <script lang="ts">
   import ConsolePrompt from "../ConsolePrompt.svelte";
   import InlineCode from "../InlineCode.svelte";
+  import WithTooltip from "../reusable/WithTooltip.svelte";
   import ButtonGroup from "./ButtonGroup.svelte";
   import Copy from "./Copy.svelte";
 
@@ -18,7 +19,9 @@
     <InlineCode {text}></InlineCode>
     <ButtonGroup>
       <Copy {text} />
-      <button on:click class="i-mingcute-play-fill" />
+      <WithTooltip tips="Run" let:builder>
+        <button on:click class="i-mingcute-play-fill" {...builder} use:builder.action />
+      </WithTooltip>
     </ButtonGroup>
   </div>
 {:else}

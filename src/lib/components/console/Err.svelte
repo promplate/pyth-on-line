@@ -1,4 +1,5 @@
 <script lang="ts">
+  import WithTooltip from "../reusable/WithTooltip.svelte";
   import ButtonGroup from "./ButtonGroup.svelte";
   import Copy from "./Copy.svelte";
 
@@ -10,7 +11,9 @@
 
   <ButtonGroup>
     <Copy {text} />
-    <button on:click class="i-majesticons-lightbulb-shine" />
+    <WithTooltip tips="Ask AI" let:builder>
+      <button on:click class="i-majesticons-lightbulb-shine" {...builder} use:builder.action />
+    </WithTooltip>
   </ButtonGroup>
 
 </div>
