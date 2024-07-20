@@ -1,6 +1,6 @@
 import type { PyProxy } from "pyodide/ffi";
 
-import patches from "../../../python/patches";
+import common from "../../../python/common";
 import { indexURL, preloadPackages } from "../common";
 import loader from "./loader.py?raw";
 import { dev } from "$app/environment";
@@ -29,7 +29,7 @@ export async function setupModule(sources: Record<string, string>, moduleName: s
 
 export const getPyodide = cacheSingleton(async () => {
   const py = await getMinimalPyodide();
-  await setupModule(patches, "patches");
-  py.pyimport("patches.patches");
+  await setupModule(common, "common");
+  py.pyimport("common.patches");
   return py;
 });

@@ -1,10 +1,8 @@
 from __future__ import annotations
 
 import builtins
-from ast import literal_eval, parse
 from asyncio import ensure_future
 from collections.abc import Callable
-from contextlib import suppress
 from functools import cached_property
 from operator import call
 from pprint import pformat
@@ -192,42 +190,8 @@ class ConsoleAPI:
 
         return line
 
-    @staticmethod
-    def _inspect(value):
-        res = {"class": type(value).__qualname__}
-
-        match value:
-            case type():
-                res |= {
-                    "value": f"{value.__qualname__}({', '.join(cls.__qualname__ for cls in value.__bases__)})",
-                    "type": "exception" if issubclass(value, BaseException) else "class",
-                }
-            case _:
-                res |= {"value": repr(value)}
-
-        return res
-
     @js_api
     def inspect(self, name: str):
-        if name.isidentifier():
-            with suppress(KeyError):
-                return self._inspect(self.context[name])
-            with suppress(KeyError):
-                return self._inspect(self.builtins[name])
-            return
+        from common.inspection import inspect
 
-        with suppress(ValueError, SyntaxError):
-            return self._inspect(literal_eval(name))
-
-        from pure_eval.utils import CannotEval
-
-        with suppress(CannotEval, SyntaxError):
-            return self._inspect(self.literal_eval(name))
-
-    def literal_eval(self, source: str):
-        from pure_eval.core import Evaluator
-
-        if value := getattr(parse(source).body[0], "value", None):
-            return Evaluator(self.context)[value]
-
-        raise SyntaxError
+        return inspect(name, self.context, self.builtins)
