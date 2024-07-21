@@ -6,13 +6,14 @@
 
   export let node: Node;
   export let run: ((source: string) => any) | undefined;
+  export let fadeIn = false;
 
   $: code = node as Code;
 
 </script>
 
 {#if code.value}
-  <div class="group relative flex flex-col animate-(fade-in duration-150 ease-out)">
+  <div class="group relative flex flex-col animate-(duration-150 ease-out)" class:animate-fade-in={fadeIn}>
 
     <slot {code} />
 

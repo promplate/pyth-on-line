@@ -17,6 +17,6 @@
   }
 </script>
 
-<WithCodeActions {node} {run} let:code>
+<WithCodeActions {node} {run} fadeIn let:code>
   <CodeBlock lang={code.lang ?? "text"} code={code.value} />
 </WithCodeActions>
