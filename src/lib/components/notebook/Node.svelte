@@ -24,6 +24,9 @@
       case "strong":
         return "strong";
 
+      case "emphasis":
+        return "em";
+
       case "paragraph":
         return "p";
 
