@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { ConsoleAPI } from "$py/console/console";
+  import type { RunResult } from "$py/notebook/notebook";
   import type { Heading, List, Node, Parent } from "mdast";
 
   import Code from "./Code.svelte";
@@ -8,7 +9,7 @@
   import Link from "./Link.svelte";
 
   export let node: Node;
-  export let runCode: (source: string) => any;
+  export let runCode: (source: string) => Promise<RunResult> | undefined;
   export let inspect: typeof ConsoleAPI.prototype.inspect;
 
   function getTagName(node: Node): string {

@@ -9,11 +9,12 @@
 
 <script lang="ts">
   import type { ConsoleAPI } from "$py/console/console";
+  import type { RunResult } from "$py/notebook/notebook";
 
   import Node from "./markdown/Node.svelte";
 
   export let text: string;
-  export let runCode: (source: string) => any;
+  export let runCode: (source: string) => Promise<RunResult> | undefined;
   export let inspect: typeof ConsoleAPI.prototype.inspect;
 
   $: node = processor.parse(text);

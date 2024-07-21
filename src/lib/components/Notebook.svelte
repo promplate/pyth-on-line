@@ -5,6 +5,6 @@
   export let text: string;
 </script>
 
-<WithConsole let:pyNotebook let:pushBlock>
-  <Markdown {text} inspect={pyNotebook?.inspect} runCode={pushBlock} />
+<WithConsole let:pyNotebook let:run>
+  <Markdown {text} inspect={pyNotebook?.inspect} runCode={run} />
 </WithConsole>

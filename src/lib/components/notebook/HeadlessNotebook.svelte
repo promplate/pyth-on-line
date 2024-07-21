@@ -12,9 +12,9 @@
     pyNotebook = py.pyimport("notebook.NotebookAPI")() as NotebookAPI;
   });
 
-  async function pushBlock(source: string) {
+  async function run(source: string) {
     return await pyNotebook.run(patchSource(source));
   }
 </script>
 
-<slot {pyNotebook} {pushBlock} />
+<slot {pyNotebook} {run} />
