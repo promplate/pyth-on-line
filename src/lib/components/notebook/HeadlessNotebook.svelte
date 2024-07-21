@@ -2,7 +2,6 @@
   import type { NotebookAPI } from "$py/notebook/notebook";
 
   import getPy from "$lib/pyodide";
-  import { patchSource } from "$lib/utils/formatSource";
   import { onMount } from "svelte";
 
   let pyNotebook: NotebookAPI;
@@ -11,10 +10,6 @@
     const py = await getPy({ notebook: true });
     pyNotebook = py.pyimport("notebook.NotebookAPI")() as NotebookAPI;
   });
-
-  async function run(source: string) {
-    return await pyNotebook.run(patchSource(source));
-  }
 </script>
 
-<slot {pyNotebook} {run} />
+<slot {pyNotebook} />

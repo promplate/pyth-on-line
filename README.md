@@ -11,6 +11,31 @@ With Pythonline, you can easily share your Python snippets with others, without 
 
 How about `math.e`? try hovering this! 👉 `math.pi / math.e`
 
+## Main Features
+
+You can use top-level await:
+
+```python
+from asyncio import sleep
+
+for i in range(10):
+    print(i, end=" ")
+    await sleep(0.1)
+```
+
+Native and informative traceback:
+
+```python
+def reciprocal(x: int):
+    return 1 / x
+```
+
+Try this:
+
+```python
+1 + reciprocal(0)
+```
+
 ## Basic Usage
 
 Pyodide supports [a large subset of the Python standard library](https://pyodide.org/en/stable/usage/wasm-constraints.html). You can use all of them here.

@@ -1,15 +1,14 @@
 <script lang="ts">
-  import type { ConsoleAPI } from "$py/console/console";
+  import type { NotebookAPI } from "$py/notebook/notebook";
   import type { Heading, List, Node, Parent } from "mdast";
 
+  import Fallback from "../markdown/Fallback.svelte";
+  import InlineCode from "../markdown/InlineCode.svelte";
+  import Link from "../markdown/Link.svelte";
   import Code from "./Code.svelte";
-  import Fallback from "./Fallback.svelte";
-  import InlineCode from "./InlineCode.svelte";
-  import Link from "./Link.svelte";
 
   export let node: Node;
-  export let runCode: ((source: string) => any) | undefined;
-  export let inspect: typeof ConsoleAPI.prototype.inspect;
+  export let pyNotebook: NotebookAPI;
 
   function getTagName(node: Node): string {
     switch (node.type) {
@@ -41,22 +40,22 @@
 {#if node.type === "root"}
 
   {#each children as child}
-    <svelte:self node={child} {runCode} {inspect} />
+    <svelte:self node={child} {pyNotebook} />
   {/each}
 
 {:else if node.type === "code"}
 
-  <Code {node} {runCode} />
+  <Code {node} {pyNotebook} />
 
 {:else if node.type === "inlineCode"}
 
-  <InlineCode {node} {inspect} />
+  <InlineCode {node} inspect={pyNotebook?.inspect} />
 
 {:else if node.type === "link"}
 
   <Link {node}>
     {#each children as child}
-      <svelte:self node={child} {runCode} {inspect} />
+      <svelte:self node={child} {pyNotebook} />
     {/each}
   </Link>
 
@@ -64,7 +63,7 @@
 
   <svelte:element this={getTagName(node)}>
     {#each children as child}
-      <svelte:self node={child} {runCode} {inspect} />
+      <svelte:self node={child} {pyNotebook} />
     {/each}
   </svelte:element>
 

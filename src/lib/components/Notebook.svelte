@@ -1,10 +1,13 @@
 <script lang="ts">
-  import Markdown from "$lib/components/Markdown.svelte";
+  import Node from "./notebook/Node.svelte";
+  import WithMarkdown from "./reusable/WithMarkdown.svelte";
   import WithConsole from "$lib/components/notebook/HeadlessNotebook.svelte";
 
   export let text: string;
 </script>
 
-<WithConsole let:pyNotebook let:run>
-  <Markdown {text} inspect={pyNotebook?.inspect} runCode={run} />
+<WithConsole let:pyNotebook>
+  <WithMarkdown let:parse>
+    <Node node={parse(text)} {pyNotebook} />
+  </WithMarkdown>
 </WithConsole>

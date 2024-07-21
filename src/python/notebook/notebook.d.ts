@@ -1,12 +1,13 @@
 import type { Inspection } from "../console/console";
 
-export interface RunResult {
-  out?: string;
-  err?: string;
-  repr?: string;
+interface Item {
+  type: "out" | "err" | "repr";
+  text: string;
 }
 
+type Callback = (items: Item[]) => any;
+
 export class NotebookAPI {
-  async run(source: string): Promise<RunResult>;
+  async run(source: string, sync: Callback): Promise<void>;
   inspect(source: string): Inspection ;
 }
