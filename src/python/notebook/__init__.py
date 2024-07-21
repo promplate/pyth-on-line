@@ -20,18 +20,21 @@ class NotebookAPI:
         return f"In[{next(self.counter)}]"
 
     async def _run(self, source: str):
-        value = None
+        res = {}
         with redirect_stdout(stdout := StringIO()), redirect_stderr(stderr := StringIO()):
             try:
                 value = await eval_code_async(source, self.context, filename=self.filename)
                 if value is not None:
                     self.builtins["_"] = value
+                    res["repr"] = repr(value)
             except Exception:
                 print_exc()
 
-        res = {"out": stdout.getvalue(), "err": stderr.getvalue()}
-        if value is not None:
-            res["repr"] = repr(value)
+        if out := stdout.getvalue():
+            res["out"] = out
+        if err := stderr.getvalue():
+            res["err"] = err
+
         return res
 
     async def run(self, source):

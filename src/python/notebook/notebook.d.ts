@@ -1,8 +1,8 @@
 import type { Inspection } from "../console/console";
 
 export interface RunResult {
-  out: string;
-  err: string;
+  out?: string;
+  err?: string;
   repr?: string;
 }
 
