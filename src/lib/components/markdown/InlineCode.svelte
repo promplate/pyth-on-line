@@ -5,7 +5,7 @@
   import Tooltip from "../Tooltip.svelte";
 
   export let node: Node;
-  export let inspect: typeof ConsoleAPI.prototype.inspect;
+  export let inspect: typeof ConsoleAPI.prototype.inspect | null = null;
 
   let ref: HTMLElement;
 
@@ -14,7 +14,7 @@
   let show = false;
   let inspection: Inspection;
 
-  $: show && (inspection = inspect(inlineCode.value));
+  $: show && inspect && (inspection = inspect(inlineCode.value));
 
   let outerColor: string;
   let classColor: string;
