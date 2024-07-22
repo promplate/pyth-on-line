@@ -23,7 +23,8 @@
           <button on:click={handleClick} {...builder} use:builder.action><div class="i-icon-park-twotone-copy" /></button>
         </WithTooltip>
       </UseCopy>
-      {#if code.lang && run && "python".startsWith(code.lang)}
+      <!-- todo: temp -->
+      {#if run}
         <WithTooltip let:builder tips="Run">
           <button on:click={() => run(code.value)} {...builder} use:builder.action><div class="i-mingcute-play-fill" /></button>
         </WithTooltip>

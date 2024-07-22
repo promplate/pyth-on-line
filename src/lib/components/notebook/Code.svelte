@@ -8,6 +8,7 @@
 
   export let node: Node;
   export let pyNotebook: NotebookAPI;
+  export let heuristics = false;
 
   let items: Item[] = [];
 
@@ -15,8 +16,18 @@
     pyNotebook.run(patchSource(source), newItems => items = newItems);
   }
 
+  function isPython(pyNotebook: NotebookAPI, source: string) {
+    if (!heuristics)
+      return false;
+    if (source.startsWith(">>>"))
+      return true;
+    if (pyNotebook?.is_python(source))
+      return true;
+    return false;
+  }
+
 </script>
 
 <WithCodeActions {node} {run} let:code>
-  <CodeBlock lang={code.lang ?? "text"} code={code.value} {items} />
+  <CodeBlock lang={code.lang ?? isPython(pyNotebook, code.value) ? "python" : "text"} code={code.value} {items} />
 </WithCodeActions>

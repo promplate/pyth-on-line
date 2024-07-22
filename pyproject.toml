@@ -8,6 +8,7 @@ dependencies = [
     "promplate-pyodide~=0.0.3.3",
     "pre-commit~=3.7.1",
     "pure-eval~=0.2.3",
+    "html2text2~=1.0.0",
 ]
 
 [tool.pdm]

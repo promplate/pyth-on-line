@@ -1,4 +1,6 @@
 import builtins
+from ast import parse
+from contextlib import suppress
 from itertools import count
 
 from common.inspection import inspect
@@ -25,3 +27,10 @@ class NotebookAPI:
 
     def inspect(self, name: str):
         return to_js(inspect(name, self.context, self.builtins))
+
+    @staticmethod
+    def is_python(source: str):
+        with suppress(SyntaxError):
+            parse(source)
+            return True
+        return False
