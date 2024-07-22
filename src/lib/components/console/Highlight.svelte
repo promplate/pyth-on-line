@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { highlight } from "../highlight";
+  import { highlight } from "../../highlight";
 
   export let lang = "python";
   export let text: string;
