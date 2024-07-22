@@ -1,8 +1,9 @@
 <script lang="ts">
   import type { ConsoleAPI } from "$py/console/console";
 
-  import Node from "./markdown/Node.svelte";
-  import WithMarkdown from "./reusable/WithMarkdown.svelte";
+  import Router from "../markdown/Router.svelte";
+  import WithMarkdown from "../reusable/WithMarkdown.svelte";
+  import OverrideCode from "./Code.svelte";
 
   export let text: string;
   export let runCode: (source: string) => any;
@@ -10,5 +11,5 @@
 </script>
 
 <WithMarkdown let:parse>
-  <Node node={parse(text)} {runCode} {inspect} />
+  <Router node={parse(text)} {OverrideCode} codeProps={{ runCode }} inlineCodeProps={{ inspect }} />
 </WithMarkdown>

@@ -1,6 +1,6 @@
 <script lang="ts">
-  import type { ConsoleAPI } from "$py/console/console";
   import type { Heading, List, Node, Parent } from "mdast";
+  import type { ComponentType } from "svelte";
 
   import Code from "./Code.svelte";
   import Fallback from "./Fallback.svelte";
@@ -8,8 +8,10 @@
   import Link from "./Link.svelte";
 
   export let node: Node;
-  export let runCode: ((source: string) => any) | undefined;
-  export let inspect: typeof ConsoleAPI.prototype.inspect;
+
+  export let OverrideCode: ComponentType | null = null;
+  export let codeProps: Record<string, any> = {};
+  export let inlineCodeProps: Record<string, any> = {};
 
   function getTagName(node: Node): string {
     switch (node.type) {
@@ -44,22 +46,22 @@
 {#if node.type === "root"}
 
   {#each children as child}
-    <svelte:self node={child} {runCode} {inspect} />
+    <svelte:self node={child} {OverrideCode} {codeProps} {inlineCodeProps} />
   {/each}
 
 {:else if node.type === "code"}
 
-  <Code {node} {runCode} />
+  <svelte:component this={OverrideCode ?? Code} {node} {...codeProps} />
 
 {:else if node.type === "inlineCode"}
 
-  <InlineCode {node} {inspect} />
+  <InlineCode {node} {...inlineCodeProps} />
 
 {:else if node.type === "link"}
 
   <Link {node}>
     {#each children as child}
-      <svelte:self node={child} {runCode} {inspect} />
+      <svelte:self node={child} {OverrideCode} {codeProps} {inlineCodeProps} />
     {/each}
   </Link>
 
@@ -67,7 +69,7 @@
 
   <svelte:element this={getTagName(node)}>
     {#each children as child}
-      <svelte:self node={child} {runCode} {inspect} />
+      <svelte:self node={child} {OverrideCode} {codeProps} {inlineCodeProps} />
     {/each}
   </svelte:element>
 

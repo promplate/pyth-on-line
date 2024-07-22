@@ -5,7 +5,7 @@
   import WithTooltip from "../reusable/WithTooltip.svelte";
 
   export let node: Node;
-  export let run: ((source: string) => any) | undefined;
+  export let run: ((source: string) => any) | null = null;
   export let fadeIn = false;
 
   $: code = node as Code;

@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { ConsoleAPI } from "$py/console/console";
 
-  import Markdown from "./Markdown.svelte";
+  import Markdown from "./chat/Markdown.svelte";
   import WithTooltip from "./reusable/WithTooltip.svelte";
   import { draggable } from "@neodrag/svelte";
   import { explain } from "$lib/pyodide/api/explain";
