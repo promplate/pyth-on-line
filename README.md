@@ -57,7 +57,7 @@ from asyncio import gather
 from pyodide.http import pyfetch  # which is just a wrapper on the fetch in js
 
 async def f(url):
-    res = await pyfetch(url, method="HEAD")
+    res = await pyfetch(url, method="HEAD", cache="no-store")
     print(res.status, res.status_text, res.headers.get("content-type"))
     return res.ok
 
