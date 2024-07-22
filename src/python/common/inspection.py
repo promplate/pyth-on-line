@@ -4,8 +4,7 @@ from collections.abc import Mapping
 from contextlib import suppress
 from typing import Any
 
-from pure_eval.core import Evaluator
-from pure_eval.utils import CannotEval
+from pure_eval import CannotEval, Evaluator
 
 
 def _format_inspect(value):
