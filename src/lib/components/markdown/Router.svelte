@@ -2,10 +2,10 @@
   import type { Heading, List, Node, Parent } from "mdast";
   import type { ComponentType } from "svelte";
 
-  import Code from "./Code.svelte";
   import Fallback from "./Fallback.svelte";
   import InlineCode from "./InlineCode.svelte";
   import Link from "./Link.svelte";
+  import Code from "./Pre.svelte";
 
   export let node: Node;
 
