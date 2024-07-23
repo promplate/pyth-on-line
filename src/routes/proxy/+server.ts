@@ -32,7 +32,7 @@ export const GET: RequestHandler = async ({ fetch, url: { searchParams }, reques
   const res = await fetch(url, { headers });
 
   const resHeaders = new Headers();
-  for (const [key, value] of resHeaders) {
+  for (const [key, value] of res.headers) {
     if (!excludeResponseHeaders.includes(key.toLowerCase())) {
       resHeaders.set(key, value);
     }
