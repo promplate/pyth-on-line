@@ -10,7 +10,6 @@ function getUrl(url: string | null) {
     error(400);
   }
 
-
   try {
     return new URL(url);
   }
@@ -28,7 +27,6 @@ export const GET: RequestHandler = async ({ fetch, url: { searchParams }, reques
     if (!excludeRequestHeaders.includes(key.toLowerCase())) {
       headers.set(key, value);
     }
-
   }
 
   const res = await fetch(url, { headers });
@@ -38,7 +36,6 @@ export const GET: RequestHandler = async ({ fetch, url: { searchParams }, reques
     if (!excludeResponseHeaders.includes(key.toLowerCase())) {
       resHeaders.set(key, value);
     }
-
   }
 
   return new Response(res.body, { headers: resHeaders, status: res.status, statusText: res.statusText });
