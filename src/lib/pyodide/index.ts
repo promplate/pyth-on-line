@@ -1,7 +1,7 @@
 import { getPyodide } from "./start/init";
 
 export default async function getPy(feature: { console?: boolean; chat?: boolean; notebook?: boolean; web?: boolean } = {}) {
-  const { console = false, notebook = false, web = false, chat = false } = feature;
+  const { console = false, chat = false, notebook = false, web = false } = feature;
 
   if (console) {
     const { loadConsole } = await import("./start/console");
