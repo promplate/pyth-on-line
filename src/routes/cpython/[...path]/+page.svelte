@@ -1,4 +1,6 @@
 <script lang="ts">
+  import type { PageServerData } from "./$types";
+
   import { afterNavigate } from "$app/navigation";
   import Router from "$lib/components/markdown/Router.svelte";
   import OverrideCode from "$lib/components/notebook/Code.svelte";
@@ -8,15 +10,15 @@
   import { Button } from "bits-ui";
   import { onMount } from "svelte";
 
+  export let data: PageServerData;
+
   let text = "";
-  let pathname: string;
   let loading = true;
 
   async function refresh() {
     loading = true;
-    pathname = location.pathname.replace(/^\/cpython\/?/, "");
     const py = await getPy({ web: true });
-    text = await py.pyimport("web.get_cpython_docs")(pathname);
+    text = await py.pyimport("web.get_cpython_docs")(data.html);
     loading = false;
   };
 

@@ -1,7 +1,6 @@
-from asyncio import ensure_future, gather
+from asyncio import ensure_future
 from functools import cache
 
-from .fetch import fetch
 from .html import select
 
 
@@ -12,12 +11,11 @@ def install_requirements():
     return ensure_future(install("html2text2"))
 
 
-async def get_cpython_docs(pathname: str):
-    _, html = await gather(install_requirements(), fetch(f"https://docs.python.org/3.12/{pathname}"))
+async def get_cpython_docs(html: str):
     await install_requirements()
 
     nodes = select(html, "div.body")
-    assert len(nodes) == 1
+    assert len(nodes) == 1, html
 
     from html2text import html2text
 
