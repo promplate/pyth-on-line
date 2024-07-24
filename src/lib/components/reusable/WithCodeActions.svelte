@@ -7,9 +7,11 @@
   export let node: Node;
   export let run: ((source: string) => any) | null = null;
   export let fadeIn = false;
+  export let runnable: boolean | null = null;
 
   $: code = node as Code;
 
+  $: runnable = runnable || (code.lang && run && "python".startsWith(code.lang));
 </script>
 
 {#if code.value}
@@ -23,8 +25,7 @@
           <button on:click={handleClick} {...builder} use:builder.action><div class="i-icon-park-twotone-copy" /></button>
         </WithTooltip>
       </UseCopy>
-      <!-- todo: temp -->
-      {#if run}
+      {#if runnable && run}
         <WithTooltip let:builder tips="Run">
           <button on:click={() => run(code.value)} {...builder} use:builder.action><div class="i-mingcute-play-fill" /></button>
         </WithTooltip>

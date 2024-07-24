@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { Item, NotebookAPI } from "$py/notebook/notebook";
-  import type { Node } from "mdast";
+  import type { Code, Node } from "mdast";
 
   import WithCodeActions from "../reusable/WithCodeActions.svelte";
   import CodeBlock from "$lib/components/CodeBlock.svelte";
@@ -35,8 +35,9 @@
     return false;
   }
 
+  $: valid = isPython(pyNotebook, (node as Code).value);
 </script>
 
-<WithCodeActions {node} {run} let:code>
-  <CodeBlock lang={code.lang ?? isPython(pyNotebook, code.value) ? "python" : "text"} code={code.value} {items} />
+<WithCodeActions {node} {run} runnable={valid} let:code>
+  <CodeBlock lang={code.lang ?? valid ? "python" : "text"} code={code.value} {items} />
 </WithCodeActions>
