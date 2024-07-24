@@ -23,7 +23,7 @@ def _format_inspect(value):
 
 
 def _literal_eval(source: str, namespace: Mapping[str, Any]):
-    if value := getattr(parse(source).body[0], "value", None):
+    if value := getattr(parse(source).body[0], "value", None):  # body may have zero width
         return Evaluator(namespace)[value]
 
     raise SyntaxError
@@ -36,5 +36,5 @@ def inspect(name: str, *namespaces: dict[str, Any]):
         with suppress(KeyError):
             return _format_inspect(namespace[name])
     else:
-        with suppress(CannotEval, SyntaxError):
+        with suppress(CannotEval, SyntaxError, IndexError):
             return _format_inspect(_literal_eval(name, namespace))
