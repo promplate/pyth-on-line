@@ -37,7 +37,7 @@
 
 <style>
   section :global(pre) {
-    --uno: font-mono;
+    --uno: font-mono overflow-x-scroll;
   }
 
   section :global(pre *) {
