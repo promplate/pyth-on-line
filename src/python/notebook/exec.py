@@ -13,11 +13,13 @@ async def exec_source(filename: str, source: str, context, manager: StreamManage
             value = await eval_code_async(source, context, filename=filename)
             if value is not None:
                 manager.items.append({"type": "repr", "text": repr(value)})
-                manager.sync()
                 return value
 
         except Exception as e:
             manager.stderr.write(get_clean_traceback(e, filename))
+
+        finally:
+            manager.sync()  # at least sync once
 
 
 async def console_exec_source(filename: str, source: str, context, manager: StreamManager):
@@ -41,3 +43,5 @@ async def console_exec_source(filename: str, source: str, context, manager: Stre
             elif future.syntax_check == "syntax-error":
                 assert future.formatted_error, future
                 manager.stderr.write(future.formatted_error)
+
+        manager.sync()  # at least sync once
