@@ -4,7 +4,7 @@
   import { Button } from "bits-ui";
 </script>
 
-<div class="m-4 max-w-xl w-auto self-center lg:m-7 md:m-6 sm:m-5 xl:m-8 2xl:max-w-4xl lg:max-w-2xl xl:max-w-3xl [&>article]:(lg:text-3.75 xl:text-base)">
+<div class="m-4 max-w-[calc(100%-2rem)] w-auto self-center lg:m-7 md:m-6 sm:m-5 xl:m-8 2xl:max-w-4xl lg:max-w-2xl sm:max-w-xl xl:max-w-3xl [&>article]:(lg:text-3.75 xl:text-base)">
 
   <nav class="w-full flex flex-row items-center justify-between gap-2 text-sm lg:text-base [&>a:hover]:op-80 [&>a]:(op-50 transition)">
     <Button.Root href="/">Home</Button.Root>
