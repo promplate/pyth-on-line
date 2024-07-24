@@ -12,8 +12,17 @@
 
   let items: Item[] = [];
 
+  function sync(newItems: Item[]) {
+    items = newItems;
+  }
+
   async function run(source: string) {
-    pyNotebook.run(patchSource(source), newItems => items = newItems);
+    if (source.startsWith(">>>")) {
+      pyNotebook.run(patchSource(source), sync, true);
+    }
+    else {
+      pyNotebook.run(source, sync);
+    }
   }
 
   function isPython(pyNotebook: NotebookAPI, source: string) {

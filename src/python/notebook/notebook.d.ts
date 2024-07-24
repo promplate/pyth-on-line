@@ -8,7 +8,7 @@ interface Item {
 type Callback = (items: Item[]) => any;
 
 export class NotebookAPI {
-  async run(source: string, sync: Callback): Promise<void>;
+  async run(source: string, sync: Callback, console = false): Promise<void>;
   inspect(source: string): Inspection;
   is_python(source: string): boolean;
 }
