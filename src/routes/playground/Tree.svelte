@@ -1,6 +1,8 @@
 <script lang="ts">
   import type { Tree } from "$lib/utils/list2tree";
 
+  import { slide } from "svelte/transition";
+
   export let tree: Tree = [];
   export let parent = "";
   export let focusedFile: string | null = null;
@@ -11,9 +13,13 @@
   function getPath(item: Tree[number]) {
     return parent ? `${parent}/${item.name}` : item.name;
   }
+
+  function countFlattenLength(children = tree): number {
+    return children.map(item => item.type === "file" ? 1 : countFlattenLength(item.children)).reduce((a, b) => a + b, 0);
+  }
 </script>
 
-<div class="flex flex-col text-ellipsis ws-nowrap [&>button]:(w-full overflow-x-hidden rounded-r-sm py-0.5 pl-$depth pr-1 text-left text-xs text-neutral-1/95 font-mono) [&>button:hover]:bg-neutral-8/50">
+<div>
   {#if parent !== ""}
     <button style:--depth="{depth - 1 + 0.7}em" on:click={() => (collapse = !collapse)}>
       {parent.split("/").at(-1)}
@@ -21,14 +27,30 @@
   {/if}
 
   {#if parent === "" || !collapse}
-    {#each tree as item}
-      {#if item.type === "file"}
-        <button style:--depth="{depth + 0.7}em" class:!bg-neutral-8={focusedFile === getPath(item)} on:click={() => (focusedFile = getPath(item))}>
-          {item.name}
-        </button>
-      {:else}
-        <svelte:self tree={item.children} parent={getPath(item)} depth={depth + 1} bind:focusedFile />
-      {/if}
-    {/each}
+
+    <div transition:slide={{ duration: 100 * (countFlattenLength() ** 0.5) }}>
+
+      {#each tree as item}
+        {#if item.type === "file"}
+          <button style:--depth="{depth + 0.7}em" class:!bg-neutral-8={focusedFile === getPath(item)} on:click={() => (focusedFile = getPath(item))}>
+            {item.name}
+          </button>
+        {:else}
+          <svelte:self tree={item.children} parent={getPath(item)} depth={depth + 1} bind:focusedFile />
+        {/if}
+      {/each}
+
+    </div>
+
   {/if}
 </div>
+
+<style>
+  div {
+    --uno: flex flex-col text-ellipsis ws-nowrap;
+  }
+
+  button {
+    --uno: w-full shrink-0 overflow-x-hidden rounded-r-sm py-0.6 pl-$depth pr-1 text-left text-xs text-neutral-1/95 font-mono transition-background-color duration-100 active:bg-neutral-8/70 hover:bg-neutral-8/50;
+  }
+</style>
