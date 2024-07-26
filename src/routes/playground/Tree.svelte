@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Folder, Tree } from "$lib/utils/list2tree";
+  import type { File, Folder, Tree } from "$lib/utils/list2tree";
 
   import { slide } from "svelte/transition";
 
@@ -26,40 +26,53 @@
     }
     return length;
   }
+
+  function getFileIcon(item: File) {
+    switch (item.name.split(".").at(-1)) {
+      case "py":
+        return "i-catppuccin-python";
+      case "j2":
+        return "i-catppuccin-jinja";
+      default:
+        return "i-catppuccin-file";
+    }
+  }
 </script>
 
-<div>
+<section>
   {#if parent !== ""}
     <button style:--depth="{depth - 1 + 0.7}em" on:click={() => (folder.collapse = !collapse)}>
-      {parent.split("/").at(-1)}
+      <div class={collapse ? "i-catppuccin-folder" : "i-catppuccin-folder-open"} />
+      <div>{parent.split("/").at(-1)}</div>
     </button>
   {/if}
 
   {#if parent === "" || !collapse}
 
-    <div transition:slide={{ duration: 100 * (countFlattenLength() ** 0.5) }}>
+    <section transition:slide={{ duration: 100 * (countFlattenLength() ** 0.5) }}>
 
       {#each tree as item}
         {#if item.type === "file"}
           <button style:--depth="{depth + 0.7}em" class:!bg-neutral-8={focusedFile === getPath(item)} on:click={() => (focusedFile = getPath(item))}>
-            {item.name}
+            <div class={getFileIcon(item)} />
+            <div>{item.name}</div>
           </button>
         {:else}
           <svelte:self folder={item} parent={getPath(item)} depth={depth + 1} bind:focusedFile />
         {/if}
       {/each}
 
-    </div>
+    </section>
 
   {/if}
-</div>
+</section>
 
 <style>
-  div {
+  section {
     --uno: flex flex-col text-ellipsis ws-nowrap;
   }
 
   button {
-    --uno: w-full shrink-0 overflow-x-hidden rounded-r-sm py-0.6 pl-$depth pr-1 text-left text-xs text-neutral-1/95 font-mono transition-background-color duration-100 active:bg-neutral-8/70 hover:bg-neutral-8/50;
+    --uno: w-full flex shrink-0 flex-row items-center gap-1.4 overflow-x-hidden rounded-r-sm py-0.6 pl-$depth pr-1 text-left text-xs text-neutral-1/95 font-mono transition-background-color duration-100 active:bg-neutral-8/70 hover:bg-neutral-8/50;
   }
 </style>
