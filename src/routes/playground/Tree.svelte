@@ -1,12 +1,14 @@
 <script lang="ts">
-  import type { Tree } from "$lib/utils/list2tree";
+  import type { Folder, Tree } from "$lib/utils/list2tree";
 
   import { slide } from "svelte/transition";
 
-  export let tree: Tree = [];
+  export let folder: Folder;
   export let parent = "";
   export let focusedFile: string | null = null;
-  export let collapse = tree.length > 20;
+
+  $: tree = folder.children;
+  $: collapse = folder.collapse ?? tree.length > 20;
 
   export let depth = 0;
 
@@ -14,14 +16,21 @@
     return parent ? `${parent}/${item.name}` : item.name;
   }
 
-  function countFlattenLength(children = tree): number {
-    return children.map(item => item.type === "file" ? 1 : countFlattenLength(item.children)).reduce((a, b) => a + b, 0);
+  function countFlattenLength(children = tree) {
+    let length = 0;
+    for (const item of children) {
+      if (item.type === "folder" && !item.collapse)
+        length += countFlattenLength(item.children);
+      else
+        length += 1;
+    }
+    return length;
   }
 </script>
 
 <div>
   {#if parent !== ""}
-    <button style:--depth="{depth - 1 + 0.7}em" on:click={() => (collapse = !collapse)}>
+    <button style:--depth="{depth - 1 + 0.7}em" on:click={() => (folder.collapse = !collapse)}>
       {parent.split("/").at(-1)}
     </button>
   {/if}
@@ -36,7 +45,7 @@
             {item.name}
           </button>
         {:else}
-          <svelte:self tree={item.children} parent={getPath(item)} depth={depth + 1} bind:focusedFile />
+          <svelte:self folder={item} parent={getPath(item)} depth={depth + 1} bind:focusedFile />
         {/if}
       {/each}
 
