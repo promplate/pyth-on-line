@@ -21,7 +21,7 @@
     </PaneResizer>
     <Pane defaultSize={80} minSize={10}>
       <PaneGroup direction="vertical">
-        <Pane defaultSize={70} minSize={10}>
+        <Pane defaultSize={70} minSize={10} class="relative">
           <FileContent content={sources[focusedFile]} lang={focusedFile.slice(focusedFile.lastIndexOf(".") + 1)} />
         </Pane>
         <PaneResizer class="group">
