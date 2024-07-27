@@ -3,6 +3,7 @@
   import FileContent from "./FileContent.svelte";
   import FileList from "./FileList.svelte";
   import Console from "$lib/components/Console.svelte";
+  import SetupCodespace from "$lib/components/reusable/CodespaceLifecycle.svelte";
   import { Pane, PaneGroup, PaneResizer } from "paneforge";
 
   let focusedFile: keyof typeof files = Object.keys(files)[0] as keyof typeof files;
@@ -28,6 +29,7 @@
         <Pane defaultSize={30} minSize={10}>
           <div class="h-full w-full overflow-y-scroll" bind:this={container}>
             <Console class="p-2 text-xs [&>div:hover]:rounded-r-none @2xl:(text-13px line-height-18px) @7xl:text-sm" {container} />
+            <SetupCodespace sources={files} />
           </div>
         </Pane>
       </PaneGroup>
