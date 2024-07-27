@@ -14,6 +14,4 @@
   }
 </script>
 
-{#key content}
-  <Editor lang={getLanguage(lang)} showLineNum source={content} />
-{/key}
+<Editor lang={getLanguage(lang)} showLineNum bind:source={content} />

@@ -18,14 +18,18 @@
   export let lang: string;
 
   let editor: monaco.editor.IStandaloneCodeEditor;
+  let core: typeof monaco;
+
+  async function loadLanguage(language: string) {
+    core.languages.register({ id: language });
+    shikiToMonaco(await getHighlighter(language), core);
+  }
 
   onMount(async () => {
-    const monaco = await import("monaco-editor-core");
-    const highlighter = await getHighlighter(lang);
-    monaco.languages.register({ id: lang });
-    shikiToMonaco(highlighter, monaco);
+    core = await import("monaco-editor-core");
+    await loadLanguage(lang);
 
-    editor = monaco.editor.create(container, {
+    editor = core.editor.create(container, {
       value: source,
       language: lang,
       theme: "vitesse-dark",
@@ -52,6 +56,17 @@
   });
 
   onDestroy(() => editor?.dispose());
+
+  $: if (editor && source !== editor.getValue()) {
+    editor.setValue(source);
+    editor.updateOptions({ detectIndentation: false });
+    editor.updateOptions({ detectIndentation: true });
+  }
+
+  $: if (editor && lang !== editor.getModel()!.getLanguageId()) {
+    loadLanguage(lang);
+    core.editor.setModelLanguage(editor.getModel()!, lang);
+  }
 </script>
 
 <div bind:this={container} class="h-full w-full overflow-hidden transition-opacity duration-400" class:op-0={!editor && firstLoad} />

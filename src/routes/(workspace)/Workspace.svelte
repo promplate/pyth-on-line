@@ -22,7 +22,7 @@
     <Pane defaultSize={80} minSize={10}>
       <PaneGroup direction="vertical">
         <Pane defaultSize={70} minSize={10} class="relative">
-          <FileContent content={sources[focusedFile]} lang={focusedFile.slice(focusedFile.lastIndexOf(".") + 1)} />
+          <FileContent bind:content={sources[focusedFile]} lang={focusedFile.slice(focusedFile.lastIndexOf(".") + 1)} />
         </Pane>
         <PaneResizer class="group">
           <div class="my-1 h-0.11em w-full bg-white/10 transition group-active:bg-current group-hover:bg-white/30" />
