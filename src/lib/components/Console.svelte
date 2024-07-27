@@ -52,7 +52,6 @@
   $: if ($pyodideReady && pyConsole) {
     if (location.hash) {
       const source = atob(decodeURIComponent(location.hash.slice(1)));
-      location.hash = "";
       pushBlock(source);
     }
   }
