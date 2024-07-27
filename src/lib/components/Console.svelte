@@ -105,6 +105,9 @@
   }
 
   const onPaste: ClipboardEventHandler<Document> = async (event) => {
+    if (!(container?.contains(event.target! as Node) || event.target === document.body))
+      return;
+    event.preventDefault();
     const text = event.clipboardData?.getData("text") ?? "";
     const textBefore = input.slice(0, inputRef.selectionStart!);
     const textAfter = input.slice(inputRef.selectionEnd!);
@@ -114,6 +117,8 @@
   };
 
   const onKeyDown: KeyboardEventHandler<Document> = (event) => {
+    if (!(container?.contains(event.target! as Node) || event.target === document.body))
+      return;
     if (!event.ctrlKey && !event.metaKey && !event.altKey && event.key.length === 1)
       focusToInput();
     else if (document.activeElement !== inputRef)
@@ -195,7 +200,7 @@
   $: extras = ` ${$$restProps.class ?? "p-3"}`;
 </script>
 
-<svelte:document on:keydown={onKeyDown} on:paste|preventDefault={onPaste} />
+<svelte:document on:keydown={onKeyDown} on:paste={onPaste} />
 
 <div class="w-full @container">
   <div class="w-full flex flex-col gap-0.7 overflow-x-scroll whitespace-pre-wrap font-mono [&>div:hover]:(rounded-sm bg-white/2) [&>div]:(px-1.7 py-0.6 -mx-1.7 -my-0.6){extras}">

@@ -1,15 +1,18 @@
 <script lang="ts">
+  import type monaco from "monaco-editor-core";
+
   import { shikiToMonaco } from "@shikijs/monaco";
   import { getHighlighter } from "$lib/highlight";
-  import { onMount } from "svelte";
+  import { onDestroy, onMount } from "svelte";
 
   let container: HTMLDivElement;
 
   export let source: string;
   export let showLineNum = false;
   export let wrap = false;
+  export let lang: string;
 
-  export let lang = "python";
+  let editor: monaco.editor.IStandaloneCodeEditor;
 
   onMount(async () => {
     const monaco = await import("monaco-editor-core");
@@ -17,7 +20,7 @@
     monaco.languages.register({ id: lang });
     shikiToMonaco(highlighter, monaco);
 
-    const editor = monaco.editor.create(container, {
+    editor = monaco.editor.create(container, {
       value: source,
       language: lang,
       theme: "vitesse-dark",
@@ -40,6 +43,8 @@
 
     editor.onDidChangeModelContent(() => source = editor.getValue());
   });
+
+  onDestroy(() => editor?.dispose());
 </script>
 
-<div bind:this={container} class="overflow-hidden b-1 b-white/10 rounded-md" />
+<div bind:this={container} class="h-full w-full overflow-hidden" />
