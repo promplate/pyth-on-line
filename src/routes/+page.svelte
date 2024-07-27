@@ -11,7 +11,7 @@
       </div>
       <div class="flex flex-col gap-4 lg:(max-w-3xl flex-row self-center)">
         <FeatureCard icon="i-ph-terminal-window-duotone" href="/console" title="Start an immersive console" description="Run Python 3.12 in an interactive console directly in your browser without installation" />
-        <FeatureCard icon="i-carbon-logo-jupyter" href="." title="Start a jupyter-like notebook" description="Still under development" />
+        <FeatureCard icon="i-hugeicons-hand-pointing-right-01" href="/about" title="Take a quick tour" description="Start a dedicated jupyter-like notebook to have a glance of our features" />
       </div>
     </div>
   </div>
