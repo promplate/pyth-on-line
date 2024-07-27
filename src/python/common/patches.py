@@ -6,7 +6,6 @@ from os import getenv
 import micropip
 from js import window
 
-from .lock import with_lock
 from .package import get_package_name
 from .toast import loading
 
@@ -43,7 +42,6 @@ def patch_linecache():
 def patch_console():
     from pyodide.console import Console, PyodideConsole
 
-    @with_lock
     @wraps(PyodideConsole.runcode)
     async def runcode(self: PyodideConsole, source: str, code):
         from .imports import find_packages_to_install

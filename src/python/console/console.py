@@ -88,7 +88,7 @@ class ConsoleAPI:
 
     @cached_property
     def console(self):
-        return EnhancedConsole(self.context)
+        return EnhancedConsole(self.context, optimize=0, dont_inherit=True)
 
     if TYPE_CHECKING:
         from .item import Item
