@@ -14,10 +14,10 @@ class WorkspaceAPI:
     def __init__(self, sources: dict[str, str]):
         self._original_working_dir = Path.cwd()
         self.directory = TemporaryDirectory(prefix="workspace-", ignore_cleanup_errors=True)
-        path = self.directory.name
-        setup_module(sources, base_path=Path(path))
-        chdir(path)
-        sys.path.append(path)
+        base = self.directory.name
+        setup_module(sources, base_path=Path(base))
+        chdir(base)
+        sys.path.insert(0, base)
 
     def close(self):
         chdir(self._original_working_dir)
