@@ -1,3 +1,7 @@
+<script context="module" lang="ts">
+  const collapsedItems = new Set<string>();
+</script>
+
 <script lang="ts">
   import type { File, Folder, Tree } from "$lib/utils/list2tree";
 
@@ -7,8 +11,16 @@
   export let parent = "";
   export let focusedFile: string | null = null;
 
+  let collapse: boolean;
+
   $: tree = folder.children;
-  $: collapse = folder.collapse ?? tree.length > 20;
+  $: {
+    const fullPath = getPath(folder);
+    if (collapse === undefined)
+      collapse = collapsedItems.has(fullPath) || folder.children.length > 20;
+    else
+      collapse ? collapsedItems.add(fullPath) : collapsedItems.delete(fullPath);
+  }
 
   export let depth = 0;
 
@@ -20,7 +32,7 @@
     let length = 0;
     for (const item of children) {
       length++;
-      if (item.type === "folder" && !item.collapse)
+      if (item.type === "folder" && !collapsedItems.has(getPath(item)))
         length += countFlattenLength(item.children);
     }
     return length;
@@ -40,7 +52,7 @@
 
 <section>
   {#if parent !== ""}
-    <button style:--depth="{depth - 1 + 0.8}em" on:click={() => (folder.collapse = !collapse)}>
+    <button style:--depth="{depth - 1 + 0.8}em" on:click={() => collapse = !collapse}>
       <div class={collapse ? "i-catppuccin-folder" : "i-catppuccin-folder-open"} />
       <div>{parent.split("/").at(-1)}</div>
     </button>

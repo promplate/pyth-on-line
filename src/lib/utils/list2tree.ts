@@ -7,7 +7,6 @@ export interface Folder {
   type: "folder";
   name: string;
   children: Tree;
-  collapse?: boolean;
 }
 
 export type Tree = (File | Folder)[];
