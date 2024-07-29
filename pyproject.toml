@@ -6,7 +6,7 @@ dependencies = [
     "micropip~=0.6.0",
     "pyodide-py==0.26.2",
     "promplate-pyodide~=0.0.3.4",
-    "pre-commit~=3.7.1",
+    "pre-commit~=3.8.0",
     "pure-eval~=0.2.3",
     "html2text2~=1.0.0",
 ]
