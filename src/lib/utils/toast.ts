@@ -1,3 +1,4 @@
+import Markdown from "$lib/components/chat/Markdown.svelte";
 import { tick } from "svelte";
 import { toast } from "svelte-sonner";
 
@@ -12,4 +13,8 @@ export function withToast(data: { loading: string; success?: string; duration?: 
       return result;
     }) as T;
   };
+}
+
+export function toastMarkdown(markdown: string, type: "message" | "success" | "info" | "warning" | "error" = "success") {
+  toast[type](Markdown, { componentProps: { text: markdown } });
 }

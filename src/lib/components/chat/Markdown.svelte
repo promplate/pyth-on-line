@@ -6,8 +6,8 @@
   import OverrideCode from "./Code.svelte";
 
   export let text: string;
-  export let runCode: (source: string) => any;
-  export let inspect: typeof ConsoleAPI.prototype.inspect;
+  export let runCode: ((source: string) => any) | null = null;
+  export let inspect: typeof ConsoleAPI.prototype.inspect | null = null;
 </script>
 
 <WithMarkdown let:parse>
