@@ -14,4 +14,4 @@
   }
 </script>
 
-<Editor lang={getLanguage(lang)} showLineNum bind:source={content} />
+<Editor on:save lang={getLanguage(lang)} showLineNum bind:source={content} />

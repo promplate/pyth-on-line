@@ -7,7 +7,7 @@
 
   import { shikiToMonaco } from "@shikijs/monaco";
   import { getHighlighter } from "$lib/highlight";
-  import { onDestroy, onMount } from "svelte";
+  import { createEventDispatcher, onDestroy, onMount } from "svelte";
   import { fade } from "svelte/transition";
 
   let container: HTMLDivElement;
@@ -24,6 +24,10 @@
     core.languages.register({ id: language });
     shikiToMonaco(await getHighlighter(language), core);
   }
+
+  const dispatch = createEventDispatcher<{
+    save: string;
+  }>();
 
   onMount(async () => {
     core = await import("monaco-editor-core");
@@ -53,6 +57,10 @@
     firstLoad = false;
 
     editor.onDidChangeModelContent(() => source = editor.getValue());
+
+    editor.addCommand(core.KeyMod.CtrlCmd | core.KeyCode.KeyS, () => {
+      dispatch("save", source);
+    });
   });
 
   onDestroy(() => editor?.dispose());
