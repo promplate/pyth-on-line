@@ -1,4 +1,4 @@
-import Markdown from "$lib/components/chat/Markdown.svelte";
+import BaseMarkdown from "$lib/components/markdown/BaseMarkdown.svelte";
 import { tick } from "svelte";
 import { toast } from "svelte-sonner";
 
@@ -16,5 +16,5 @@ export function withToast(data: { loading: string; success?: string; duration?: 
 }
 
 export function toastMarkdown(markdown: string, type: "message" | "success" | "info" | "warning" | "error" = "success") {
-  toast[type](Markdown, { componentProps: { text: markdown } });
+  toast[type](BaseMarkdown, { componentProps: { text: markdown } });
 }
