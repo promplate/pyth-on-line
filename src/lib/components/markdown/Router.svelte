@@ -6,6 +6,7 @@
   import InlineCode from "./InlineCode.svelte";
   import Link from "./Link.svelte";
   import Code from "./Pre.svelte";
+  import Table from "./Table.svelte";
 
   export let node: Node;
 
@@ -64,6 +65,12 @@
       <svelte:self node={child} {OverrideCode} {codeProps} {inlineCodeProps} />
     {/each}
   </Link>
+
+{:else if node.type === "table"}
+
+  <Table {node} let:child>
+    <svelte:self node={child} {OverrideCode} {codeProps} {inlineCodeProps} />
+  </Table>
 
 {:else if "children" in node && getTagName(node)}
 
