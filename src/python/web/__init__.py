@@ -11,7 +11,7 @@ def install_requirements():
     return ensure_future(install("html2text2"))
 
 
-async def get_cpython_docs(html: str):
+async def get_cpython_docs(html: str, pathname: str):
     await install_requirements()
 
     nodes = select(html, "div.body")
@@ -19,4 +19,4 @@ async def get_cpython_docs(html: str):
 
     from html2text import html2text
 
-    return html2text(nodes[0]).replace("¶", "")
+    return html2text(nodes[0], f"/cpython/{pathname.removeprefix("/cpython")}").replace("¶", "")

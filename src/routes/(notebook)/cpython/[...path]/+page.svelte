@@ -17,7 +17,7 @@
   async function refresh() {
     loading = true;
     const py = await getPy({ web: true });
-    text = await py.pyimport("web.get_cpython_docs")(data.html);
+    text = await py.pyimport("web.get_cpython_docs")(data.html, location.pathname);
     loading = false;
   };
 
