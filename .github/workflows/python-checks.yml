@@ -15,7 +15,7 @@ jobs:
         env:
           UV_SYSTEM_PYTHON: true
         run: |
-          pip install uv
+          pip install uv --disable-pip-version-check
           uv pip install pdm isort black --compile-bytecode
           pdm export --pyproject | uv pip install -r -
           yarn global add pyright
