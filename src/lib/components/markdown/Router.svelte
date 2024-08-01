@@ -6,6 +6,7 @@
   import InlineCode from "./InlineCode.svelte";
   import Link from "./Link.svelte";
   import Code from "./Pre.svelte";
+  import Table from "./Table.svelte";
 
   export let node: Node;
 
@@ -13,7 +14,7 @@
   export let codeProps: Record<string, any> = {};
   export let inlineCodeProps: Record<string, any> = {};
 
-  function getTagName(node: Node): string {
+  function getTagName(node: Node) {
     switch (node.type) {
       case "heading":
         return `h${(node as Heading).depth}`;
@@ -33,9 +34,12 @@
       case "paragraph":
         return "p";
 
+      case "blockquote":
+        return "blockquote";
+
       default:
         console.error(node);
-        return "div";
+        return null;
     }
   }
 
@@ -65,7 +69,13 @@
     {/each}
   </Link>
 
-{:else if "children" in node}
+{:else if node.type === "table"}
+
+  <Table {node} let:child>
+    <svelte:self node={child} {OverrideCode} {codeProps} {inlineCodeProps} />
+  </Table>
+
+{:else if "children" in node && getTagName(node)}
 
   <svelte:element this={getTagName(node)}>
     {#each children as child}

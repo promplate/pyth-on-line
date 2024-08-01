@@ -1,10 +1,10 @@
 <script context="module">
   import "../../md.css";
 
-  import remarkParse from "remark-parse";
-  import { unified } from "unified";
+  import { remark } from "remark";
+  import remarkGfm from "remark-gfm";
 
-  const processor = unified().use(remarkParse);
+  const processor = remark().use(remarkGfm);
   const parse = processor.parse.bind(processor);
 </script>
 

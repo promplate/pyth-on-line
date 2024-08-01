@@ -9,7 +9,15 @@ With Pythonline, you can easily share your Python snippets with others, without 
 >>> math.pi
 ```
 
-How about `math.e`? try hovering this! 👉 `math.pi / math.e`
+If you hover over the code block above, you will see a button to run the code.
+After that, you can inspect these values by hovering over them 👇
+
+| Kind           | Examples                                      |
+| -------------- | --------------------------------------------- |
+| Global Names   | `_`, `__name__`, `int`, `Exception`           |
+| Literal Values | `[{}]`, `1,2`, `1+2j`, `.0`, `0b10`           |
+| Expressions    | `math.pi / 2`                                 |
+| Assignments    | `one = -(math.e ** complex(0, math.pi)).real` |
 
 ## Main Features
 
@@ -64,7 +72,7 @@ async def f(url):
 await gather(*(f(".") for _ in range(10)))
 ```
 
-This project is still work in progress for now, so feel free to [get in touch](https://github.com/promplate/pyth-on-line/discussions) if you have any feedback or suggestions!
+> This project is still work in progress for now, so feel free to [get in touch](https://github.com/promplate/pyth-on-line/discussions) if you have any feedback or suggestions!
 
 ## Acknowledgements
 
