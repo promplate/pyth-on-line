@@ -9,15 +9,15 @@ With Pythonline, you can easily share your Python snippets with others, without 
 >>> math.pi
 ```
 
-If you hover over the codeblock above, you will see a button to run the code.
+If you hover over the code block above, you will see a button to run the code.
 After that, you can inspect these values by hovering over them 👇
 
-| Type           | Result                                         |
-| -------------- | ---------------------------------------------- |
-| Global Names   | `_`, `__name__`, `int`, `Exception`            |
-| Literal Values | `[{}]`, `1,2`, `1+2j`, `.0`, `0b10`            |
-| Expressions    | `math.pi / 2`                                  |
-| Assignments    | `one = - (math.e ** complex(0, math.pi)).real` |
+| Kind           | Examples                                      |
+| -------------- | --------------------------------------------- |
+| Global Names   | `_`, `__name__`, `int`, `Exception`           |
+| Literal Values | `[{}]`, `1,2`, `1+2j`, `.0`, `0b10`           |
+| Expressions    | `math.pi / 2`                                 |
+| Assignments    | `one = -(math.e ** complex(0, math.pi)).real` |
 
 ## Main Features
 
