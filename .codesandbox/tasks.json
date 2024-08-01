@@ -1,0 +1,15 @@
+{
+  "$schema": "https://codesandbox.io/schemas/tasks.json",
+  "setupTasks": ["pnpm install"],
+  "tasks": {
+    "dev": {
+      "name": "Start Dev Server",
+      "command": "pnpm dev",
+      "runAtStart": true,
+      "preview": {
+        "port": 5173,
+        "prLink": "direct"
+      }
+    }
+  }
+}
