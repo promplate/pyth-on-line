@@ -34,6 +34,9 @@
       case "paragraph":
         return "p";
 
+      case "blockquote":
+        return "blockquote";
+
       default:
         console.error(node);
         return null;

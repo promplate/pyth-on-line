@@ -47,3 +47,7 @@
 .prose tbody:hover tr {
   @apply even:bg-white/1 hover:bg-white/4;
 }
+
+.prose blockquote {
+  @apply b-(l-0.2em white/10 solid) pl-1em not-italic;
+}

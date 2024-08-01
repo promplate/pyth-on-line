@@ -72,7 +72,7 @@ async def f(url):
 await gather(*(f(".") for _ in range(10)))
 ```
 
-This project is still work in progress for now, so feel free to [get in touch](https://github.com/promplate/pyth-on-line/discussions) if you have any feedback or suggestions!
+> This project is still work in progress for now, so feel free to [get in touch](https://github.com/promplate/pyth-on-line/discussions) if you have any feedback or suggestions!
 
 ## Acknowledgements
 
