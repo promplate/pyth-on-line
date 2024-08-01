@@ -2,6 +2,7 @@
   import "@unocss/reset/tailwind.css";
   import "uno.css";
   import "@fontsource-variable/fira-code";
+  import "@fontsource-variable/inter";
 
   import { dev } from "$app/environment";
   import { page } from "$app/stores";
@@ -40,7 +41,7 @@
 
 <style>
   :global(html) {
-    --uno: bg-neutral-9 text-white overflow-x-hidden;
+    --uno: bg-neutral-9 text-white overflow-x-hidden font-sans;
   }
 
   :global(*)::selection {
