@@ -27,3 +27,23 @@
 .prose a:hover code {
   @apply text-white underline-op-60;
 }
+
+.prose table {
+  @apply w-fit b-1 b-white/6 rounded-md text-left;
+}
+
+.prose thead {
+  @apply bg-white/2 font-bold op-90;
+}
+
+.prose tr {
+  @apply b-b-1 b-white/6;
+}
+
+.prose tbody tr {
+  @apply transition-background-color last:b-b-none even:bg-white/2;
+}
+
+.prose tbody:hover tr {
+  @apply even:bg-white/1 hover:bg-white/4;
+}
