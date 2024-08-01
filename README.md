@@ -15,7 +15,7 @@ After that, you can inspect these values by hovering over them 👇
 | Type           | Result                                         |
 | -------------- | ---------------------------------------------- |
 | Global Names   | `_`, `__name__`, `int`, `Exception`            |
-| Literal values | `[{}]`, `1,2`, `1+2j`, `.0`, `0b10`            |
+| Literal Values | `[{}]`, `1,2`, `1+2j`, `.0`, `0b10`            |
 | Expressions    | `math.pi / 2`                                  |
 | Assignments    | `one = - (math.e ** complex(0, math.pi)).real` |
 
