@@ -4,6 +4,8 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import TYPE_CHECKING
 
+from .diff import diff
+
 if TYPE_CHECKING:
     from ...lib.pyodide.start.loader import setup_module
 else:
@@ -47,16 +49,18 @@ class WorkspaceAPI:
             if reload:
                 unload(path2module(path))
 
-            if __debug__:
-                from difflib import ndiff
+            differences = diff(Path(self.directory.name, path).read_text(), content)
 
+            if __debug__:
                 from js import console
 
                 console.group(f"Unloaded {path2module(path)}")
-                console.log("\n".join(ndiff(Path(self.directory.name, path).read_text().splitlines(), content.splitlines())))
+                console.log(differences)
                 console.groupEnd()
 
             file.write_text(content)
+
+            return f"```diff\n{differences}\n```\n"
 
 
 def path2module(filename: str):

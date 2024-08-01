@@ -25,8 +25,10 @@
         <SetupWorkspace {sources} let:save>
           <Pane defaultSize={70} minSize={10} class="relative">
             <FileContent on:save={({ detail: content }) => {
-              save(focusedFile, content.replaceAll("\r\n", "\n"));
-              toastMarkdown(`\`${focusedFile}\` saved`);
+              const diff = save(focusedFile, content.replaceAll("\r\n", "\n"));
+              diff
+                ? toastMarkdown(`\`${focusedFile}\` saved\n\n${diff}`)
+                : toastMarkdown(`\`${focusedFile}\` is up to date`);
             }} bind:content={sources[focusedFile]} lang={focusedFile.slice(focusedFile.lastIndexOf(".") + 1)} />
           </Pane>
           <PaneResizer class="group">

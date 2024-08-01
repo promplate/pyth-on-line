@@ -11,7 +11,7 @@
 }
 
 .prose pre code {
-  @apply translate-none whitespace-pre bg-transparent;
+  @apply translate-none whitespace-pre bg-transparent text-1em;
 }
 
 .prose code {

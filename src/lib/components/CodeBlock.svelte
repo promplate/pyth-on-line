@@ -10,7 +10,7 @@
   code = code.replaceAll("\r", "");
 </script>
 
-<section class="not-prose relative overflow-y-scroll rounded-md [&>pre]:!line-height-relaxed">
+<section class="not-prose relative overflow-y-scroll rounded-md text-0.8em [&>pre]:!line-height-relaxed">
   {#key code}
     {#await highlight(lang, code)}
       <pre class="text-white/70">{code}</pre>
