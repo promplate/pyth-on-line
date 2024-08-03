@@ -39,7 +39,7 @@
       <Command.Empty>No results found.</Command.Empty>
 
       {#each items as item}
-        <Item {item} onSelect={() => show = false} />
+        <Item {item} callback={() => show = false} />
       {/each}
 
     </Command.List>

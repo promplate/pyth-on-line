@@ -23,15 +23,19 @@
 
 <script lang="ts">
   import { browser } from "$app/environment";
-  import { preloadData } from "$app/navigation";
+  import { beforeNavigate, preloadData } from "$app/navigation";
   import { Command } from "cmdk-sv";
 
   export let item: Item;
 
   // eslint-disable-next-line no-undef-init
-  export let onSelect: ((value: string) => any) | undefined = undefined;
+  export let callback: (() => any) | undefined = undefined;
 
-  console.log({ onSelect });
+  let acted = false;
+
+  beforeNavigate(({ complete }) => {
+    complete.then(acted ? callback : null);
+  });
 </script>
 
 {#if item.type === "group"}
@@ -43,7 +47,7 @@
       </h6>
       <div {...group.attrs} class="flex flex-col">
         {#each item.children as child}
-          <svelte:self item={child} {onSelect} />
+          <svelte:self item={child} {callback} />
         {/each}
       </div>
     </div>
@@ -52,7 +56,7 @@
 
 {:else if item.type === "link"}
 
-  <Command.Item {onSelect} asChild let:action let:attrs>
+  <Command.Item onSelect={() => acted = true} asChild let:action let:attrs>
     <!-- eslint-disable-next-line no-unused-vars -->
     {@const _ = (browser && attrs["data-selected"] && preloadData(item.href))}
     <a href={item.href} use:action {...attrs} class:selected={attrs["data-selected"]}>
@@ -62,7 +66,7 @@
 
 {:else if item.type === "cmd"}
 
-  <Command.Item onSelect={value => [item.callback(value), onSelect?.(value)]} asChild let:action let:attrs>
+  <Command.Item onSelect={value => item.callback(value).then(() => acted = true)} asChild let:action let:attrs>
     <button use:action {...attrs} class:selected={attrs["data-selected"]}>
       {item.text}
     </button>
