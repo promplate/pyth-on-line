@@ -1,6 +1,9 @@
 <script lang="ts">
+  import Modal from "../Modal.svelte";
   import Item, { type Group } from "./Item.svelte";
   import { Command } from "cmdk-sv";
+
+  export let show = false;
 
   const navigations = {
     type: "group",
@@ -16,8 +19,16 @@
   $: items = [navigations];
 </script>
 
-<div class="pointer-events-none fixed inset-0 grid place-items-center text-sm">
-  <Command.Root loop class="pointer-events-auto max-w-80vw w-md flex flex-col b-(1 neutral-7) rounded-lg bg-neutral-8/70 p-2em backdrop-blur-lg">
+<svelte:document on:keydown={(e) => {
+  if (e.key === "k" && e.ctrlKey) {
+    show = !show;
+    e.preventDefault();
+  }
+}} />
+
+<Modal bind:show>
+
+  <Command.Root loop slot="content" class="pointer-events-auto max-w-80vw w-md flex flex-col b-(1 neutral-7) rounded-lg bg-neutral-8/70 p-2em backdrop-blur-lg lg:w-lg <lg:text-sm">
 
     <Command.Input autofocus class="w-full ws-nowrap bg-transparent py-2 outline-none placeholder-(text-white/30)" placeholder="Type a command or search..." />
 
@@ -28,10 +39,11 @@
       <Command.Empty>No results found.</Command.Empty>
 
       {#each items as item}
-        <Item {item} />
+        <Item {item} onSelect={() => show = false} />
       {/each}
 
     </Command.List>
 
   </Command.Root>
-</div>
+
+</Modal>

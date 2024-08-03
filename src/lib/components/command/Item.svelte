@@ -27,6 +27,11 @@
   import { Command } from "cmdk-sv";
 
   export let item: Item;
+
+  // eslint-disable-next-line no-undef-init
+  export let onSelect: ((value: string) => any) | undefined = undefined;
+
+  console.log({ onSelect });
 </script>
 
 {#if item.type === "group"}
@@ -38,7 +43,7 @@
       </h6>
       <div {...group.attrs} class="flex flex-col">
         {#each item.children as child}
-          <svelte:self item={child} />
+          <svelte:self item={child} {onSelect} />
         {/each}
       </div>
     </div>
@@ -47,7 +52,7 @@
 
 {:else if item.type === "link"}
 
-  <Command.Item asChild let:action let:attrs>
+  <Command.Item {onSelect} asChild let:action let:attrs>
     <!-- eslint-disable-next-line no-unused-vars -->
     {@const _ = (browser && attrs["data-selected"] && preloadData(item.href))}
     <a href={item.href} use:action {...attrs} class:selected={attrs["data-selected"]}>
@@ -57,7 +62,7 @@
 
 {:else if item.type === "cmd"}
 
-  <Command.Item onSelect={item.callback} asChild let:action let:attrs>
+  <Command.Item onSelect={value => [item.callback(value), onSelect?.(value)]} asChild let:action let:attrs>
     <button use:action {...attrs} class:selected={attrs["data-selected"]}>
       {item.text}
     </button>
