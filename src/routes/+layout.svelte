@@ -7,6 +7,7 @@
   import { dev } from "$app/environment";
   import { page } from "$app/stores";
   import * as env from "$env/static/public";
+  import CmdK from "$lib/components/command/CmdK.svelte";
   import { Toaster } from "svelte-sonner";
 
   const headScripts = atob(env.PUBLIC_HEAD_SCRIPTS ?? "");
@@ -38,6 +39,8 @@
 <Toaster theme="dark" toastOptions={{ class: "text-xs font-mono" }} />
 
 <slot />
+
+<CmdK />
 
 <style>
   :global(html) {
