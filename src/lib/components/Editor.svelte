@@ -65,16 +65,19 @@
 
   onDestroy(() => editor?.dispose());
 
-  $: if (editor && source !== editor.getValue()) {
-    editor.setValue(source);
-    editor.updateOptions({ detectIndentation: false });
-    editor.updateOptions({ detectIndentation: true });
+  function reload(source: string, language = lang) {
+    if (language !== editor.getModel()!.getLanguageId()) {
+      core.editor.setModelLanguage(editor.getModel()!, language);
+      loadLanguage(language);
+    }
+    if (source !== editor.getValue()) {
+      editor.setValue(source);
+      editor.updateOptions({ detectIndentation: false });
+      editor.updateOptions({ detectIndentation: true });
+    }
   }
 
-  $: if (editor && lang !== editor.getModel()!.getLanguageId()) {
-    loadLanguage(lang);
-    core.editor.setModelLanguage(editor.getModel()!, lang);
-  }
+  $: editor && reload(source, lang);
 </script>
 
 <div bind:this={container} class="h-full w-full overflow-hidden transition-opacity duration-400" class:op-0={!editor && firstLoad} />
