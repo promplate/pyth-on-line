@@ -34,7 +34,7 @@
   let acted = false;
 
   beforeNavigate(({ complete }) => {
-    complete.then(acted ? callback : null);
+    acted && complete.then(callback);
   });
 </script>
 
@@ -57,17 +57,18 @@
 {:else if item.type === "link"}
 
   <Command.Item onSelect={() => acted = true} asChild let:action let:attrs>
+    {@const highlighted = attrs["data-selected"]}
     <!-- eslint-disable-next-line no-unused-vars -->
-    {@const _ = (browser && attrs["data-selected"] && preloadData(item.href))}
-    <a href={item.href} use:action {...attrs} class:selected={attrs["data-selected"]}>
+    {@const _ = (browser && highlighted && preloadData(item.href))}
+    <a href={item.href} use:action {...attrs} class:highlighted>
       {item.text}
     </a>
   </Command.Item>
 
 {:else if item.type === "cmd"}
 
-  <Command.Item onSelect={value => item.callback(value).then(() => acted = true)} asChild let:action let:attrs>
-    <button use:action {...attrs} class:selected={attrs["data-selected"]}>
+  <Command.Item onSelect={value => (async () => item.callback(value))().finally(callback)} asChild let:action let:attrs>
+    <button use:action {...attrs} class:highlighted={attrs["data-selected"]}>
       {item.text}
     </button>
   </Command.Item>
@@ -75,11 +76,11 @@
 {/if}
 
 <style>
-    a, button {
-        --uno: block w-full rounded-md p-2 -mx-2;
-    }
+  a, button {
+    --uno: block w-full rounded-md p-2 -mx-2;
+  }
 
-    .selected {
-        --uno: bg-white/5;
-    }
+  .highlighted {
+    --uno: bg-white/5;
+  }
 </style>
