@@ -26,9 +26,9 @@
   }
 }} />
 
-<Modal bind:show closeOnClickOutside>
+<Modal bind:show closeOnClickOutside let:close>
 
-  <Command.Root loop slot="content" let:close class="pointer-events-auto max-w-80vw w-md flex flex-col b-(1 neutral-7) rounded-lg bg-neutral-8/70 p-2em backdrop-blur-lg lg:w-lg <lg:text-sm">
+  <Command.Root loop class="pointer-events-auto max-w-80vw w-md flex flex-col b-(1 neutral-7) rounded-lg bg-neutral-8/70 p-2em backdrop-blur-lg lg:w-lg <lg:text-sm">
 
     <Command.Input autofocus on:keydown={e => e.key === "Escape" && close()} class="w-full ws-nowrap bg-transparent py-2 outline-none placeholder-(text-white/30)" placeholder="Type a command or search..." />
 

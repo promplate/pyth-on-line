@@ -227,10 +227,8 @@
 </div>
 
 {#await import("./ErrorExplainer.svelte") then { default: ErrorExplainer }}
-  <Modal show={!!focusedError} cleanup={() => focusedError = undefined}>
-    <svelte:fragment slot="content" let:close>
-      <svelte:component this={ErrorExplainer} errorInfo={focusedError} {close} {pushBlock} {pyConsole} />
-    </svelte:fragment>
+  <Modal let:close show={!!focusedError} cleanup={() => focusedError = undefined}>
+    <ErrorExplainer errorInfo={focusedError} {close} {pushBlock} {pyConsole} />
   </Modal>
 {/await}
 

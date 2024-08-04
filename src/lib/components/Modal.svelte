@@ -20,11 +20,9 @@
 </slot>
 
 {#if show}
-  <slot {close}>
-    <div class="pointer-events-none fixed inset-0 grid place-items-center [&>*]:pointer-events-auto">
-      <slot name="content" {close} />
-    </div>
-  </slot>
+  <div class="pointer-events-none fixed inset-0 grid place-items-center [&>*]:pointer-events-auto">
+    <slot {close} />
+  </div>
 {/if}
 
 <style>
