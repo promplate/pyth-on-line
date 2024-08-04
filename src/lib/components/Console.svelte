@@ -26,7 +26,7 @@
   let complete: AutoComplete;
   let status: Status;
 
-  let focusedError: { traceback: string; code: string };
+  let focusedError: { traceback: string; code: string } | undefined;
 
   function showErrorExplain(index: number) {
     if (log[index]?.type !== "err")
@@ -227,9 +227,9 @@
 </div>
 
 {#await import("./ErrorExplainer.svelte") then { default: ErrorExplainer }}
-  <Modal show={focusedError !== undefined}>
-    <svelte:fragment slot="content">
-      <svelte:component this={ErrorExplainer} bind:errorInfo={focusedError} {pushBlock} {pyConsole} />
+  <Modal show={!!focusedError} cleanup={() => focusedError = undefined}>
+    <svelte:fragment slot="content" let:close>
+      <svelte:component this={ErrorExplainer} errorInfo={focusedError} {close} {pushBlock} {pyConsole} />
     </svelte:fragment>
   </Modal>
 {/await}

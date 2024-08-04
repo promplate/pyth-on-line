@@ -14,6 +14,7 @@
   export let errorInfo: ErrorInfo | undefined;
   export let pushBlock: (source: string) => any;
   export let pyConsole: ConsoleAPI;
+  export let close: () => any;
 
   let output = "";
   let error: Error | undefined;
@@ -57,7 +58,7 @@
           </button>
         </WithTooltip>
         <WithTooltip tips="Close" let:builder>
-          <button class="hover:(bg-red-3/10 text-red-3/80)" on:click={() => (errorInfo = undefined)} {...builder} use:builder.action>
+          <button class="hover:(bg-red-3/10 text-red-3/80)" on:click={close} {...builder} use:builder.action>
             <div class="i-mingcute-close-fill" />
           </button>
         </WithTooltip>
