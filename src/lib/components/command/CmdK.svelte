@@ -1,9 +1,13 @@
+<script context="module">
+  import { writable } from "svelte/store";
+
+  export const show = writable(false);
+</script>
+
 <script lang="ts">
   import Modal from "../Modal.svelte";
   import Item, { type Group } from "./Item.svelte";
   import { Command } from "cmdk-sv";
-
-  export let show = false;
 
   const navigations = {
     type: "group",
@@ -21,12 +25,12 @@
 
 <svelte:document on:keydown={(e) => {
   if (e.key === "k" && e.ctrlKey) {
-    show = !show;
+    $show = !$show;
     e.preventDefault();
   }
 }} />
 
-<Modal bind:show closeOnClickOutside let:close>
+<Modal bind:show={$show} closeOnClickOutside let:close>
 
   <Command.Root loop class="pointer-events-auto max-w-80vw w-md flex flex-col b-(1 neutral-7) rounded-lg bg-neutral-8/70 p-2em backdrop-blur-lg lg:w-lg <lg:text-sm">
 

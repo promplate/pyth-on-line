@@ -1,9 +1,15 @@
 import type { ShikiTransformer } from "shiki";
 
 import { cacheGlobally } from "./utils/cache";
-import { createHighlighter } from "shiki";
+import { bundledLanguages, createHighlighter } from "shiki";
+
+export const languages = Object.keys(bundledLanguages);
 
 export async function getHighlighter(lang: string) {
+  if (!languages.includes(lang) && lang !== "text") {
+    console.error(`Language "${lang}" is not supported by Shiki.`);
+    lang = "text";
+  }
   return await cacheGlobally(`shiki-${lang}`, async () => {
     return await createHighlighter({ themes: ["vitesse-dark"], langs: [lang] });
   })();

@@ -5,6 +5,7 @@
 <script lang="ts">
   import type monaco from "monaco-editor-core";
 
+  import { show as showMenu } from "./command/CmdK.svelte";
   import { shikiToMonaco } from "@shikijs/monaco";
   import { getHighlighter } from "$lib/highlight";
   import { createEventDispatcher, onDestroy, onMount } from "svelte";
@@ -58,9 +59,8 @@
 
     editor.onDidChangeModelContent(() => source = editor.getValue());
 
-    editor.addCommand(core.KeyMod.CtrlCmd | core.KeyCode.KeyS, () => {
-      dispatch("save", source);
-    });
+    editor.addCommand(core.KeyMod.CtrlCmd | core.KeyCode.KeyS, () => dispatch("save", source));
+    editor.addCommand(core.KeyMod.CtrlCmd | core.KeyCode.KeyK, () => $showMenu = true);
   });
 
   onDestroy(() => editor?.dispose());
