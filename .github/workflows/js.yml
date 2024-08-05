@@ -1,4 +1,4 @@
-name: eslint check
+name: javascript checks
 
 on: [push, pull_request, workflow_dispatch, workflow_call]
 
@@ -18,3 +18,5 @@ jobs:
         run: bun install
       - name: Run ESLint
         run: bun lint
+      - name: Run Svelte Check
+        run: bun -b check
