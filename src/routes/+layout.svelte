@@ -10,6 +10,7 @@
   import CmdK from "$lib/components/command/CmdK.svelte";
   import { Toaster } from "svelte-sonner";
 
+  // @ts-ignore
   const headScripts = atob(env.PUBLIC_HEAD_SCRIPTS ?? "");
 
   const ogTitle = "Python Online";

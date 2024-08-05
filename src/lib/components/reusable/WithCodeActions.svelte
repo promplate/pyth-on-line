@@ -11,7 +11,7 @@
 
   $: code = node as Code;
 
-  $: runnable = runnable || (code.lang && run && "python".startsWith(code.lang));
+  $: runnable = runnable || Boolean(code.lang && run && "python".startsWith(code.lang));
 </script>
 
 {#if code.value}
