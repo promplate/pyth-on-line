@@ -1,4 +1,4 @@
-<div class="i-carbon-logo-python pointer-events-none absolute right-0 top-1/2 text-30 op-3 -translate-y-1/2 lg:text-90 md:text-70 sm:text-50" />
+<div class="i-carbon-logo-python pointer-events-none absolute right-0 top-1/2 text-[clamp(9rem,50vw-7rem,22.5rem)] op-3 -translate-y-1/2" />
 
 <div class="h-full min-h-sm flex flex-col justify-between">
   <div class="flex flex-row items-center gap-2">
