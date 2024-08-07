@@ -65,9 +65,9 @@ def path2module(filename: str):
 
 def unload(name: str):
     if "." in name:
-        name = name[name.index(".")]
+        name = name[: name.index(".")]
 
-    console.group(f"Unloading %c{name}*", "color: light-dark(peru,wheat)")
+    console.group(f"Unloading %c{name}.*", "color: light-dark(peru,wheat)")
 
     for module in [*sys.modules]:
         if module.startswith(f"{name}.") or module == name:
