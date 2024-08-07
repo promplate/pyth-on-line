@@ -4,6 +4,8 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import TYPE_CHECKING
 
+from js import console
+
 if TYPE_CHECKING:
     from ...lib.pyodide.start.loader import setup_module
 else:
@@ -50,10 +52,8 @@ class WorkspaceAPI:
             if __debug__:
                 from difflib import ndiff
 
-                from js import console
-
-                console.group(f"Unloaded {path2module(path)}")
-                console.log("\n".join(ndiff(Path(self.directory.name, path).read_text().splitlines(), content.splitlines())))
+                console.group(f"Updating %c{path}", "color: light-dark(peru,wheat)")
+                console.log("\n".join(filter(lambda s: len(s) >= 2 and s[0] in "+-?" and s[1] == " ", ndiff(Path(self.directory.name, path).read_text().splitlines(), content.splitlines()))))
                 console.groupEnd()
 
             file.write_text(content)
@@ -64,9 +64,14 @@ def path2module(filename: str):
 
 
 def unload(name: str):
-    if name in sys.modules:
-        del sys.modules[name]
-
     if "." in name:
-        parent, _ = name.rsplit(".", 1)
-        unload(parent)
+        name = name[name.index(".")]
+
+    console.group(f"Unloading %c{name}*", "color: light-dark(peru,wheat)")
+
+    for module in [*sys.modules]:
+        if module.startswith(f"{name}.") or module == name:
+            del sys.modules[module]
+            console.log(f"Unloaded %c{module.removeprefix(name) or "."}", "color: light-dark(peru,wheat)")
+
+    console.groupEnd()
