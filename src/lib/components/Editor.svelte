@@ -31,6 +31,9 @@
   }>();
 
   onMount(async () => {
+    if (editor)
+      return;
+
     core = await import("monaco-editor-core");
     await loadLanguage(lang);
 
