@@ -8,6 +8,8 @@
     switch (ext) {
       case "j2":
         return "jinja";
+      case "pyi":
+        return "python";
       default:
         return ext;
     }

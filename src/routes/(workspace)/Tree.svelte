@@ -41,9 +41,27 @@
   function getFileIcon(item: File) {
     switch (item.name.split(".").at(-1)) {
       case "py":
+      case "pyi":
         return "i-catppuccin-python";
       case "j2":
         return "i-catppuccin-jinja";
+      case "svelte":
+        return "i-catppuccin-svelte";
+      case "yml":
+      case "yaml":
+        return "i-catppuccin-yaml";
+      case "toml":
+        return "i-catppuccin-toml";
+      case "ts":
+      case "mts":
+      case "cts":
+        return "i-catppuccin-typescript";
+      case "js":
+      case "mjs":
+      case "cjs":
+        return "i-catppuccin-javascript";
+      case "md":
+        return "i-catppuccin-markdown";
       default:
         return "i-catppuccin-file";
     }
