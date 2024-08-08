@@ -1,5 +1,5 @@
 <script context="module" lang="ts">
-  const collapsedItems = new Set<string>();
+  const collapseStates = new Map<string, boolean>();
 </script>
 
 <script lang="ts">
@@ -11,14 +11,10 @@
   export let parent = "";
   export let focusedFile: string | null = null;
 
-  let collapse: boolean;
+  let collapse = collapseStates.get(parent) ?? folder.children.length > 20;
+  $: collapseStates.set(parent, collapse);
 
   $: tree = folder.children;
-
-  $: if (collapse === undefined)
-    collapse = collapsedItems.has(parent) || folder.children.length > 20;
-  else
-    collapse ? collapsedItems.add(parent) : collapsedItems.delete(parent);
 
   export let depth = 0;
 
@@ -30,7 +26,7 @@
     let length = 0;
     for (const item of children) {
       length++;
-      if (item.type === "folder" && !collapsedItems.has(getPath(item)))
+      if (item.type === "folder" && !(collapseStates.get(getPath(item)) ?? item.children.length > 5))
         length += countFlattenLength(item.children);
     }
     return length;
