@@ -14,13 +14,11 @@
   let collapse: boolean;
 
   $: tree = folder.children;
-  $: {
-    const fullPath = getPath(folder);
-    if (collapse === undefined)
-      collapse = collapsedItems.has(fullPath) || folder.children.length > 20;
-    else
-      collapse ? collapsedItems.add(fullPath) : collapsedItems.delete(fullPath);
-  }
+
+  $: if (collapse === undefined)
+    collapse = collapsedItems.has(parent) || folder.children.length > 20;
+  else
+    collapse ? collapsedItems.add(parent) : collapsedItems.delete(parent);
 
   export let depth = 0;
 
