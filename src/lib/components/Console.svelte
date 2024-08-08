@@ -104,7 +104,7 @@
   }
 
   const onPaste: ClipboardEventHandler<Document> = async (event) => {
-    if (container && !(container.contains(event.target! as Node) || event.target === document.body))
+    if (!((event.target! as Node).contains(inputRef)))
       return;
     event.preventDefault();
     const text = event.clipboardData?.getData("text") ?? "";
@@ -115,8 +115,8 @@
     focusToInput(input.length - distanceToEnd);
   };
 
-  const onKeyDown: KeyboardEventHandler<Document> = (event) => {
-    if (container && !(container.contains(event.target! as Node) || event.target === document.body))
+  const onKeyDown: KeyboardEventHandler<Document | HTMLInputElement> = (event) => {
+    if (!((event.target! as Node).contains(inputRef)))
       return;
     if (!event.ctrlKey && !event.metaKey && !event.altKey && event.key.length === 1)
       focusToInput();
