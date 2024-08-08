@@ -66,7 +66,7 @@
   }
 </script>
 
-<section>
+<section data-container>
   {#if parent !== ""}
     <button style:--depth="{depth - 1 + 0.8}em" on:click={() => collapse = !collapse}>
       <div class={collapse ? "i-catppuccin-folder" : "i-catppuccin-folder-open"} />
@@ -76,7 +76,7 @@
 
   {#if parent === "" || !collapse}
 
-    <section transition:slide={{ duration: 100 * (countFlattenLength(tree) ** 0.5) }}>
+    <section transition:slide={{ duration: 100 * (countFlattenLength(tree) ** 0.4) }}>
 
       {#each tree as item}
         {#if item.type === "file"}
@@ -105,5 +105,13 @@
 
   div {
     --uno: shrink-0;
+  }
+
+  [data-container] {
+    --uno: transition-background-color duration-100;
+  }
+
+  [data-container]:has(> button:first-child:hover) {
+    --uno: rounded-r-sm bg-neutral-8/10;
   }
 </style>
