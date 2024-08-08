@@ -23,7 +23,11 @@ class WorkspaceAPI:
         self.files = list(sources)
 
     def close(self):
-        chdir(self._original_working_dir)
+        try:
+            chdir(self._original_working_dir)
+        except FileNotFoundError:
+            console.error(f"{self._original_working_dir} not found")
+            console.error(f"{Path.cwd()} is the current working directory")
         self.directory.cleanup()
         sys.path.remove(self.directory.name)
 
