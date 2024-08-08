@@ -31,10 +31,7 @@
   }>();
 
   onMount(async () => {
-    if (editor)
-      return;
-
-    core = await import("monaco-editor-core");
+    [core] = await Promise.all([import("monaco-editor-core"), getHighlighter(lang)]);
     await loadLanguage(lang);
 
     if (!container)
