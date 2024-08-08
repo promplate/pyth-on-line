@@ -37,6 +37,9 @@
     core = await import("monaco-editor-core");
     await loadLanguage(lang);
 
+    if (!container)
+      return;
+
     editor = core.editor.create(container, {
       value: source,
       language: lang,
