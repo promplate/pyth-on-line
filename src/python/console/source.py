@@ -19,7 +19,7 @@ class SourceFile:
 
     def __del__(self):
         with suppress(Exception):
-            self.file.unlink()
+            self.file.unlink(missing_ok=True)
             sys.path.remove(str(self.file.parent))
 
     def sync(self):
