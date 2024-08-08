@@ -38,7 +38,10 @@
     ready = true;
   });
 
-  onDestroy(() => pyConsole?.destroy());
+  onDestroy(() => {
+    pyConsole?.close();
+    pyConsole?.destroy();
+  });
 
   let autoscroll = false;
 

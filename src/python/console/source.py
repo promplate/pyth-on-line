@@ -1,26 +1,18 @@
 import sys
-from contextlib import suppress
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
 
 class SourceFile:
     def __init__(self, filename: str):
-        for path in sys.path[:]:
-            if (file := Path(path) / filename).is_file():
-                file.unlink()
-                sys.path.remove(path)
-
-        with TemporaryDirectory(delete=False, prefix="console-") as tempdir:
-            sys.path.append(tempdir)
-            self.file = Path(tempdir) / filename
-
+        self.dir = tempdir = TemporaryDirectory(prefix="console-")
+        sys.path.insert(0, tempdir.name)
+        self.file = Path(tempdir.name) / filename
         self.lines = []
 
-    def __del__(self):
-        with suppress(Exception):
-            self.file.unlink(missing_ok=True)
-            sys.path.remove(str(self.file.parent))
+    def cleanup(self):
+        self.dir.cleanup()
+        sys.path.remove(self.dir.name)
 
     def sync(self):
         self.file.write_text("\n".join(self.lines))

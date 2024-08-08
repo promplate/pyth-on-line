@@ -195,3 +195,6 @@ class ConsoleAPI:
         from common.inspection import inspect
 
         return inspect(name, self.context, self.builtins)
+
+    def close(self):
+        self.console.file.cleanup()
