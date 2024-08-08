@@ -19,4 +19,6 @@ jobs:
       - name: Run ESLint
         run: bun lint
       - name: Run Svelte Check
-        run: bun -b check
+        run: |
+          bun src/lib/utils/generateDeclarations.js
+          bun -b check

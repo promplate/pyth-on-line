@@ -8,7 +8,6 @@
     "lint": "eslint .",
     "build": "vite build --sourcemap",
     "preview": "vite preview",
-    "postinstall": "node src/lib/utils/generateDeclarations.js",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
   },

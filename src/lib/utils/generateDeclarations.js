@@ -3,7 +3,7 @@ import { join, resolve } from "node:path";
 
 const srcPath = "./src";
 
-const files = readdirSync(srcPath, { recursive: true, withFileTypes: true }).filter(f => f.isFile()).map(f => `${f.parentPath ?? f.path}/${f.name}`);
+const files = readdirSync(srcPath, { recursive: true, withFileTypes: true }).filter(f => f.isFile()).map(f => `${f.parentPath}/${f.name}`);
 
 for (const file of files) {
   if (!file.endsWith(".ts") && !file.endsWith(".svelte"))
