@@ -16,7 +16,7 @@ distribution = false
 
 [tool.pdm.scripts]
 post_install = "pre-commit install"
-fmt = { composite = ["ruff check --fix --exit-zero", "ruff format"] }
+fmt = { composite = ["ruff check --fix --show-fixes -e", "ruff format"] }
 
 [tool.black]
 line-length = 200
