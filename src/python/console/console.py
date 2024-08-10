@@ -69,6 +69,12 @@ class EnhancedConsole(PyodideConsole):
 
         return future
 
+    async def runcode(self, source, code):
+        res = await super().runcode(source, code)
+        if res is not None:
+            self.globals["__builtins__"]["_"] = res
+        return res
+
 
 class ConsoleAPI:
     def __init__(self, sync: Callable[[]]):
@@ -172,7 +178,6 @@ class ConsoleAPI:
                     try:
                         if text := await res.get_repr():
                             self.push_item({"type": "repr", "text": text}, behind=input_item)
-                            self.builtins["_"] = res.future.result()
                     except Exception as e:
                         stderr = res.formatted_error or self.console.formattraceback(e)
                         self.push_item({"type": "err", "text": stderr, "is_traceback": True}, behind=input_item)
