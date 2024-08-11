@@ -8,7 +8,11 @@
 
   export let sources: Record<string, string> = {};
 
-  let focusedFile: keyof typeof sources = Object.keys(sources)[0] as keyof typeof sources;
+  function getDefaultFile() {
+    return Object.keys(sources).find(name => name.toUpperCase().startsWith("README")) ?? Object.keys(sources)[0];
+  }
+
+  let focusedFile: keyof typeof sources = getDefaultFile();
   let container: HTMLElement;
 </script>
 
