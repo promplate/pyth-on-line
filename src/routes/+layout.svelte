@@ -12,6 +12,8 @@
 
   // @ts-ignore
   const headScripts = atob(env.PUBLIC_HEAD_SCRIPTS ?? "");
+  // @ts-ignore
+  const originTrialToken = env.PUBLIC_ORIGIN_TRIAL_TOKEN;
 
   const ogTitle = "Python Online";
   const ogImage = `${$page.url.origin}/og${$page.url.pathname}`;
@@ -21,6 +23,9 @@
 <svelte:head>
   {#if headScripts && !dev}
     {@html headScripts}
+  {/if}
+  {#if originTrialToken}
+    <meta http-equiv="origin-trial" content={originTrialToken} />
   {/if}
 
   <title>{ogTitle}</title>
