@@ -31,7 +31,7 @@
     "bits-ui": "^0.21.13",
     "cmdk-sv": "^0.0.18",
     "monaco-editor-core": "^0.50.0",
-    "openai": "^4.55.8",
+    "openai": "^4.56.0",
     "paneforge": "^0.0.5",
     "pyodide": "0.26.2",
     "rehype-stringify": "^10.0.0",
@@ -49,7 +49,7 @@
     "vite": "^5.4.1"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^2.25.2",
+    "@antfu/eslint-config": "^2.26.0",
     "@types/mdast": "^4.0.4",
     "@unocss/eslint-config": "^0.62.2",
     "eslint": "^9.9.0",
