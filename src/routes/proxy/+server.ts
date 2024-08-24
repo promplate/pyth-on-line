@@ -18,6 +18,8 @@ function getUrl(url: string | null) {
 
 const handler: RequestHandler = async ({ url: { searchParams }, request }) => {
   const url = getUrl(searchParams.get("url"));
+  if ([location.hostname, "localhost", "127.0.0.1", "::1"].includes(url.hostname))
+    error(400, "Invalid hostname");
   return await forwardFetch(url, request);
 };
 
