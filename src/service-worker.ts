@@ -72,7 +72,10 @@ async function fetchWithProxy(request: Request) {
   try {
     return await fetch(request);
   }
-  catch {
+  catch (e) {
+    const url = new URL(request.url);
+    if ([location.hostname, "localhost", "127.0.0.1", "::1"].includes(url.hostname))
+      throw e;
     return await fetch(`/proxy?url=${encodeURIComponent(request.url)}`, request);
   }
 }
