@@ -68,9 +68,25 @@ sw.addEventListener("activate", (event) => {
   event.waitUntil(deleteOldCaches());
 });
 
+async function fetchWithProxy(request: Request) {
+  try {
+    return await fetch(request);
+  }
+  catch (e) {
+    const url = new URL(request.url);
+    if ([location.hostname, "localhost", "127.0.0.1", "::1"].includes(url.hostname))
+      throw e;
+    return await fetch(`/proxy?url=${encodeURIComponent(request.url)}`, request);
+  }
+}
+
 sw.addEventListener("fetch", (event) => {
-  if (event.request.method !== "GET" || !event.request.url.startsWith("http"))
+  if (!event.request.url.startsWith("http"))
     return;
+
+  if (event.request.method !== "GET") {
+    return event.respondWith(fetchWithProxy(event.request));
+  }
 
   async function respond() {
     const url = new URL(event.request.url);
@@ -88,7 +104,7 @@ sw.addEventListener("fetch", (event) => {
     // for everything else, try the network first, but
     // fall back to the cache if we're offline
     try {
-      const response = await fetch(event.request);
+      const response = await fetchWithProxy(event.request);
 
       // if we're offline, fetch can return a value that is not a Response
       // instead of throwing - and we can't pass this non-Response to respondWith
