@@ -1,7 +1,7 @@
 import type { RequestHandler } from "./$types";
 
 import { error } from "@sveltejs/kit";
-import { get } from "$lib/utils/headers";
+import { forwardFetch } from "$lib/utils/headers";
 
 function getUrl(url: string | null) {
   if (!url) {
@@ -16,8 +16,12 @@ function getUrl(url: string | null) {
   }
 }
 
-export const GET: RequestHandler = async ({ url: { searchParams }, request: { headers } }) => {
+export const GET: RequestHandler = async ({ url: { searchParams }, request }) => {
   const url = getUrl(searchParams.get("url"));
+  return await forwardFetch(url, request);
+};
 
-  return await get(url, headers);
+export const POST: RequestHandler = async ({ url: { searchParams }, request }) => {
+  const url = getUrl(searchParams.get("url"));
+  return await forwardFetch(url, request);
 };
