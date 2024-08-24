@@ -16,12 +16,14 @@ function getUrl(url: string | null) {
   }
 }
 
-export const GET: RequestHandler = async ({ url: { searchParams }, request }) => {
+const handler: RequestHandler = async ({ url: { searchParams }, request }) => {
   const url = getUrl(searchParams.get("url"));
   return await forwardFetch(url, request);
 };
 
-export const POST: RequestHandler = async ({ url: { searchParams }, request }) => {
-  const url = getUrl(searchParams.get("url"));
-  return await forwardFetch(url, request);
-};
+export const GET = handler;
+export const HEAD = handler;
+export const PUT = handler;
+export const POST = handler;
+export const PATCH = handler;
+export const DELETE = handler;
