@@ -13,6 +13,7 @@
 <script lang="ts">
   import type { ConsoleAPI } from "$py/console/console";
 
+  import { registerCommands } from "../command/helper";
   import getPy from "$lib/pyodide";
   import { needScroll, scrollToBottom } from "$lib/utils/scroll";
   import { afterUpdate, beforeUpdate, onDestroy, onMount } from "svelte";
@@ -61,6 +62,15 @@
     }
     return res;
   }
+
+  registerCommands("Console", [
+    {
+      text: "Clear Console",
+      handler() {
+        pyConsole.clear();
+      },
+    },
+  ]);
 </script>
 
 <slot {status} {loading} />

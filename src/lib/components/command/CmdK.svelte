@@ -1,7 +1,10 @@
-<script context="module">
+<script context="module" lang="ts">
+  import type { Item as AnyItem } from "./Item.svelte";
+
   import { writable } from "svelte/store";
 
   export const show = writable(false);
+  export const commands = writable<Record<string, AnyItem[]>>({});
 </script>
 
 <script lang="ts">
@@ -20,7 +23,7 @@
     ],
   } as Group;
 
-  $: items = [navigations];
+  $: items = [...Object.entries($commands).map(([text, children]) => ({ type: "group", text, children } as Group)), navigations];
 </script>
 
 <svelte:document on:keydown={(e) => {
