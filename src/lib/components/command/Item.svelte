@@ -68,7 +68,7 @@
 {:else if item.type === "cmd"}
 
   <Command.Item onSelect={value => (async () => item.callback(value))().finally(callback)} asChild let:action let:attrs>
-    <button use:action {...attrs} class:highlighted={attrs["data-selected"]}>
+    <button class="text-left" use:action {...attrs} class:highlighted={attrs["data-selected"]}>
       {item.text}
     </button>
   </Command.Item>
