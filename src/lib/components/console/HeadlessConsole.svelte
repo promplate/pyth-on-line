@@ -70,6 +70,17 @@
         pyConsole.clear();
       },
     },
+    {
+      text: "Install Packages",
+      async handler() {
+        // eslint-disable-next-line no-alert
+        const packages = prompt()?.split(" ").filter(Boolean);
+        if (packages?.length) {
+          const py = await getPy();
+          await py.pyimport("micropip.install")(packages);
+        }
+      },
+    },
   ]);
 </script>
 
