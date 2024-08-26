@@ -56,7 +56,9 @@
 
     <Command.List>
 
-      <Command.Empty>No results found.</Command.Empty>
+      {#if !$prefixes.length}
+        <Command.Empty>No results found.</Command.Empty>
+      {/if}
 
       {#each $items.length ? $items : rootItems as item}
         <Item {item} callback={() => [close(), ($input = "")]} />
