@@ -4,7 +4,7 @@
   import { input, items, placeholder, prefixes, show } from "../command/CmdK.svelte";
   import { registerCommandGroup } from "../command/helper";
   import getPy from "$lib/pyodide";
-  import { onDestroy, tick } from "svelte";
+  import { tick } from "svelte";
 
   export let pyConsole: ConsoleAPI;
 
@@ -42,7 +42,6 @@
         });
 
         requestAnimationFrame(() => $show = true);
-        onDestroy(unsubscribe);
       },
     },
     {
