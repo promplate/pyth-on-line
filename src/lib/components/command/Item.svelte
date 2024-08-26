@@ -78,7 +78,7 @@
 
 <style>
   a, button {
-    --uno: block rounded-md p-2 -mx-2;
+    --uno: w-[calc(100%+1rem)] rounded-md p-2 -mx-2;
   }
 
   .highlighted {
