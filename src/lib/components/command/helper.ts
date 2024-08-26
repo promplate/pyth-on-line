@@ -3,7 +3,12 @@ import type { Cmd } from "./Item.svelte";
 import { commands } from "./CmdK.svelte";
 import { onDestroy, onMount } from "svelte";
 
-export function registerCommandGroup(groupName: string, newCommands: { text: string; handler: (value: string) => any }[]) {
+export interface Command {
+  text: string;
+  handler: (value: string) => any;
+}
+
+export function registerCommandGroup(groupName: string, newCommands: Command[]) {
   onMount(() => {
     commands.update($commands => (
       {
