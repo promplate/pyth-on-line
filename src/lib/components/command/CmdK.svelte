@@ -37,7 +37,7 @@
   }
 }} />
 
-<Modal bind:show={$show} closeOnClickOutside let:close>
+<Modal bind:show={$show} closeOnClickOutside let:close cleanup={() => $input = ""}>
 
   <Command.Root loop onKeydown={e => e.key === "Escape" && close()} class="pointer-events-auto max-w-80vw w-md flex flex-col b-(1 neutral-7) rounded-lg bg-neutral-8/70 p-2em backdrop-blur-lg lg:w-lg <lg:text-sm">
 
@@ -61,7 +61,7 @@
       {/if}
 
       {#each $items.length ? $items : rootItems as item}
-        <Item {item} callback={() => [close(), ($input = "")]} />
+        <Item {item} callback={close} />
       {/each}
 
     </Command.List>
