@@ -13,7 +13,7 @@
 <script lang="ts">
   import type { ConsoleAPI } from "$py/console/console";
 
-  import { registerCommands } from "../command/helper";
+  import WithConsoleCommands from "./WithConsoleCommands.svelte";
   import getPy from "$lib/pyodide";
   import { needScroll, scrollToBottom } from "$lib/utils/scroll";
   import { afterUpdate, beforeUpdate, onDestroy, onMount } from "svelte";
@@ -62,26 +62,8 @@
     }
     return res;
   }
-
-  registerCommands("Console", [
-    {
-      text: "Clear Console",
-      handler() {
-        pyConsole.clear();
-      },
-    },
-    {
-      text: "Install Packages",
-      async handler() {
-        // eslint-disable-next-line no-alert
-        const packages = prompt()?.split(" ").filter(Boolean);
-        if (packages?.length) {
-          const py = await getPy();
-          await py.pyimport("micropip.install")(packages);
-        }
-      },
-    },
-  ]);
 </script>
 
 <slot {status} {loading} />
+
+<WithConsoleCommands {pyConsole} />

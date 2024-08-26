@@ -1,6 +1,7 @@
 <script context="module" lang="ts">
   interface BaseItem {
     text: string;
+    alwaysRender?: boolean;
   }
 
   export interface Link extends BaseItem {
@@ -67,7 +68,7 @@
 
 {:else if item.type === "cmd"}
 
-  <Command.Item onSelect={value => (async () => item.callback(value))().finally(callback)} asChild let:action let:attrs>
+  <Command.Item onSelect={value => (async () => item.callback(value))().finally(callback)} alwaysRender={item.alwaysRender} asChild let:action let:attrs>
     <button class="text-left" use:action {...attrs} class:highlighted={attrs["data-selected"]}>
       {item.text}
     </button>

@@ -6,7 +6,9 @@
   export const show = writable(false);
   export const commands = writable<Record<string, AnyItem[]>>({});
   export const items = writable<AnyItem[]>([]);
-  export const prefixes = writable<string[]>(["test1", "test2"]);
+  export const prefixes = writable<string[]>([]);
+  export const input = writable("");
+  export const placeholder = writable("");
 </script>
 
 <script lang="ts">
@@ -37,7 +39,7 @@
 
 <Modal bind:show={$show} closeOnClickOutside let:close>
 
-  <Command.Root loop class="pointer-events-auto max-w-80vw w-md flex flex-col b-(1 neutral-7) rounded-lg bg-neutral-8/70 p-2em backdrop-blur-lg lg:w-lg <lg:text-sm">
+  <Command.Root loop onKeydown={e => e.key === "Escape" && close()} class="pointer-events-auto max-w-80vw w-md flex flex-col b-(1 neutral-7) rounded-lg bg-neutral-8/70 p-2em backdrop-blur-lg lg:w-lg <lg:text-sm">
 
     {#if $prefixes.length}
       <div class="mb-1 flex flex-row items-center gap-1.5 text-xs text-white/80 font-mono">
@@ -48,7 +50,7 @@
       </div>
     {/if}
 
-    <Command.Input autofocus on:keydown={e => e.key === "Escape" && close()} class="w-full ws-nowrap bg-transparent py-2 outline-none placeholder-(text-white/30)" placeholder="Type a command or search..." />
+    <Command.Input autofocus bind:value={$input} class="w-full ws-nowrap bg-transparent py-2 outline-none placeholder-(text-white/30)" placeholder={$placeholder || "Type a command or search..."} />
 
     <Command.Separator alwaysRender class="mb-3 mt-1.5 b-1 b-white/10" />
 
@@ -57,7 +59,7 @@
       <Command.Empty>No results found.</Command.Empty>
 
       {#each $items.length ? $items : rootItems as item}
-        <Item {item} callback={close} />
+        <Item {item} callback={() => [close(), ($input = "")]} />
       {/each}
 
     </Command.List>
