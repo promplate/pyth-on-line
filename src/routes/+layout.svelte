@@ -40,6 +40,8 @@
   <meta property="description" content={ogDescription} />
   <meta property="og:description" content={ogDescription} />
   <meta property="twitter:description" content={ogDescription} />
+
+  <meta name="theme-color" content="#171717">
 </svelte:head>
 
 <Toaster theme="dark" toastOptions={{ class: "text-xs font-mono" }} />
