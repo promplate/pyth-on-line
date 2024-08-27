@@ -56,7 +56,7 @@
 
 {:else if item.type === "link"}
 
-  <Command.Item onSelect={() => acted = true} asChild let:action let:attrs>
+  <Command.Item value={item.text} onSelect={() => acted = true} asChild let:action let:attrs>
     {@const highlighted = attrs["data-selected"]}
     <!-- eslint-disable-next-line no-unused-vars -->
     {@const _ = (browser && highlighted && preloadData(item.href))}
@@ -67,7 +67,7 @@
 
 {:else if item.type === "cmd"}
 
-  <Command.Item onSelect={value => (async () => item.callback(value))().finally(callback)} asChild let:action let:attrs>
+  <Command.Item value={item.text} onSelect={value => (async () => item.callback(value))().finally(callback)} asChild let:action let:attrs>
     <button use:action {...attrs} class:highlighted={attrs["data-selected"]}>
       {item.text}
     </button>
