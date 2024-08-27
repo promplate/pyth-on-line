@@ -13,6 +13,7 @@
 <script lang="ts">
   import type { ConsoleAPI } from "$py/console/console";
 
+  import WithConsoleCommands from "./WithConsoleCommands.svelte";
   import getPy from "$lib/pyodide";
   import { needScroll, scrollToBottom } from "$lib/utils/scroll";
   import { afterUpdate, beforeUpdate, onDestroy, onMount } from "svelte";
@@ -64,3 +65,5 @@
 </script>
 
 <slot {status} {loading} />
+
+<WithConsoleCommands {pyConsole} />

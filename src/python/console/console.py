@@ -203,3 +203,7 @@ class ConsoleAPI:
 
     def close(self):
         self.console.file.cleanup()
+
+    def clear(self):
+        self.items.clear()
+        self.sync()
