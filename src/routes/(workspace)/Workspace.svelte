@@ -1,6 +1,7 @@
 <script lang="ts">
   import FileContent from "./FileContent.svelte";
   import FileList from "./FileList.svelte";
+  import { registerCommandGroup } from "$lib/components/command/helper";
   import Console from "$lib/components/Console.svelte";
   import SetupWorkspace from "$lib/components/reusable/WorkspaceLifecycle.svelte";
   import { toastMarkdown } from "$lib/utils/toast";
@@ -14,6 +15,13 @@
 
   let focusedFile: keyof typeof sources = getDefaultFile();
   let container: HTMLElement;
+
+  registerCommandGroup("Workspace", Object.keys(sources).map(name => ({
+    text: `Open ${name}`,
+    handler() {
+      focusedFile = name;
+    },
+  })));
 </script>
 
 <div class="h-screen">
