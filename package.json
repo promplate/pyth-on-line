@@ -31,7 +31,7 @@
     "bits-ui": "^0.21.13",
     "cmdk-sv": "^0.0.18",
     "monaco-editor-core": "^0.51.0",
-    "openai": "^4.56.1",
+    "openai": "^4.57.0",
     "paneforge": "^0.0.5",
     "pyodide": "0.26.2",
     "rehype-stringify": "^10.0.0",
