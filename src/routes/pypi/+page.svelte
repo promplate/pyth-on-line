@@ -12,11 +12,12 @@
 
   $search = data.query;
 
-  $: if (browser && $search) {
+  $: if (browser && $search && $search !== data.query) {
+    const query = $search;
     const url = new URL(location.href);
-    url.searchParams.set("q", $search);
+    url.searchParams.set("q", query);
     loading = true;
-    goto(url, { replaceState: true, keepFocus: true }).finally(() => loading = false);
+    goto(url, { replaceState: true, keepFocus: true }).finally(() => query === $search && (loading = false));
   }
 </script>
 
