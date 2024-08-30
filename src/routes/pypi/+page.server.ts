@@ -24,5 +24,5 @@ export const load = (async ({ fetch, url: { searchParams } }) => {
     return { name, version, description, updated };
   }).toArray();
 
-  return { total, page, npages, results };
+  return { query, total, page, npages, results };
 }) satisfies PageServerLoad;
