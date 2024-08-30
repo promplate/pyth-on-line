@@ -5,7 +5,7 @@ import { parseDocument } from "htmlparser2";
 
 export const load = (async ({ fetch, url: { searchParams } }) => {
   const query = searchParams.get("q") ?? "promplate";
-  const page = searchParams.get("page") ?? "1";
+  const page = Number(searchParams.get("page") ?? "1");
 
   const res = await fetch(`https://pypi.org/search/?q=${query}&page=${page}`).then(r => r.text());
 
@@ -13,14 +13,15 @@ export const load = (async ({ fetch, url: { searchParams } }) => {
 
   const total = Number($("form > div p > strong").text().replaceAll(",", ""));
 
-  const npages = $(".button-group--pagination a").eq(-2).text();
+  const npages = Number($(".button-group--pagination a").eq(-2).text());
 
   const results = $("a.package-snippet").map((_, el) => {
-    const { href } = el.attribs;
     const [name, version] = $("h3 > span", el).map((_, el) => $(el).text()).toArray();
-    const description = $("p", el).text().trim();
+    let description: string | undefined = $("p", el).text().trim();
+    if (description === "None")
+      description = undefined;
     const updated = $("time", el).text().trim();
-    return { href, name, version, description, updated };
+    return { name, version, description, updated };
   }).toArray();
 
   return { total, page, npages, results };
