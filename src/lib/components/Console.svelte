@@ -219,7 +219,7 @@
       <div class="group flex flex-row" class:animate-pulse={loading || !ready}>
         <ConsolePrompt prompt={status === "incomplete" ? "..." : ">>>"} />
         <!-- svelte-ignore a11y-autofocus -->
-        <input autofocus bind:this={inputRef} class="w-full bg-transparent outline-none" bind:value={input} type="text" />
+        <input autofocus bind:this={inputRef} class="w-full bg-transparent outline-none" bind:value={input} type="text" autocapitalize="off" spellcheck="false" autocomplete="off" autocorrect="off" />
       </div>
     </HeadlessConsole>
 
