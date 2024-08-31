@@ -21,7 +21,7 @@
   {/if}
 
   {#if tags.length}
-    <h3 class="flex flex-row gap-2">
+    <h3 class="flex flex-row flex-wrap gap-2">
       {#each tags as tag}
         <div class="rounded-sm px-1.5 py-0.5 text-sm text-neutral-5 ring-(1.2 neutral-5/10) <sm:text-xs">{tag}</div>
       {/each}

@@ -14,7 +14,7 @@
   beforeNavigate(async () => {
     reset();
     showBar = true;
-    progress.set(0.25, { soft: true });
+    progress.set(0.25);
   });
 
   afterNavigate(() => {
