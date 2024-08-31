@@ -1,6 +1,21 @@
 <script lang="ts">
   import { search } from "./store";
+  import { afterNavigate, beforeNavigate } from "$app/navigation";
+  import Progress, { progress } from "$lib/components/Progress.svelte";
   import { Button } from "bits-ui";
+
+  let showBar = false;
+
+  beforeNavigate(async () => {
+    await progress.set(0, { hard: true });
+    showBar = true;
+    progress.set(0.25, { soft: true });
+  });
+
+  afterNavigate(() => {
+    progress.set(2, { soft: 1 });
+    showBar = false;
+  });
 </script>
 
 <div class="m-4 w-[calc(100%-2rem)] self-center 2xl:(m-10 w-4xl) lg:(m-7 w-2xl) md:m-6 sm:(m-5 w-xl) xl:(m-8 w-3xl) [&>article]:(lg:text-3.75 xl:text-base)">
@@ -11,7 +26,11 @@
     <Button.Root href="https://github.com/promplate/pyth-on-line"><div class="i-mdi-github text-xl" /></Button.Root>
   </nav>
 
-  <hr class="invisible h-6">
+  <Progress let:value>
+    <div on:transitionend={() => !showBar && progress.set(0, { hard: true })} class="relative my-4 h-2px overflow-hidden rounded-full transition-opacity" class:duration-500={!showBar} class:op-0={!showBar} class:delay-50={!showBar}>
+      <div class="absolute left-0 h-full rounded-full bg-neutral-2" style:right="{100 - value * 100}%" />
+    </div>
+  </Progress>
 
   <slot />
 
