@@ -3,8 +3,9 @@
 
   import { search } from "./store";
   import { browser } from "$app/environment";
-  import { goto } from "$app/navigation";
+  import { afterNavigate, goto } from "$app/navigation";
   import { Button } from "bits-ui";
+  import { onMount } from "svelte";
 
   export let data: PageServerData;
 
@@ -19,6 +20,49 @@
     loading = true;
     goto(url, { replaceState: true, keepFocus: true }).finally(() => query === $search && (loading = false));
   }
+
+  function isEngough() {
+    return data.total !== null && data.total <= data.results.length;
+  }
+  $: enough = data.total !== null && data.total <= data.results.length;
+
+  let ref: HTMLDivElement;
+  let page = 1;
+
+  let intersecting = !isEngough();
+
+  afterNavigate(() => {
+    page = 1;
+    intersecting && startLoadingMore();
+  });
+
+  async function startLoadingMore() {
+    const query = $search;
+    // eslint-disable-next-line no-unmodified-loop-condition
+    while (intersecting && !enough) {
+      const url = new URL(location.href);
+      url.searchParams.set("page", String(page + 1));
+      const json = await fetch(url, { headers: { accept: "application/json" } }).then(res => res.json());
+      if (query === $search) {
+        data.results = [...data.results, ...json.results];
+        page++;
+        await new Promise(resolve => setTimeout(resolve, 10));
+      }
+      else {
+        break;
+      }
+    }
+  }
+
+  $: if (browser && intersecting) {
+    startLoadingMore();
+  }
+
+  onMount(() => {
+    new IntersectionObserver(([{ isIntersecting }]) => {
+      intersecting = isIntersecting;
+    }).observe(ref);
+  });
 </script>
 
 <h1 class="text-xl">
@@ -27,7 +71,7 @@
   <span class="text-neutral-1">{data.query}</span>
 </h1>
 
-<div class="my-4 flex flex-col gap-3 transition-opacity" class:op-50={loading}>
+<div class="relative my-4 flex flex-col gap-3 transition-opacity" class:op-50={loading}>
   {#each data.results as { name, version, description = "", updated }}
     <Button.Root class="flex flex-col gap-1 px-3 py-2 ring-(1.2 neutral-8) hover:ring-neutral-5" href="/pypi/{name}">
       <div class="flex flex-row items-center gap-1.5 ws-nowrap">
@@ -38,4 +82,5 @@
       <h3 class="text-xs text-neutral-5 sm:text-sm">{description}</h3>
     </Button.Root>
   {/each}
+  <div bind:this={ref} class="pointer-events-none invisible absolute bottom-0 h-250vh w-full"></div>
 </div>
