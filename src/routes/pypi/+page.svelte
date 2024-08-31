@@ -9,7 +9,8 @@
 
   export let data: PageServerData;
 
-  let loading = false;
+  let navigating = false;
+  let loadingMore = false;
 
   $search = data.query;
 
@@ -17,19 +18,16 @@
     const query = $search;
     const url = new URL(location.href);
     url.searchParams.set("q", query);
-    loading = true;
-    goto(url, { replaceState: true, keepFocus: true }).finally(() => query === $search && (loading = false));
+    navigating = true;
+    goto(url, { replaceState: true, keepFocus: true }).finally(() => query === $search && (navigating = false));
   }
 
-  function isEngough() {
-    return data.total !== null && data.total <= data.results.length;
-  }
   $: enough = data.total !== null && data.total <= data.results.length;
 
   let ref: HTMLDivElement;
   let page = 1;
 
-  let intersecting = !isEngough();
+  let intersecting = !enough;
 
   afterNavigate(() => {
     page = 1;
@@ -37,6 +35,9 @@
   });
 
   async function startLoadingMore() {
+    if (loadingMore)
+      return;
+    loadingMore = true;
     const query = $search;
     // eslint-disable-next-line no-unmodified-loop-condition
     while (intersecting && !enough) {
@@ -49,9 +50,10 @@
         await new Promise(resolve => setTimeout(resolve, 10));
       }
       else {
-        break;
+        return;
       }
     }
+    loadingMore = false;
   }
 
   $: if (browser && intersecting) {
@@ -71,7 +73,7 @@
   <span class="text-neutral-1">{data.query}</span>
 </h1>
 
-<div class="relative my-4 flex flex-col gap-3 transition-opacity" class:op-50={loading}>
+<div class="relative my-4 flex flex-col gap-3 transition-opacity" class:op-50={navigating}>
   {#each data.results as { name, version, description = "", updated }}
     <Button.Root class="flex flex-col gap-1 px-3 py-2 ring-(1.2 neutral-8) hover:ring-neutral-5" href="/pypi/{name}">
       <div class="flex flex-row items-center gap-1.5 ws-nowrap">
