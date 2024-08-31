@@ -1,13 +1,18 @@
 <script lang="ts">
+  import type { Spring } from "svelte/motion";
+
   import { search } from "./store";
   import { afterNavigate, beforeNavigate } from "$app/navigation";
-  import Progress, { progress } from "$lib/components/Progress.svelte";
+  import Progress from "$lib/components/Progress.svelte";
   import { Button } from "bits-ui";
 
   let showBar = false;
 
+  let progress: Spring<number>;
+  let reset: () => any;
+
   beforeNavigate(async () => {
-    await progress.set(0, { hard: true });
+    reset();
     showBar = true;
     progress.set(0.25, { soft: true });
   });
@@ -26,11 +31,7 @@
     <Button.Root href="https://github.com/promplate/pyth-on-line"><div class="i-mdi-github text-xl" /></Button.Root>
   </nav>
 
-  <Progress let:value>
-    <div on:transitionend={() => !showBar && progress.set(0, { hard: true })} class="relative my-4 h-2px overflow-hidden rounded-full transition-opacity" class:duration-500={!showBar} class:op-0={!showBar} class:delay-50={!showBar}>
-      <div class="absolute left-0 h-full rounded-full bg-neutral-2" style:right="{100 - value * 100}%" />
-    </div>
-  </Progress>
+  <Progress show={showBar} bind:progress bind:reset />
 
   <slot />
 
