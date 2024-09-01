@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { PageServerData } from "./$types";
 
-  import { search } from "./store";
+  import { query } from "./store";
   import { browser } from "$app/environment";
   import { afterNavigate, goto } from "$app/navigation";
   import { Button } from "bits-ui";
@@ -12,14 +12,14 @@
   let navigating = false;
   let loadingMore = false;
 
-  $search = data.query;
+  $query = data.query;
 
-  $: if (browser && $search && $search !== data.query) {
-    const query = $search;
+  $: if (browser && $query && $query !== data.query) {
+    const query = $query;
     const url = new URL(location.href);
     url.searchParams.set("q", query);
     navigating = true;
-    goto(url, { replaceState: true, keepFocus: true }).finally(() => query === $search && (navigating = false));
+    goto(url, { replaceState: true, keepFocus: true }).finally(() => query === $query && (navigating = false));
   }
 
   $: enough = data.total !== null && data.total <= data.results.length;
@@ -38,13 +38,13 @@
     if (loadingMore)
       return;
     loadingMore = true;
-    const query = $search;
+    const query = $query;
     // eslint-disable-next-line no-unmodified-loop-condition
     while (intersecting && !enough) {
       const url = new URL(location.href);
       url.searchParams.set("page", String(page + 1));
       const json = await fetch(url, { headers: { accept: "application/json" } }).then(res => res.json());
-      if (query === $search) {
+      if (query === $query) {
         data.results = [...data.results, ...json.results];
         page++;
         await new Promise(resolve => setTimeout(resolve, 10));

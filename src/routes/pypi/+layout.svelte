@@ -1,9 +1,9 @@
 <script lang="ts">
   import type { Spring } from "svelte/motion";
 
-  import { search } from "./store";
-  import { afterNavigate, beforeNavigate } from "$app/navigation";
-  import { navigating } from "$app/stores";
+  import { query } from "./store";
+  import { afterNavigate, beforeNavigate, goto } from "$app/navigation";
+  import { navigating, page } from "$app/stores";
   import Progress from "$lib/components/Progress.svelte";
   import { Button } from "bits-ui";
 
@@ -18,6 +18,14 @@
   afterNavigate(() => {
     progress.set(2, { soft: 1 });
   });
+
+  $: disableSearch = Boolean($navigating) || $page.route.id === "/pypi" && $query === $page.url.searchParams.get("q");
+
+  function search() {
+    if (!disableSearch) {
+      goto(`/pypi?q=${$query}`, { keepFocus: true });
+    }
+  }
 </script>
 
 <div class="relative mb-4 w-[calc(100%-2rem)] self-center 2xl:(mb-10 w-4xl) lg:(mb-7 w-2xl) md:mb-6 sm:(mb-5 w-xl) xl:(mb-8 w-3xl) [&>article]:(lg:text-3.75 xl:text-base)">
@@ -26,7 +34,12 @@
 
     <nav class="w-full flex flex-row items-center justify-between gap-2 text-sm lg:text-base [&>a:hover]:op-80 [&>a]:(op-50 transition)">
       <Button.Root href="/">Home</Button.Root>
-      <input bind:value={$search} class="w-xs rounded-sm bg-neutral-6/10 px-0.5em py-0.3em text-neutral-4 outline-none -my-0.3em sm:w-sm placeholder-neutral-6" placeholder="search" type="text">
+      <div class="max-w-50vw w-xs flex flex-row items-center rounded-sm bg-neutral-6/10 px-0.5em py-0.3em -my-0.3em lg:w-sm">
+        <input bind:value={$query} on:keydown={({ key }) => key === "Enter" && search()} class="w-full bg-transparent text-neutral-4 outline-none placeholder-neutral-6" placeholder="search" type="text">
+        <button disabled={disableSearch} on:click={search} class="p-0.3em text-neutral-5 -m-0.3em hover:text-neutral-4">
+          <div class="i-mingcute-search-line" />
+        </button>
+      </div>
       <Button.Root href="https://github.com/promplate/pyth-on-line"><div class="i-mdi-github text-xl" /></Button.Root>
     </nav>
 
