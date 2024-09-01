@@ -13,11 +13,11 @@
   let loadingMore = false;
 
   $: if (browser && $query && $query !== data.query) {
-    const query = $query;
+    const q = $query;
     const url = new URL(location.href);
-    url.searchParams.set("q", query);
+    url.searchParams.set("q", q);
     navigating = true;
-    goto(url, { replaceState: true, keepFocus: true }).finally(() => query === $query && (navigating = false));
+    goto(url, { replaceState: true, keepFocus: true }).finally(() => q === $query && (navigating = false));
   }
 
   $: enough = data.total !== null && data.total <= data.results.length;
@@ -36,13 +36,13 @@
     if (loadingMore)
       return;
     loadingMore = true;
-    const query = $query;
+    const q = $query;
     // eslint-disable-next-line no-unmodified-loop-condition
     while (intersecting && !enough) {
       const url = new URL(location.href);
       url.searchParams.set("page", String(page + 1));
       const json = await fetch(url, { headers: { accept: "application/json" } }).then(res => res.json());
-      if (query === $query) {
+      if (q === $query) {
         data.results = [...data.results, ...json.results];
         page++;
         await new Promise(resolve => setTimeout(resolve, 10));
