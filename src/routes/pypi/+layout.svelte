@@ -10,7 +10,7 @@
   let progress: Spring<number>;
   let reset: () => any;
 
-  $query = $page.url.searchParams.get("q");
+  $query = $page.url.searchParams.get("q") ?? "";
 
   beforeNavigate(async () => {
     reset();
