@@ -3,23 +3,20 @@
 
   import { search } from "./store";
   import { afterNavigate, beforeNavigate } from "$app/navigation";
+  import { navigating } from "$app/stores";
   import Progress from "$lib/components/Progress.svelte";
   import { Button } from "bits-ui";
-
-  let showBar = false;
 
   let progress: Spring<number>;
   let reset: () => any;
 
   beforeNavigate(async () => {
     reset();
-    showBar = true;
     progress.set(0.25);
   });
 
   afterNavigate(() => {
     progress.set(2, { soft: 1 });
-    showBar = false;
   });
 </script>
 
@@ -33,7 +30,7 @@
       <Button.Root href="https://github.com/promplate/pyth-on-line"><div class="i-mdi-github text-xl" /></Button.Root>
     </nav>
 
-    <Progress show={showBar} bind:progress bind:reset />
+    <Progress show={!!$navigating} bind:progress bind:reset />
 
   </header>
 
