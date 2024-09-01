@@ -12,8 +12,6 @@
   let navigating = false;
   let loadingMore = false;
 
-  $query = data.query;
-
   $: if (browser && $query && $query !== data.query) {
     const query = $query;
     const url = new URL(location.href);
