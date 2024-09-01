@@ -73,10 +73,12 @@
     <span class="text-neutral-1">{data.query}</span>
   </h1>
 {:else}
-  <div class="grid aspect-3/2 w-full place-items-center rounded bg-gradient-(from-neutral-8/50 via-neutral-8/25 to-neutral-8/0 to-b)">
-    <h1 class="text-xl text-neutral-3 font-275">
-      Welcome to the PyPI Explorer
-    </h1>
+  <div class="grid aspect-3/2 min-h-xs w-full place-items-center rounded bg-gradient-(from-neutral-8/50 via-neutral-8/25 to-neutral-8/0 to-b)">
+    <div class="m-4 flex flex-col gap-2">
+      <h1 class="text-lg text-neutral-3 font-275 lg:text-xl">Welcome to the PyPI Explorer</h1>
+      <!-- svelte-ignore a11y-autofocus -->
+      <input autofocus placeholder="search something ..." class="w-full b-b-(1 neutral-6) bg-transparent py-1 text-neutral-3 outline-none focus:b-b-neutral-5 lg:text-lg placeholder-neutral-6" bind:value={$query} type="text">
+    </div>
   </div>
 {/if}
 
