@@ -4,7 +4,10 @@ import { load as loadCheerio } from "cheerio";
 import { parseDocument } from "htmlparser2";
 
 export const load = (async ({ fetch, url: { searchParams } }) => {
-  const query = searchParams.get("q") ?? "promplate";
+  const query = searchParams.get("q");
+  if (!query) {
+    return { query, total: null, page: 0, npages: 0, results: [] };
+  }
   const page = Number(searchParams.get("page") ?? "1");
 
   const res = await fetch(`https://pypi.org/search/?q=${query}&page=${page}`).then(r => r.text());

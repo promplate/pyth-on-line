@@ -4,6 +4,7 @@
   import { query } from "./store";
   import { browser } from "$app/environment";
   import { afterNavigate, goto } from "$app/navigation";
+  import { page } from "$app/stores";
   import { Button } from "bits-ui";
   import { onMount } from "svelte";
 
@@ -23,28 +24,28 @@
   $: enough = data.total !== null && data.total <= data.results.length;
 
   let ref: HTMLDivElement;
-  let page = 1;
+  let index = 1;
 
   let intersecting = !enough;
 
   afterNavigate(() => {
-    page = 1;
+    index = 1;
     intersecting && startLoadingMore();
   });
 
   async function startLoadingMore() {
-    if (loadingMore)
+    if (loadingMore || !data.query)
       return;
     loadingMore = true;
     const q = $query;
     // eslint-disable-next-line no-unmodified-loop-condition
     while (intersecting && !enough) {
       const url = new URL(location.href);
-      url.searchParams.set("page", String(page + 1));
+      url.searchParams.set("page", String(index + 1));
       const json = await fetch(url, { headers: { accept: "application/json" } }).then(res => res.json());
       if (q === $query) {
         data.results = [...data.results, ...json.results];
-        page++;
+        index++;
         await new Promise(resolve => setTimeout(resolve, 10));
       }
       else {
@@ -65,11 +66,19 @@
   });
 </script>
 
-<h1 class="text-xl">
-  <span class="text-neutral-1">{data.total}</span>
-  <span class="text-neutral-5">Results for</span>
-  <span class="text-neutral-1">{data.query}</span>
-</h1>
+{#if $page.url.searchParams.get("q")}
+  <h1 class="text-xl">
+    <span class="text-neutral-1">{data.total}</span>
+    <span class="text-neutral-5">Results for</span>
+    <span class="text-neutral-1">{data.query}</span>
+  </h1>
+{:else}
+  <div class="grid aspect-3/2 w-full place-items-center rounded bg-gradient-(from-neutral-8/50 via-neutral-8/25 to-neutral-8/0 to-b)">
+    <h1 class="text-xl text-neutral-3 font-275">
+      Welcome to the PyPI Explorer
+    </h1>
+  </div>
+{/if}
 
 <div class="relative my-4 flex flex-col gap-3 transition-opacity" class:op-50={navigating}>
   {#each data.results as { name, version, description = "", updated }}
