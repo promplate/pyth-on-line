@@ -21,7 +21,7 @@
     progress.set(2, { soft: 1 });
   });
 
-  $: disableSearch = Boolean($navigating) || $page.route.id === "/pypi" && $query === $page.url.searchParams.get("q");
+  $: disableSearch = Boolean($navigating) || ($page.route.id === "/pypi" && $query === $page.url.searchParams.get("q"));
 
   function search() {
     if (!disableSearch) {
