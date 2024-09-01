@@ -28,8 +28,20 @@
     </h3>
   {/if}
 
-  <div class="mt-4">
-    <BaseMarkdown text={readme}></BaseMarkdown>
-  </div>
+  <main class="mt-4">
+    <BaseMarkdown text={readme} />
+  </main>
 
 </div>
+
+<style>
+  main :global(h1) {
+    --uno: text-4xl font-200;
+  }
+  main :global(h2) {
+    --uno: text-2xl font-250;
+  }
+  main :global(h3) {
+    --uno: text-lg font-300;
+  }
+</style>
