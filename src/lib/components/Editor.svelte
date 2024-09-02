@@ -89,7 +89,7 @@
   <div class="absolute inset-0 grid place-items-center @container" out:fade>
     <div class="flex flex-row items-center gap-2 op-80">
       <div class="i-svg-spinners-90-ring-with-bg" />
-      <div class="hidden text-sm tracking-wide @lg:block">initiating monaco editor</div>
+      <div class="hidden text-sm tracking-wide @lg:block">初始化 monaco 编辑器</div>
     </div>
   </div>
 {/if}
