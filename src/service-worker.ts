@@ -30,41 +30,41 @@ const allAssets = [...websiteAssets, ...pyodideAssets];
 
 const baseURL = indexURL ? indexURL?.replace(/\/$/, "") : "";
 
-sw.addEventListener("install", (event) => {
-  // Create a new cache and add all files to it
-  async function addFilesToCache() {
-    const cache = await caches.open(CACHE);
-    await cache.addAll(pyodideAssets.map(filename => `${baseURL}/${filename}`));
+// Create a new cache and add all files to it
+async function addFilesToCache() {
+  const cache = await caches.open(CACHE);
+  await cache.addAll(pyodideAssets.map(filename => `${baseURL}/${filename}`));
 
-    const { packages }: typeof lockfile = await cache.match(`${baseURL}/pyodide-lock.json`).then(res => res?.json());
-    function getUrls(names: string[]) {
-      const urls = new Set<string>();
-      for (const name of names) {
-        const info = packages[name as keyof typeof packages];
-        urls.add(info.file_name);
-        if (info.depends) {
-          getUrls(info.depends).forEach(url => urls.add(url));
-        }
+  const { packages }: typeof lockfile = await cache.match(`${baseURL}/pyodide-lock.json`).then(res => res?.json());
+  function getUrls(names: string[]) {
+    const urls = new Set<string>();
+    for (const name of names) {
+      const info = packages[name as keyof typeof packages];
+      urls.add(info.file_name);
+      if (info.depends) {
+        getUrls(info.depends).forEach(url => urls.add(url));
       }
-      return urls;
     }
-    await cache.addAll([...getUrls(preloadPackages)].map(url => `${baseURL}/${url}`));
-
-    await cache.addAll(websiteAssets);
+    return urls;
   }
+  await cache.addAll([...getUrls(preloadPackages)].map(url => `${baseURL}/${url}`));
 
+  await cache.addAll(websiteAssets);
+}
+
+sw.addEventListener("install", (event) => {
   event.waitUntil(addFilesToCache());
 });
 
-sw.addEventListener("activate", (event) => {
-  // Remove previous cached data from disk
-  async function deleteOldCaches() {
-    for (const key of await caches.keys()) {
-      if (key !== CACHE)
-        await caches.delete(key);
-    }
+// Remove previous cached data from disk
+async function deleteOldCaches() {
+  for (const key of await caches.keys()) {
+    if (key !== CACHE)
+      await caches.delete(key);
   }
+}
 
+sw.addEventListener("activate", (event) => {
   event.waitUntil(deleteOldCaches());
 });
 
