@@ -6,7 +6,7 @@
 </script>
 
 <UseCopy {text} let:handleClick>
-  <WithTooltip tips="Copy" let:builder>
+  <WithTooltip tips="复制" let:builder>
     <button on:click={handleClick} class="i-icon-park-twotone-copy" {...builder} use:builder.action />
   </WithTooltip>
 </UseCopy>
