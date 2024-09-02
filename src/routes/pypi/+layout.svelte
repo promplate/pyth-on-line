@@ -30,11 +30,10 @@
   }
 </script>
 
-<div class="relative mb-4 w-[calc(100%-2rem)] self-center 2xl:(mb-10 w-4xl) lg:(mb-7 w-2xl) md:mb-6 sm:(mb-5 w-xl) xl:(mb-8 w-3xl) [&>article]:(lg:text-3.75 xl:text-base)">
+<section class="sticky top-0 z-1  bg-gradient-(from-neutral-9/95 via-neutral-9/80 to-neutral-9/95 to-t) px-1rem pt-4 backdrop-blur-md -mx-1rem 2xl:pt-10 lg:pt-7 md:pt-6 sm:pt-5 xl:pt-8">
+  <header class="mx-auto w-[calc(100%-2rem)] 2xl:w-4xl lg:w-2xl sm:w-xl xl:w-3xl">
 
-  <header class="sticky top-0 z-1 bg-gradient-(from-neutral-9/95 via-neutral-9/80 to-neutral-9/95 to-t) px-10 pt-4 backdrop-blur-md -mx-10 2xl:pt-10 lg:pt-7 md:pt-6 sm:pt-5 xl:pt-8">
-
-    <nav class="w-full flex flex-row items-center justify-between gap-2 text-sm lg:text-base [&>a:hover]:op-80 [&>a]:(op-50 transition)">
+    <nav class=" w-full flex flex-row items-center justify-between gap-2 text-sm lg:text-base [&>a:hover]:op-80 [&>a]:(op-50 transition)">
       <Button.Root href="/">Home</Button.Root>
       <div class="max-w-50vw w-xs flex flex-row items-center rounded-sm bg-neutral-6/10 px-0.5em py-0.3em -my-0.3em lg:w-sm">
         <input bind:value={$query} on:keydown={({ key }) => key === "Enter" && search()} class="w-full bg-transparent text-neutral-4 outline-none placeholder-neutral-6" placeholder="search" type="text">
@@ -48,6 +47,9 @@
     <Progress show={!!$navigating} bind:progress bind:reset />
 
   </header>
+</section>
+
+<div class="mb-4 w-[calc(100%-2rem)] self-center 2xl:(mb-10 w-4xl) lg:(mb-7 w-2xl) md:mb-6 sm:(mb-5 w-xl) xl:(mb-8 w-3xl) [&>article]:(lg:text-3.75 xl:text-base)">
 
   <slot />
 
