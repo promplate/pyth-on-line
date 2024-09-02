@@ -19,9 +19,9 @@
 
   <div class="flex flex-col translate-x-0.5 gap-3 lg:gap-5">
     <div class="text-xs">
-      <span class="op-30">Powered by</span>
+      <span class="op-30">由一个编译成 WASM 的 CPython</span>
       <a class="underline underline-(white op-30 offset-2) op-80 transition hover:op-100" href="https://github.com/pyodide/pyodide">@pyodide</a>
-      <span class="op-30">, a WASM build of CPython</span>
+      <span class="op-30">实现</span>
     </div>
 
     <h1 class="flex flex-row select-none text-4xl font-bold tracking-wide font-sans -translate-x-0.5">
@@ -32,7 +32,7 @@
 
     <div>
       <h2 class="group w-fit flex flex-row gap-1.5 rounded-sm bg-neutral-1 px-2.5 py-1.5 text-sm text-neutral-9 font-bold font-mono">
-        AI-supercharged online python IDE
+        内置 Copilot的 Python IDE，原生运行于浏览器中
         <span class="hidden select-none group-hover:(block after:content-['🚀'])" />
       </h2>
     </div>
