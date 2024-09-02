@@ -33,7 +33,7 @@
     </a>
     <a href="github/{input}" class="w-fit" class:cursor-text={!valid} on:click={e => !valid && ([e.preventDefault(), ref.focus()])} in:fly|global={{ duration: 500, x: 5, delay: 500 }}>
       <div class="i-tabler-brand-github text-lg text-gray-4 transition-color" class:text-gray-1={valid} />
-      <input class="w-50 bg-transparent outline-none placeholder:(text-inherit op-30)" class:animate-pulse={!input} placeholder="Your GitHub repo" bind:this={ref} on:click|preventDefault={() => { ref.focus(); }} bind:value={input} on:keydown={e => e.key === "Enter" && ref.parentElement?.click()}>
+      <input class="w-50 bg-transparent outline-none placeholder:(text-inherit op-30)" class:animate-pulse={!input} placeholder="你的 GitHub 仓库" bind:this={ref} on:click|preventDefault={() => { ref.focus(); }} bind:value={input} on:keydown={e => e.key === "Enter" && ref.parentElement?.click()}>
     </a>
   </Intro>
 {/await}

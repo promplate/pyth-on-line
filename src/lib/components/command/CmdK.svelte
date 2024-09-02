@@ -50,7 +50,7 @@
       </div>
     {/if}
 
-    <Command.Input autofocus bind:value={$input} class="w-full ws-nowrap bg-transparent py-2 outline-none placeholder-(text-white/30)" placeholder={$placeholder || "Type a command or search..."} />
+    <Command.Input autofocus bind:value={$input} class="w-full ws-nowrap bg-transparent py-2 outline-none placeholder-(text-white/30)" placeholder={$placeholder || "输入或搜索……"} />
 
     <Command.Separator alwaysRender class="mt-1.5 b-1 b-white/10" />
 
