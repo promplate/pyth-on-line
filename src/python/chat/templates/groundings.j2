@@ -20,7 +20,10 @@ Here are some groundings information about the runtime environment:
 
     Accessing python objects inside js scope is a `PyProxy`. Its `toJs()` method should be called in JavaScript. See [docs](https://pyodide.org/en/stable/usage/type-conversions.html#type-translations-pyproxy-to-js).
 
-    python language version: 3.11
+    python language version: {{
+        from sys import version_info
+        ".".join(map(str, version_info[:3]))
+    }}
 
 ---
 
