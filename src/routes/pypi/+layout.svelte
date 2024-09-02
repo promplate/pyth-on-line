@@ -30,7 +30,10 @@
     }
   }
 
-  $: browser && $query && preloadData(`/pypi?q=${$query}`);
+  $: if (browser && $query) {
+    const q = $query;
+    setTimeout(() => q === $query && preloadData(`/pypi?q=${q}`), 250);
+  }
 </script>
 
 <section class="sticky top-0 z-1 mb-4 bg-gradient-(from-neutral-9/95 via-neutral-9/80 to-neutral-9/95 to-t) px-1rem pt-4 backdrop-blur-md -mx-1rem 2xl:pt-10 lg:pt-7 md:pt-6 sm:pt-5 xl:pt-8">
