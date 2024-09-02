@@ -6,7 +6,7 @@
 
   export let focusedFile = files.length ? files![0] : null;
 
-  export let title = "Files";
+  export let title = "文件";
 
   $: root = { name: "", children: unflatten(files), type: "folder" } as Folder;
 </script>

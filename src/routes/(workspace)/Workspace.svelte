@@ -16,8 +16,8 @@
   let focusedFile: keyof typeof sources = getDefaultFile();
   let container: HTMLElement;
 
-  registerCommandGroup("Workspace", Object.keys(sources).map(name => ({
-    text: `Open ${name}`,
+  registerCommandGroup("工作区", Object.keys(sources).map(name => ({
+    text: `打开 ${name}`,
     handler() {
       focusedFile = name;
     },
@@ -38,7 +38,7 @@
           <Pane defaultSize={70} minSize={10} class="relative">
             <FileContent on:save={({ detail: content }) => {
               save(focusedFile, content.replaceAll("\r\n", "\n"));
-              toastMarkdown(`\`${focusedFile}\` saved`);
+              toastMarkdown(`\`${focusedFile}\` 已保存`);
             }} bind:content={sources[focusedFile]} lang={focusedFile.slice(focusedFile.lastIndexOf(".") + 1)} />
           </Pane>
           <PaneResizer class="group">
