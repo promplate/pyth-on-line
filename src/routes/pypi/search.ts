@@ -1,9 +1,9 @@
-import type { PageServerLoad } from "./$types";
+import type { RequestEvent } from "./$types";
 
 import { load as loadCheerio } from "cheerio";
 import { parseDocument } from "htmlparser2";
 
-export const load = (async ({ fetch, url: { searchParams } }) => {
+export async function search({ fetch, url: { searchParams } }: RequestEvent) {
   const query = searchParams.get("q");
   if (!query) {
     return { query, total: null, page: 0, npages: 0, results: [] };
@@ -28,4 +28,4 @@ export const load = (async ({ fetch, url: { searchParams } }) => {
   }).toArray();
 
   return { query, total, page, npages, results };
-}) satisfies PageServerLoad;
+}

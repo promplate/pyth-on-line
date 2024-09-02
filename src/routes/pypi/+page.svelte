@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { PageServerData } from "./$types";
+  import type { PageData } from "./$types";
 
   import { query } from "./store";
   import { browser } from "$app/environment";
@@ -8,7 +8,7 @@
   import { Button } from "bits-ui";
   import { onMount } from "svelte";
 
-  export let data: PageServerData;
+  export let data: PageData;
 
   let loadingMore = false;
 
