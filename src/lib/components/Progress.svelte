@@ -18,7 +18,7 @@
 
 <slot value={$progress} />
 
-<div on:transitionend={() => !show && reset()} class="relative my-4 h-2px overflow-hidden rounded-full" class:hide={!show}>
+<div on:transitionend={() => !show && reset()} class="relative h-2px overflow-hidden rounded-full" class:hide={!show}>
   <div class="absolute left-0 h-full rounded-full bg-neutral-2" style:right="{100 - $progress * 100}%" />
 </div>
 
