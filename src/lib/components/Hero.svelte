@@ -32,7 +32,7 @@
 
     <div>
       <h2 class="group w-fit flex flex-row gap-1.5 rounded-sm bg-neutral-1 px-2.5 py-1.5 text-sm text-neutral-9 font-bold font-mono">
-        内置 Copilot的 Python IDE，原生运行于浏览器中
+        内置 Copilot 的 Python IDE，原生运行于浏览器中
         <span class="hidden select-none group-hover:(block after:content-['🚀'])" />
       </h2>
     </div>
