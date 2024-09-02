@@ -48,7 +48,7 @@
           <div class="i-tabler-external-link" />
         </Button.Root>
       </div>
-      <div class="max-w-50vw w-xs flex flex-row items-center rounded-sm bg-neutral-6/10 px-0.5em py-0.3em -my-0.3em lg:w-sm">
+      <div class="max-w-50vw w-xs flex flex-row items-center rounded-sm bg-neutral-6/10 px-0.5em py-0.3em transition-background-color -my-0.3em lg:w-sm hover:bg-neutral-6/15 focus-within:!bg-neutral-6/21">
         <input bind:value={$query} on:keydown={({ key }) => key === "Enter" && search()} class="w-full bg-transparent text-neutral-4 outline-none placeholder-neutral-6" placeholder="search" type="text">
         <button disabled={disableSearch} on:click={search} class="p-0.3em text-neutral-5 -m-0.3em hover:text-neutral-4">
           <div class="i-mingcute-search-line" />
