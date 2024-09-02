@@ -2,7 +2,8 @@
   import type { Spring } from "svelte/motion";
 
   import { query } from "./store";
-  import { afterNavigate, beforeNavigate, goto } from "$app/navigation";
+  import { browser } from "$app/environment";
+  import { afterNavigate, beforeNavigate, goto, preloadData } from "$app/navigation";
   import { navigating, page } from "$app/stores";
   import Progress from "$lib/components/Progress.svelte";
   import { Button } from "bits-ui";
@@ -28,6 +29,8 @@
       goto(`/pypi?q=${$query}`, { keepFocus: true });
     }
   }
+
+  $: browser && $query && preloadData(`/pypi?q=${$query}`);
 </script>
 
 <section class="sticky top-0 z-1 mb-4 bg-gradient-(from-neutral-9/95 via-neutral-9/80 to-neutral-9/95 to-t) px-1rem pt-4 backdrop-blur-md -mx-1rem 2xl:pt-10 lg:pt-7 md:pt-6 sm:pt-5 xl:pt-8">
@@ -49,8 +52,14 @@
   </header>
 </section>
 
-<div class="mb-4 w-[calc(100%-2rem)] self-center 2xl:(mb-10 w-4xl) lg:(mb-7 w-2xl) md:mb-6 sm:(mb-5 w-xl) xl:(mb-8 w-3xl) [&>article]:(lg:text-3.75 xl:text-base)">
+<div class:navigating={$navigating} class="mb-4 w-[calc(100%-2rem)] self-center transition-opacity duration-500 ease-out 2xl:(mb-10 w-4xl) lg:(mb-7 w-2xl) md:mb-6 sm:(mb-5 w-xl) xl:(mb-8 w-3xl) [&>article]:(lg:text-3.75 xl:text-base)">
 
   <slot />
 
 </div>
+
+<style>
+  .navigating {
+    --uno: op-50 duration-1000;
+  }
+</style>
