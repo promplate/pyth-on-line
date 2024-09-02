@@ -52,7 +52,7 @@
 
 <style>
   :global(html) {
-    --uno: bg-neutral-9 text-white font-sans;
+    --uno: bg-neutral-9 text-white overflow-x-hidden font-sans;
   }
 
   :global(*)::selection {
@@ -60,7 +60,7 @@
   }
 
   :global(body) {
-    --uno: relative flex flex-col items-center items-stretch overflow-x-hidden;
+    --uno: relative flex flex-col items-center items-stretch;
   }
 
   :global(body)::-webkit-scrollbar {
