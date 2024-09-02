@@ -17,7 +17,7 @@ export const load = (async ({ fetch, params: { project } }) => {
 
   const updated = $(".banner time").text().trim();
 
-  const tags = info.keywords?.split(", ") ?? [];
+  const tags = info.keywords?.split(" ").map(s => s.replace(/,$/, "")) ?? [];
 
   const readme = info.description_content_type === "text/markdown" ? info.description : html2markdown($(".project-description").html()!);
 
