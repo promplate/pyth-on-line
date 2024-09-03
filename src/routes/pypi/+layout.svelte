@@ -36,7 +36,7 @@
   }
 </script>
 
-<section class="sticky top-0 z-1 mb-4 bg-gradient-(from-neutral-9/95 via-neutral-9/80 to-neutral-9/95 to-t) px-1rem pt-4 backdrop-blur-md -mx-1rem 2xl:pt-10 lg:pt-7 md:pt-6 sm:pt-5 xl:pt-8">
+<section class="sticky top-0 z-1 mb-4 bg-gradient-(from-neutral-9/95 via-neutral-9/80 to-neutral-9/95 to-t) pt-4 backdrop-blur-md 2xl:pt-10 lg:pt-7 md:pt-6 sm:pt-5 xl:pt-8">
   <header class="mx-auto w-[calc(100%-2rem)] 2xl:w-4xl lg:w-2xl sm:w-xl xl:w-3xl">
 
     <nav class="mb-4 w-full flex flex-row items-center justify-between gap-2 text-sm [&_a]:(text-xl text-neutral-3 transition) lg:text-base [&_a:not(:hover)]:op-60">

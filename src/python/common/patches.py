@@ -58,7 +58,7 @@ def patch_console():
 @cache
 def patch_input():
     def input(prompt=""):
-        return window.prompt(prompt) or ""
+        return window.prompt(str(prompt)) or ""
 
     builtins.input = input
 
