@@ -33,10 +33,16 @@
 
   $: top = `${position.top}px`;
   $: left = `${position.left}px`;
+
+  let doShow = show;
+  $: show && (doShow = true);
+  const maybeHide = () => !show && (doShow = false);
 </script>
 
-<Portal>
-  <div class:op-0={!show} class:pointer-events-none={!show} class="fixed transition-opacity" style:top style:left bind:this={div}>
-    <slot />
-  </div>
-</Portal>
+{#if doShow}
+  <Portal>
+    <div on:transitioncancel={maybeHide} on:transitionend={maybeHide} class:op-0={!show} class:pointer-events-none={!show} class="fixed animate-(fade-in duration-150 ease) transition-opacity" style:top style:left bind:this={div}>
+      <slot />
+    </div>
+  </Portal>
+{/if}

@@ -5,6 +5,7 @@ from os import getenv
 
 import micropip
 from js import window
+from pyodide.ffi import can_run_sync, run_sync
 
 from .package import get_package_name
 from .toast import loading
@@ -64,6 +65,37 @@ def patch_input():
 
 
 @cache
+def patch_sync():
+    import asyncio
+    import time
+    from asyncio import get_running_loop
+
+    @wraps(_ := asyncio.run)
+    def run(future, **kwargs):
+        if can_run_sync():
+            return run_sync(future)
+        return _(future, **kwargs)
+
+    asyncio.run = run
+
+    @wraps(_ := get_running_loop().run_until_complete)
+    def run_until_complete(future):
+        if can_run_sync():
+            return run_sync(future)
+        return _(future)
+
+    get_running_loop().run_until_complete = run_until_complete
+
+    @wraps(_ := time.sleep)
+    def sleep(duration):
+        if can_run_sync():
+            return run_sync(asyncio.sleep(duration))
+        return _(duration)
+
+    time.sleep = sleep
+
+
+@cache
 def patch_exit():
     window.close.__signature__ = Signature()  # type: ignore
     builtins.exit = builtins.quit = window.close
@@ -73,4 +105,5 @@ patch_install()
 patch_linecache()
 patch_console()
 patch_input()
+patch_sync()
 patch_exit()

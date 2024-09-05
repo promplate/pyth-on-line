@@ -18,12 +18,12 @@
   "dependencies": {
     "@ethercorps/sveltekit-og": "^3.0.0",
     "@fontsource-variable/fira-code": "^5.0.19",
-    "@iconify/json": "^2.2.243",
+    "@iconify/json": "^2.2.244",
     "@neodrag/svelte": "^2.0.6",
-    "@shikijs/monaco": "^1.16.1",
-    "@shikijs/rehype": "^1.16.1",
+    "@shikijs/monaco": "^1.16.2",
+    "@shikijs/rehype": "^1.16.2",
     "@sveltejs/adapter-netlify": "^4.3.3",
-    "@sveltejs/kit": "^2.5.25",
+    "@sveltejs/kit": "^2.5.26",
     "@sveltejs/vite-plugin-svelte": "^3.1.2",
     "@unocss/extractor-svelte": "^0.62.3",
     "@unocss/reset": "^0.62.3",
@@ -33,7 +33,7 @@
     "htmlparser2": "^9.1.0",
     "misans-vf": "^1.0.0",
     "monaco-editor-core": "^0.51.0",
-    "openai": "^4.57.0",
+    "openai": "^4.57.3",
     "paneforge": "^0.0.5",
     "pyodide": "0.26.2",
     "rehype-parse": "^9.0.0",
@@ -44,7 +44,7 @@
     "remark-rehype": "^11.1.0",
     "remark-stringify": "^11.0.0",
     "rollup-plugin-flatten-dir": "^1.0.1",
-    "shiki": "^1.16.1",
+    "shiki": "^1.16.2",
     "svelte": "^4.2.19",
     "svelte-portal": "^2.2.1",
     "svelte-sonner": "0.3.27",
@@ -53,16 +53,16 @@
     "unified": "^11.0.5",
     "unocss": "^0.62.3",
     "unzipit": "^1.4.3",
-    "vite": "^5.4.2"
+    "vite": "^5.4.3"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^3.0.0",
+    "@antfu/eslint-config": "^3.2.0",
     "@types/mdast": "^4.0.4",
     "@types/turndown": "^5.0.5",
     "@unocss/eslint-config": "^0.62.3",
     "eslint": "^9.9.1",
     "eslint-plugin-format": "^0.1.2",
     "eslint-plugin-svelte": "^2.43.0",
-    "svelte-check": "^4.0.0"
+    "svelte-check": "^4.0.1"
   }
 }
