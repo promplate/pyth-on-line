@@ -66,16 +66,33 @@ def patch_input():
 
 @cache
 def patch_sync():
-    if not can_run_sync():
-        return
-
     import asyncio
     import time
+    from asyncio import get_running_loop
 
-    from .sync import syncify
+    @wraps(_ := asyncio.run)
+    def run(future, **kwargs):
+        if can_run_sync():
+            return run_sync(future)
+        return _(future, **kwargs)
 
-    time.sleep = wraps(time.sleep)(syncify(asyncio.sleep))  # type: ignore
-    asyncio.run = asyncio.get_running_loop().run_until_complete = run_sync  # type: ignore
+    asyncio.run = run
+
+    @wraps(_ := get_running_loop().run_until_complete)
+    def run_until_complete(future):
+        if can_run_sync():
+            return run_sync(future)
+        return _(future)
+
+    get_running_loop().run_until_complete = run_until_complete
+
+    @wraps(_ := time.sleep)
+    def sleep(duration):
+        if can_run_sync():
+            return run_sync(asyncio.sleep(duration))
+        return _(duration)
+
+    time.sleep = sleep
 
 
 @cache
