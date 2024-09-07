@@ -19,7 +19,7 @@
     "@ethercorps/sveltekit-og": "^3.0.0",
     "@fontsource-variable/fira-code": "^5.0.19",
     "@fontsource-variable/inter": "^5.0.20",
-    "@iconify/json": "^2.2.244",
+    "@iconify/json": "^2.2.245",
     "@neodrag/svelte": "^2.0.6",
     "@shikijs/monaco": "^1.16.2",
     "@shikijs/rehype": "^1.16.2",
@@ -33,7 +33,7 @@
     "cmdk-sv": "^0.0.18",
     "htmlparser2": "^9.1.0",
     "monaco-editor-core": "^0.51.0",
-    "openai": "^4.58.0",
+    "openai": "^4.58.1",
     "paneforge": "^0.0.5",
     "pyodide": "0.26.2",
     "rehype-parse": "^9.0.0",
@@ -56,11 +56,11 @@
     "vite": "^5.4.3"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^3.2.2",
+    "@antfu/eslint-config": "^3.3.2",
     "@types/mdast": "^4.0.4",
     "@types/turndown": "^5.0.5",
     "@unocss/eslint-config": "^0.62.3",
-    "eslint": "^9.9.1",
+    "eslint": "^9.10.0",
     "eslint-plugin-format": "^0.1.2",
     "eslint-plugin-svelte": "^2.43.0",
     "svelte-check": "^4.0.1"
