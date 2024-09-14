@@ -47,7 +47,7 @@
     "shiki": "^1.17.6",
     "svelte": "^4.2.19",
     "svelte-portal": "^2.2.1",
-    "svelte-sonner": "0.3.27",
+    "svelte-sonner": "0.3.28",
     "turndown": "^7.2.0",
     "turndown-plugin-gfm": "^1.0.2",
     "unified": "^11.0.5",
