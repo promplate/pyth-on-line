@@ -32,7 +32,7 @@
     "cheerio": "^1.0.0",
     "cmdk-sv": "^0.0.18",
     "htmlparser2": "^9.1.0",
-    "monaco-editor-core": "^0.51.0",
+    "monaco-editor-core": "^0.52.0",
     "openai": "^4.62.1",
     "paneforge": "^0.0.5",
     "pyodide": "0.26.2",
