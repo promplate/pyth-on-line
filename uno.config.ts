@@ -6,7 +6,7 @@ const config = defineConfig({
   transformers: [transformerVariantGroup(), transformerDirectives()],
   presets: [presetUno(), presetWebFonts({ provider: "none", fonts: { mono: ["Fira Code Variable", "MiSans"], sans: "MiSans" } }), presetIcons(), presetTypography()],
   shortcuts: {
-    "font-sans": "font-sans font-290",
+    "font-sans": "font-sans font-350",
     "not-prose": "font-normal",
   },
 });
