@@ -1,7 +1,9 @@
 import type { PageServerLoad } from "./$types";
 
+import { redirect } from "@sveltejs/kit";
 import * as server from "$env/static/private";
 import * as env from "$env/static/public";
+import { getOauthUrl } from "$lib/oauth";
 
 // eslint-disable-next-line ts/ban-ts-comment
 // @ts-ignore
@@ -10,8 +12,11 @@ const client_secret = server.GITHUB_CLIENT_SECRET;
 // @ts-ignore
 const client_id = env.PUBLIC_GITHUB_CLIENT_ID;
 
-export const load = (async ({ fetch, url: { searchParams }, cookies }) => {
+export const load = (async ({ fetch, url: { searchParams, origin }, cookies }) => {
   const code = searchParams.get("code");
+  if (!code) {
+    redirect(308, getOauthUrl(origin));
+  }
   const { access_token, scope } = await fetch("https://github.com/login/oauth/access_token", {
     method: "POST",
     body: JSON.stringify({ client_id, client_secret, code }),

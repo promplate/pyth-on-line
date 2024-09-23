@@ -31,6 +31,7 @@
     "bits-ui": "^0.21.15",
     "cheerio": "^1.0.0",
     "cmdk-sv": "^0.0.18",
+    "dayjs": "^1.11.13",
     "htmlparser2": "^9.1.0",
     "monaco-editor-core": "^0.52.0",
     "openai": "^4.63.0",
