@@ -3,11 +3,11 @@ import type { PageServerLoad } from "./$types";
 import { env } from "$env/dynamic/private";
 import { unzip } from "unzipit";
 
-async function getRepoFiles(repo: string): Promise<{ [path: string]: string }> {
+async function getRepoFiles(repo: string, access_token = env.GITHUB_TOKEN): Promise<{ [path: string]: string }> {
   const url = `https://api.github.com/repos/${repo}/zipball`;
 
   const { entries } = await unzip(
-    env.GITHUB_TOKEN ? await fetch(url, { headers: { Authorization: `Bearer ${env.GITHUB_TOKEN}` } }).then(res => res.arrayBuffer()) : url,
+    access_token ? await fetch(url, { headers: { Authorization: `Bearer ${access_token}` } }).then(res => res.arrayBuffer()) : url,
   );
   return Object.fromEntries(
     await Promise.all(
@@ -16,7 +16,8 @@ async function getRepoFiles(repo: string): Promise<{ [path: string]: string }> {
   );
 }
 
-export const load = (async ({ params: { owner, repo } }) => {
-  const sources = await getRepoFiles(`${owner}/${repo}`);
+export const load = (async ({ params: { owner, repo }, cookies }) => {
+  const access_token = cookies.get("access_token");
+  const sources = await getRepoFiles(`${owner}/${repo}`, access_token);
   return { sources };
 }) satisfies PageServerLoad;
