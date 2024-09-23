@@ -24,7 +24,7 @@
       <span class="op-30">实现</span>
     </div>
 
-    <h1 class="flex flex-row select-none text-4xl font-semibold tracking-wide font-sans -translate-x-0.5">
+    <h1 class="flex flex-row select-none text-4xl font-sans font-semibold tracking-wide -translate-x-0.5">
       <span>Pyth</span>
       <span>on</span>
       <span>line</span>

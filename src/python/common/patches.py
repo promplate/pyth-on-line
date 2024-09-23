@@ -70,29 +70,29 @@ def patch_sync():
     import time
     from asyncio import get_running_loop
 
-    @wraps(_ := asyncio.run)
-    def run(future, **kwargs):
+    @wraps(run := asyncio.run)
+    def _(future, **kwargs):
         if can_run_sync():
             return run_sync(future)
-        return _(future, **kwargs)
+        return run(future, **kwargs)
 
-    asyncio.run = run
+    asyncio.run = _
 
-    @wraps(_ := get_running_loop().run_until_complete)
-    def run_until_complete(future):
+    @wraps(run_until_complete := get_running_loop().run_until_complete)
+    def _(future):
         if can_run_sync():
             return run_sync(future)
-        return _(future)
+        return run_until_complete(future)
 
-    get_running_loop().run_until_complete = run_until_complete
+    get_running_loop().run_until_complete = _
 
-    @wraps(_ := time.sleep)
-    def sleep(duration):
+    @wraps(sleep := time.sleep)
+    def _(duration):
         if can_run_sync():
             return run_sync(asyncio.sleep(duration))
-        return _(duration)
+        return sleep(duration)
 
-    time.sleep = sleep
+    time.sleep = _
 
 
 @cache

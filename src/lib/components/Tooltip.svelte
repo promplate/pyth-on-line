@@ -34,14 +34,22 @@
   $: top = `${position.top}px`;
   $: left = `${position.left}px`;
 
-  let doShow = show;
-  $: show && (doShow = true);
-  const maybeHide = () => !show && (doShow = false);
+  let showing = show;
+
+  async function maybeFadeIn(show: boolean) {
+    if (show && !showing) {
+      await tick();
+      showing = show;
+    }
+  }
+
+  $: maybeFadeIn(show);
 </script>
 
-{#if doShow}
+{#if show || showing}
   <Portal>
-    <div on:transitioncancel={maybeHide} on:transitionend={maybeHide} class:op-0={!show} class:pointer-events-none={!show} class="fixed animate-(fade-in duration-150 ease) transition-opacity" style:top style:left bind:this={div}>
+    {@const hiding = !show || !showing}
+    <div on:transitionend={() => showing = show} class:op-0={hiding} class:pointer-events-none={hiding} class="fixed transition-opacity" style:top style:left bind:this={div}>
       <slot />
     </div>
   </Portal>
