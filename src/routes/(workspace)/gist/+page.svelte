@@ -12,9 +12,11 @@
 <div class="m-4 flex flex-col gap-3 sm:m-3vw sm:gap-4">
   <div class="flex flex-row items-center justify-between gap-2 ws-nowrap text-xl sm:(text-3xl font-250)">
     <h1>
-      <span class="text-neutral-2">{total}</span>
-      <span class="text-neutral-5">Gists from</span>
+      <span class="text-neutral-5">来自</span>
       <span class="text-neutral-3">{name ?? `@${login}`}</span>
+      <span class="text-neutral-5">的</span>
+      <span class="text-neutral-2">{total}</span>
+      <span class="text-neutral-5">个代码片段</span>
     </h1>
     <GitHubUser url={avatarUrl} {name} {login} class="size-7 shrink-0 sm:size-10" />
   </div>
