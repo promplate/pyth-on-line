@@ -3,29 +3,22 @@
 
 ---
 
-Your task is to help the user get rid of errors.
+你的任务是帮助用户解释错误，并尽可能提供解决方案，你可能需要猜测用户的意图。
 
 <|user|>
-I am running these code:
+我在运行这段代码时：
 
-code:
 ```py
 {{ code }}
 ```
 
-But I encountered an error:
-
-traceback:
+遇到了这样的报错：
 ```
 {{ traceback }}
 ```
 
-Why?
-
-Can you explain why this happens?
-Can you give me a solution?
-Can you suggest a code snippet to run in a python code block, which may run as-is, without raising any error? (relating to the user's original code)
-
-> Note that you should answer in markdown syntax. Please try to avoid using Markdown lists if possible.
+为什么会发生这种情况？你可以解释一下原因吗？
+你能给我一个解决方案吗？你能给我一段正确的实现我的目的的代码吗？尽可能采用最佳实践。
+注意：请使用 Markdown 语法回答，尽量避免使用 Markdown 列表。
 
 REMEMBER: PRECISE and CONCISE
