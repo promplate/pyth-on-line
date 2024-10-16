@@ -1,10 +1,9 @@
 import type { UUID } from "./types";
 
-import { dev } from "$app/environment";
 import { cacheSingleton } from "$lib/utils/cache";
 
 const getWorker = cacheSingleton(() => {
-  const worker = new SharedWorker(new URL("./worker", import.meta.url), { name: "pyodide", type: /* @vite-ignore */ dev ? "module" : "classic" });
+  const worker = new SharedWorker(new URL("./worker", import.meta.url), { name: "pyodide", type: "module" });
   worker.port.addEventListener("message", handleMessage);
   worker.port.start();
   worker.port.postMessage("hello from main thread");
