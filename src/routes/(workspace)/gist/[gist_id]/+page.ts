@@ -1,8 +1,6 @@
 import type { PageLoad } from "./$types";
 
-import { type GistResponse, transformFiles } from "./common";
-
-export const load = (async ({ params: { gist_id }, fetch }) => {
-  const { files }: GistResponse = await fetch(`https://api.github.com/gists/${gist_id}`).then(res => res.json());
-  return { sources: transformFiles(files) };
+export const load = (async ({ fetch }) => {
+  const sources: Record<string, string> = await fetch("").then(res => res.json());
+  return { sources };
 }) satisfies PageLoad;

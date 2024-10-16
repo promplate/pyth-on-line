@@ -23,7 +23,7 @@ export const load = (async ({ fetch, url: { searchParams, origin }, cookies }) =
     headers: { "accept": "application/json", "content-type": "application/json" },
   }).then(res => res.json());
 
-  cookies.set("access_token", access_token, { path: "/", maxAge: 60 * 60 * 24 * 365 });
+  access_token && cookies.set("access_token", access_token, { path: "/", maxAge: 60 * 60 * 24 * 365 });
 
   return { access_token, scope };
 }) satisfies PageServerLoad;
