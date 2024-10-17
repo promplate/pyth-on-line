@@ -55,3 +55,25 @@
 .prose p img {
   @apply inline;
 }
+
+.prose details {
+  list-style-position: outside;
+  @apply overflow-hidden rounded px-4 py-3 ring-1 ring-neutral/20 transition-background-color;
+}
+
+.prose details[open] > summary {
+  @apply mb-3 ring-(1 neutral/20);
+}
+
+.prose summary {
+  list-style: none;
+  @apply flex flex-row items-center justify-between px-4 py-3 -mx-4 -my-3 after:content-[''];
+}
+
+.prose summary::after {
+  @apply i-humbleicons-expand text-neutral/50 transition-color;
+}
+
+.prose summary:hover::after {
+  @apply text-neutral/80;
+}
