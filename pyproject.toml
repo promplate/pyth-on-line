@@ -1,10 +1,10 @@
 [project]
 requires-python = ">=3.12"
 dependencies = [
-    "ruff~=0.6.0",
+    "ruff~=0.7.0",
     "webtypy~=0.1.7",
     "micropip~=0.6.0",
-    "pyodide-py==0.26.2",
+    "pyodide-py==0.26.3",
     "promplate-pyodide~=0.0.3.5",
     "pre-commit~=4.0.0",
     "pure-eval~=0.2.3",
