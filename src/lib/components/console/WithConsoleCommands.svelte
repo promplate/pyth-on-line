@@ -8,14 +8,14 @@
 
   export let pyConsole: ConsoleAPI;
 
-  const installTitle = "Install Packages";
+  const installTitle = "安装第三方库";
 
-  registerCommandGroup("Console", [
+  registerCommandGroup("控制台", [
     {
       text: installTitle,
       async handler() {
         $prefixes = [installTitle];
-        $placeholder = "<package1> <package2> ...";
+        $placeholder = "<包名1> <包名2> ...";
 
         const unsubscribe = input.subscribe(($input) => {
           $items = [{
@@ -36,7 +36,7 @@
               }
             },
             type: "cmd",
-            text: $input ? `pip install ${$input}` : "(cancel)",
+            text: $input ? `pip install ${$input}` : "<取消>",
             alwaysRender: true,
           }];
         });
@@ -45,7 +45,7 @@
       },
     },
     {
-      text: "Clear Console",
+      text: "清空控制台",
       handler() {
         pyConsole.clear();
       },

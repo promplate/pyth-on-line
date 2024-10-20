@@ -19,10 +19,10 @@
 <div class="fixed inset-0 grid place-items-center">
   <div>
     {#if success}
-      Login successful, redirecting...
+      登录成功，正在重定向...
     {:else}
-      Failed to login,
-      <button class="inline underline underline-(white offset-2) not-hover:underline-op-30" on:click={login}>retry</button>?
+      登陆失败，
+      <button class="inline underline underline-(white offset-2) not-hover:underline-op-30" on:click={login}>重试</button>?
     {/if}
   </div>
 </div>
