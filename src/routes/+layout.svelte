@@ -16,7 +16,7 @@
   const originTrialToken = env.PUBLIC_ORIGIN_TRIAL_TOKEN;
 
   const ogTitle = "Python Online";
-  const ogImage = `${$page.url.origin}/og${$page.url.pathname}`;
+  const ogImage = `${$page.url.origin.replace("http://sveltekit-prerender", "")}/og${$page.url.pathname}`;
   const ogDescription = "A simple online python console";
 </script>
 
@@ -41,7 +41,7 @@
   <meta property="og:description" content={ogDescription} />
   <meta property="twitter:description" content={ogDescription} />
 
-  <meta name="theme-color" content="#171717">
+  <meta name="theme-color" content="#171717" />
 </svelte:head>
 
 <Toaster theme="dark" toastOptions={{ class: "text-xs font-mono" }} />
@@ -64,11 +64,11 @@
   }
 
   :global(body)::-webkit-scrollbar {
-    --uno: bg-neutral-9 w-1 sm:w-1.5 md:w-2 lg:w-2.5 xl:w-3 2xl:w-3.5;
+    --uno: bg-neutral-9 w-1 sm: w-1.5 md: w-2 lg: w-2.5 xl: w-3 2xl: w-3.5;
   }
 
   :global(body)::-webkit-scrollbar-thumb {
-    --uno: rounded-l-sm bg-neutral-7/30 hover:bg-neutral-7/70;
+    --uno: rounded-l-sm bg-neutral-7/30 hover: bg-neutral-7/70;
   }
 
   :global(body *)::-webkit-scrollbar {
