@@ -21,7 +21,8 @@ export function forwardResponseHeaders(headersIn: Headers) {
   return headers;
 }
 
-export async function forwardFetch(url: string | URL, options: RequestInit) {
-  const res = await fetch(url, { ...options, headers: forwardRequestHeaders(new Headers(options.headers)) });
+export async function forwardFetch(url: string | URL, request: Request) {
+  const body = ["GET", "HEAD"].includes(request.method) ? undefined : await request.arrayBuffer();
+  const res = await fetch(url, { body, method: request.method, headers: forwardRequestHeaders(new Headers(request.headers)) });
   return new Response(res.body, { headers: forwardResponseHeaders(res.headers), status: res.status, statusText: res.statusText });
 }
