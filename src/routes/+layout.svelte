@@ -16,7 +16,7 @@
   const originTrialToken = env.PUBLIC_ORIGIN_TRIAL_TOKEN;
 
   const ogTitle = "Python Online";
-  const ogImage = `${$page.url.origin}/og${$page.url.pathname}`;
+  const ogImage = `${$page.url.origin.replace("http://sveltekit-prerender", "")}/og${$page.url.pathname}`;
   const ogDescription = "A simple online python console";
 </script>
 
@@ -41,7 +41,7 @@
   <meta property="og:description" content={ogDescription} />
   <meta property="twitter:description" content={ogDescription} />
 
-  <meta name="theme-color" content="#171717">
+  <meta name="theme-color" content="#171717" />
 </svelte:head>
 
 <Toaster theme="dark" toastOptions={{ class: "text-xs font-mono" }} />
