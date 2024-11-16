@@ -47,7 +47,7 @@
     "rollup-plugin-flatten-dir": "^1.0.1",
     "shiki": "^1.23.0",
     "svelte": "^4.2.19",
-    "svelte-persisted-store": "^0.11.0",
+    "svelte-persisted-store": "^0.12.0",
     "svelte-portal": "^2.2.1",
     "svelte-sonner": "0.3.28",
     "turndown": "^7.2.0",
