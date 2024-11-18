@@ -36,7 +36,7 @@
     "monaco-editor-core": "^0.52.0",
     "openai": "^4.72.0",
     "paneforge": "^0.0.6",
-    "pyodide": "0.26.3",
+    "pyodide": "0.26.4",
     "rehype-parse": "^9.0.1",
     "rehype-remark": "^10.0.0",
     "rehype-stringify": "^10.0.1",
