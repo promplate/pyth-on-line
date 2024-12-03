@@ -34,7 +34,7 @@
     "dayjs": "^1.11.13",
     "htmlparser2": "^9.1.0",
     "monaco-editor-core": "^0.52.0",
-    "openai": "^4.73.1",
+    "openai": "^4.74.0",
     "paneforge": "^0.0.6",
     "pyodide": "0.26.4",
     "rehype-parse": "^9.0.1",
