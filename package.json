@@ -24,7 +24,7 @@
     "@shikijs/monaco": "^1.24.4",
     "@shikijs/rehype": "^1.24.4",
     "@sveltejs/adapter-netlify": "^4.4.0",
-    "@sveltejs/kit": "^2.15.0",
+    "@sveltejs/kit": "^2.15.1",
     "@sveltejs/vite-plugin-svelte": "^3.1.2",
     "@unocss/extractor-svelte": "^0.62.4",
     "@unocss/reset": "^0.62.4",
