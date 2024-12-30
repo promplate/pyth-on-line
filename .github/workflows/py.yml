@@ -8,17 +8,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Set up python
-        uses: actions/setup-python@v5
+        uses: astral-sh/setup-uv@v5
         with:
           python-version: 3.13
+          enable-cache: true
+          cache-dependency-glob: pyproject.toml
       - name: Install dependencies
-        env:
-          UV_SYSTEM_PYTHON: true
         run: |
-          pip install uv --disable-pip-version-check
-          uv pip install pdm isort black --compile-bytecode
-          pdm export --pyproject | uv pip install -r -
-          yarn global add pyright
+          uv pip install -r pyproject.toml basedpyright isort black
       - name: Run isort check
         run: |
           python -m isort . --check --diff
@@ -31,4 +28,4 @@ jobs:
           ruff format --check --diff
       - name: Run pyright check
         run: |
-          pyright
+          basedpyright
