@@ -21,4 +21,4 @@ jobs:
       - name: Run Svelte Check
         run: |
           bun src/lib/utils/generateDeclarations.js
-          bun -b check
+          bun check
