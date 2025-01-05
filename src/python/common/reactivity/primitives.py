@@ -86,9 +86,10 @@ class Derived[T](BaseComputation):
 
     def trigger(self):
         self._before()
-        value = self._fn()
-        self._after()
-        return value
+        try:
+            return self._fn()
+        finally:
+            self._after()
 
 
 class Batch:

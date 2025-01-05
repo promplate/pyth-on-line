@@ -1,5 +1,7 @@
 import gc
 
+from pytest import raises
+
 from src.python.common.reactivity import Reactive, State, batch, create_effect, create_memo, create_signal, memoized_property
 
 
@@ -171,3 +173,20 @@ def test_reactive():
     obj["x"] = 2
     obj["y"] = 3
     assert size_history == [0, 0, 6]
+
+
+def test_error_handling():
+    get_s, set_s = create_signal(0)
+
+    with raises(ValueError, match="0"):
+
+        @create_effect
+        def _():
+            raise ValueError(get_s())
+
+    with raises(ValueError, match="1"):
+        set_s(1)
+
+    from src.python.common.reactivity.primitives import _current_computations
+
+    assert _current_computations == []
