@@ -30,6 +30,9 @@ def test_state_notify():
     del _
     gc.collect()
 
+    set_s(2)
+    assert s == 2
+
 
 def test_state_dispose():
     get_s, set_s = create_signal(0)
