@@ -11,6 +11,7 @@ dependencies = [
     "pre-commit~=4.0.0",
     "pure-eval~=0.2.3",
     "html2text2~=1.0.0",
+    "pytest~=8.3.4",
 ]
 
 [tool.pdm]
@@ -24,7 +25,7 @@ fmt = { composite = ["ruff check --fix --show-fixes -e", "ruff format"] }
 line-length = 200
 
 [tool.isort]
-profile = "black"
+line_length = 200
 known_first_party = ["__main__"]
 
 [tool.ruff]
@@ -63,3 +64,6 @@ ignore = [
 typeCheckingMode = "standard"
 reportMissingModuleSource = false
 reportWildcardImportFromLibrary = false
+
+[tool.pytest.ini_options]
+pythonpath = "."
