@@ -67,6 +67,8 @@ class MemoizedProperty[T, Self](Subscribable, BaseComputation):
 
 
 class Reactive[K, V](Subscribable, MutableMapping[K, V]):
+    UNSET: V = object()  # type: ignore
+
     def __hash__(self):
         return id(self)
 
@@ -75,7 +77,10 @@ class Reactive[K, V](Subscribable, MutableMapping[K, V]):
         self._states: dict[K, State[V]] = {}
 
     def __getitem__(self, key: K):
-        return self._states[key].get()
+        value = self._states.setdefault(key, State(self.UNSET)).get()
+        if value is self.UNSET:
+            raise KeyError(key)
+        return value
 
     def __setitem__(self, key: K, value: V):
         with Batch():
@@ -87,10 +92,13 @@ class Reactive[K, V](Subscribable, MutableMapping[K, V]):
             self.notify()
 
     def __delitem__(self, key: K):
+        state = self._states[key]
+        # accessing `_value` to avoid subscription
+        if state._value is self.UNSET:  # noqa: SLF001
+            raise KeyError(key)
         with Batch():
-            state = self._states.pop(key)
-            for subscriber in state.subscribers:
-                subscriber.dependencies.remove(state)
+            state.set(self.UNSET)
+            state.notify()
             self.notify()
 
     def __iter__(self):

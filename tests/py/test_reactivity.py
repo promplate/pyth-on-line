@@ -1,6 +1,7 @@
 import gc
 
 from pytest import raises
+from utils import capture_stdout
 
 from src.python.common.reactivity import Reactive, State, batch, create_effect, create_memo, create_signal, memoized_property
 
@@ -190,3 +191,34 @@ def test_error_handling():
     from src.python.common.reactivity.primitives import _current_computations
 
     assert _current_computations == []
+
+
+def test_exec_inside_reactive_namespace():
+    context = Reactive()
+
+    with raises(NameError):
+
+        @create_effect
+        def _():
+            exec("print(a)", None, context)
+
+    with capture_stdout() as stdout:
+        context["a"] = 123
+        assert stdout == "123\n"
+
+    with raises(NameError):
+        del context["a"]
+
+    with capture_stdout():
+        context["a"] = 234
+
+    with raises(NameError):
+        exec("del a", None, context)
+
+    with raises(KeyError):
+        del context["a"]
+
+    with capture_stdout() as stdout:
+        exec("a = 345", None, context)
+        assert context["a"] == 345
+        assert stdout == "345\n"
