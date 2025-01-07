@@ -1,5 +1,6 @@
 from collections.abc import Callable, Mapping, MutableMapping
 from functools import partial
+from weakref import WeakKeyDictionary
 
 from .primitives import BaseComputation, Batch, State, Subscribable
 
@@ -35,36 +36,17 @@ class Memoized[T](Subscribable, BaseComputation):
         self.is_stale = True
 
 
-class MemoizedProperty[T, Self](Subscribable, BaseComputation):
+class MemoizedProperty[T, Self]:
     def __init__(self, method: Callable[[Self], T]):
         super().__init__()
         self.method = method
-        self.is_stale = True
-        self.cached_value: T
-        self._instance: Self | None = None
+        self.map = WeakKeyDictionary[Self, Memoized]()
 
-    def trigger(self):
-        if self._instance is not None:
-            self._before()
-            self.cached_value = self.method(self._instance)
-            self._after()
-            self.is_stale = False
-        elif not self.is_stale:
-            del self.cached_value
-            self.is_stale = True
-
-    def __get__(self, instance: Self, owner):
-        if self.is_stale:
-            self._instance = instance
-            self.trigger()
-            self.notify()
-            self._instance = None
-        self.track()
-        return self.cached_value
-
-    def __delete__(self, instance):
-        del self.cached_value
-        self.is_stale = True
+    def __get__(self, instance, owner):
+        if func := self.map.get(instance):
+            return func()
+        self.map[instance] = func = Memoized(partial(self.method, instance))
+        return func()
 
 
 class MemoizedMethod[T, Self]:

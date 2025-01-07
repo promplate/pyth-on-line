@@ -334,3 +334,37 @@ def test_get_without_tracking():
         set_s(1)
         assert get_s() == 1
         assert stdout == "0\n"
+
+
+def test_state_descriptor_no_leak():
+    class Counter:
+        value = State(0)
+
+    a = Counter()
+    b = Counter()
+
+    a.value = 1
+
+    assert b.value == 0
+
+
+def test_memo_property_no_leak():
+    class Rect:
+        x = State(0)
+        y = State(0)
+
+        count = 0
+
+        @memoized_property
+        def size(self):
+            self.count += 1
+            return self.x * self.y
+
+    r1 = Rect()
+    r2 = Rect()
+
+    r1.x = 2
+    r1.y = 3
+
+    assert r1.size == 6
+    assert r2.size == 0

@@ -1,6 +1,6 @@
 from collections.abc import Callable
 from typing import Any
-from weakref import WeakSet
+from weakref import WeakKeyDictionary, WeakSet
 
 
 class Subscribable:
@@ -55,7 +55,7 @@ class BaseComputation:
 _current_computations: list[BaseComputation] = []
 
 
-class State[T](Subscribable):
+class Signal[T](Subscribable):
     def __init__(self, initial_value: T = None, check_equality=True):
         super().__init__()
         self._value: T = initial_value
@@ -71,11 +71,27 @@ class State[T](Subscribable):
             self._value = value
             self.notify()
 
+
+class State[T](Signal[T]):
+    def __init__(self, initial_value: T = None, check_equality=True):
+        super().__init__(initial_value, check_equality)
+        self._value = initial_value
+        self._check_equality = check_equality
+        self.map = WeakKeyDictionary[Any, Signal[T]]()
+
     def __get__(self, instance, owner):
-        return self.get()
+        try:
+            return self.map[instance].get()
+        except KeyError:
+            self.map[instance] = state = Signal(self._value, self._check_equality)
+            return state.get()
 
     def __set__(self, instance, value: T):
-        self.set(value)
+        try:
+            state = self.map[instance]
+        except KeyError:
+            self.map[instance] = state = Signal(self._value, self._check_equality)
+        state.set(value)
 
 
 class Derived[T](BaseComputation):

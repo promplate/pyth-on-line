@@ -3,7 +3,7 @@ from functools import wraps
 from typing import Protocol, overload
 
 from .helpers import Memoized, MemoizedMethod, MemoizedProperty
-from .primitives import Batch, Derived, State
+from .primitives import Batch, Derived, Signal
 
 
 class Getter[T](Protocol):
@@ -15,7 +15,7 @@ class Setter[T](Protocol):
 
 
 def create_signal[T](initial_value: T = None, check_equality=True) -> tuple[Getter[T], Setter[T]]:
-    signal = State(initial_value, check_equality)
+    signal = Signal(initial_value, check_equality)
     return signal.get, signal.set
 
 
