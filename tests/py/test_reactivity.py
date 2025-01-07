@@ -280,3 +280,23 @@ def test_reactive_initial_value():
     with capture_stdout() as stdout, create_effect(lambda: print(context[1])):
         context[1] = 3
         assert stdout == "2\n3\n"
+
+
+def test_fine_grained_reactivity():
+    context = Reactive({1: 2})
+
+    logs_1 = []
+    logs_2 = []
+
+    @create_effect
+    def _():
+        logs_1.append({**context})
+
+    @create_effect
+    def _():
+        logs_2.append(context[1])
+
+    context[1] = context[2] = 3
+
+    assert logs_1 == [{1: 2}, {1: 3}, {1: 3, 2: 3}]
+    assert logs_2 == [2, 3]
