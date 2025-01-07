@@ -159,6 +159,27 @@ def test_batch():
     assert history == [0, 1, 2, 3, 5]
 
 
+def test_nested_batch():
+    get_s, set_s = create_signal(0)
+
+    def increment():
+        set_s(get_s() + 1)
+
+    with capture_stdout() as stdout, create_effect(lambda: print(get_s())):
+        assert stdout == "0\n"
+        with batch():
+            increment()
+            assert stdout == "0\n"
+            with batch():
+                increment()
+                increment()
+            assert stdout == "0\n3\n"
+            increment()
+            increment()
+            assert stdout == "0\n3\n"
+        assert stdout == "0\n3\n5\n"
+
+
 def test_reactive():
     obj = Reactive()
     obj["x"] = obj["y"] = 0
