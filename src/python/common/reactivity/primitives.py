@@ -56,17 +56,20 @@ _current_computations: list[BaseComputation] = []
 
 
 class State[T](Subscribable):
-    def __init__(self, initial_value: T = None):
+    def __init__(self, initial_value: T = None, check_equality=True):
         super().__init__()
         self._value: T = initial_value
+        self._check_equality = check_equality
 
-    def get(self):
-        self.track()
+    def get(self, track=True):
+        if track:
+            self.track()
         return self._value
 
     def set(self, value: T):
-        self._value = value
-        self.notify()
+        if not self._check_equality or self._value != value:
+            self._value = value
+            self.notify()
 
     def __get__(self, instance, owner):
         return self.get()

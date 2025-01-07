@@ -6,8 +6,8 @@ from .helpers import Memoized, MemoizedProperty
 from .primitives import Batch, Derived, State
 
 
-def create_signal[T](initial_value: T = None) -> tuple[Callable[[], T], Callable[[T], None]]:
-    signal = State(initial_value)
+def create_signal[T](initial_value: T = None, check_equality=True) -> tuple[Callable[[], T], Callable[[T], None]]:
+    signal = State(initial_value, check_equality)
     return signal.get, signal.set
 
 

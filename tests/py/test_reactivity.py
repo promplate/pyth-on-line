@@ -243,3 +243,31 @@ def test_exec_inside_reactive_namespace():
         exec("a = 345", None, context)
         assert context["a"] == 345
         assert stdout == "345\n"
+
+
+def test_equality_checks():
+    get_s, set_s = create_signal(0)
+    with capture_stdout() as stdout, create_effect(lambda: print(get_s())):
+        assert stdout == "0\n"
+        set_s(0)
+        assert stdout == "0\n"
+
+    get_s, set_s = create_signal(0, False)
+    with capture_stdout() as stdout, create_effect(lambda: print(get_s())):
+        assert stdout == "0\n"
+        set_s(0)
+        assert stdout == "0\n0\n"
+
+    context = Reactive()
+    with capture_stdout() as stdout, create_effect(lambda: print(context.get(0))):
+        context[0] = None
+        assert stdout == "None\nNone\n"
+        context[0] = None
+        assert stdout == "None\nNone\n"
+
+    context = Reactive(check_equality=False)
+    with capture_stdout() as stdout, create_effect(lambda: print(context.get(0))):
+        context[0] = None
+        assert stdout == "None\nNone\n"
+        context[0] = None
+        assert stdout == "None\nNone\nNone\n"

@@ -72,12 +72,13 @@ class Reactive[K, V](Subscribable, MutableMapping[K, V]):
     def __hash__(self):
         return id(self)
 
-    def __init__(self):
+    def __init__(self, *, check_equality=True):
         super().__init__()
         self._states: dict[K, State[V]] = {}
+        self._check_equality = check_equality
 
     def __getitem__(self, key: K):
-        value = self._states.setdefault(key, State(self.UNSET)).get()
+        value = self._states.setdefault(key, State(self.UNSET, self._check_equality)).get()
         if value is self.UNSET:
             raise KeyError(key)
         return value
@@ -87,14 +88,14 @@ class Reactive[K, V](Subscribable, MutableMapping[K, V]):
             try:
                 self._states[key].set(value)
             except KeyError:
-                self._states[key] = State(value)
+                self._states[key] = State(value, self._check_equality)
                 self._states[key].set(value)
             self.notify()
 
     def __delitem__(self, key: K):
         state = self._states[key]
         # accessing `_value` to avoid subscription
-        if state._value is self.UNSET:  # noqa: SLF001
+        if state.get(track=False) is self.UNSET:
             raise KeyError(key)
         with Batch():
             state.set(self.UNSET)
