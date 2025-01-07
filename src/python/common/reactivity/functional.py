@@ -2,7 +2,7 @@ from collections.abc import Callable
 from functools import wraps
 from typing import Protocol, overload
 
-from .helpers import Memoized, MemoizedProperty
+from .helpers import Memoized, MemoizedMethod, MemoizedProperty
 from .primitives import Batch, Derived, State
 
 
@@ -29,6 +29,10 @@ def create_memo[T](fn: Callable[[], T]):
 
 def memoized_property[T, Self](method: Callable[[Self], T]):
     return MemoizedProperty(method)
+
+
+def memoized_method[T, Self](method: Callable[[Self], T]):
+    return MemoizedMethod(method)
 
 
 @overload

@@ -3,7 +3,7 @@ import gc
 from pytest import raises
 from utils import capture_stdout
 
-from src.python.common.reactivity import Reactive, State, batch, create_effect, create_memo, create_signal, memoized_property
+from src.python.common.reactivity import Reactive, State, batch, create_effect, create_memo, create_signal, memoized_method, memoized_property
 
 
 def test_state_initial_value():
@@ -117,13 +117,38 @@ def test_memo_property():
     r = Rect()
 
     assert r.size == 0
-    assert r.count == 1
 
     r.x = 2
+    assert r.count == 1
     assert r.size == 0
 
     r.y = 3
     assert r.size == 6
+    assert r.count == 3
+
+
+def test_memo_method():
+    class Rect:
+        x = State(0)
+        y = State(0)
+
+        count = 0
+
+        @memoized_method
+        def get_size(self):
+            self.count += 1
+            return self.x * self.y
+
+    r = Rect()
+
+    assert r.get_size() == 0
+
+    r.x = 2
+    assert r.count == 1
+    assert r.get_size() == 0
+
+    r.y = 3
+    assert r.get_size() == 6
     assert r.count == 3
 
 

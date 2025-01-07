@@ -1,4 +1,5 @@
 from collections.abc import Callable, Mapping, MutableMapping
+from functools import partial
 
 from .primitives import BaseComputation, Batch, State, Subscribable
 
@@ -64,6 +65,15 @@ class MemoizedProperty[T, Self](Subscribable, BaseComputation):
     def __delete__(self, instance):
         del self.cached_value
         self.is_stale = True
+
+
+class MemoizedMethod[T, Self]:
+    def __init__(self, method: Callable[[Self], T]):
+        super().__init__()
+        self.method = method
+
+    def __get__(self, instance, owner):
+        return Memoized(partial(self.method, instance))
 
 
 class Reactive[K, V](Subscribable, MutableMapping[K, V]):
