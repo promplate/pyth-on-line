@@ -1,4 +1,4 @@
-from collections.abc import Callable, MutableMapping
+from collections.abc import Callable, Mapping, MutableMapping
 
 from .primitives import BaseComputation, Batch, State, Subscribable
 
@@ -72,9 +72,9 @@ class Reactive[K, V](Subscribable, MutableMapping[K, V]):
     def __hash__(self):
         return id(self)
 
-    def __init__(self, *, check_equality=True):
+    def __init__(self, initial: Mapping | None = None, check_equality=True):
         super().__init__()
-        self._states: dict[K, State[V]] = {}
+        self._states: dict[K, State[V]] = {} if initial is None else {k: State(v, check_equality) for k, v in initial.items()}
         self._check_equality = check_equality
 
     def __getitem__(self, key: K):

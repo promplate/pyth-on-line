@@ -271,3 +271,12 @@ def test_equality_checks():
         assert stdout == "None\nNone\n"
         context[0] = None
         assert stdout == "None\nNone\nNone\n"
+
+
+def test_reactive_initial_value():
+    context = Reactive({1: 2})
+    assert context[1] == 2
+
+    with capture_stdout() as stdout, create_effect(lambda: print(context[1])):
+        context[1] = 3
+        assert stdout == "2\n3\n"
