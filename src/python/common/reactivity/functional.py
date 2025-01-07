@@ -1,12 +1,20 @@
 from collections.abc import Callable
 from functools import wraps
-from typing import overload
+from typing import Protocol, overload
 
 from .helpers import Memoized, MemoizedProperty
 from .primitives import Batch, Derived, State
 
 
-def create_signal[T](initial_value: T = None, check_equality=True) -> tuple[Callable[[], T], Callable[[T], None]]:
+class Getter[T](Protocol):
+    def __call__(self, track=True) -> T: ...
+
+
+class Setter[T](Protocol):
+    def __call__(self, value: T): ...
+
+
+def create_signal[T](initial_value: T = None, check_equality=True) -> tuple[Getter[T], Setter[T]]:
     signal = State(initial_value, check_equality)
     return signal.get, signal.set
 

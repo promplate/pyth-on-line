@@ -300,3 +300,12 @@ def test_fine_grained_reactivity():
 
     assert logs_1 == [{1: 2}, {1: 3}, {1: 3, 2: 3}]
     assert logs_2 == [2, 3]
+
+
+def test_get_without_tracking():
+    get_s, set_s = create_signal(0)
+
+    with capture_stdout() as stdout, create_effect(lambda: print(get_s(track=False))):
+        set_s(1)
+        assert get_s() == 1
+        assert stdout == "0\n"

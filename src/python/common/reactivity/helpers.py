@@ -94,7 +94,6 @@ class Reactive[K, V](Subscribable, MutableMapping[K, V]):
 
     def __delitem__(self, key: K):
         state = self._states[key]
-        # accessing `_value` to avoid subscription
         if state.get(track=False) is self.UNSET:
             raise KeyError(key)
         with Batch():
