@@ -49,3 +49,23 @@ jobs:
       - name: Run tests
         run: |
           pytest -v
+  publish-hmr:
+    needs: [test, check]
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: src/python/common
+      - name: Set up python
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: 3.13
+          enable-cache: true
+          cache-dependency-glob: src/python/common/pyproject.toml
+      - name: Build package
+        run: uv build src/python/common -o dist
+      - name: Publish to PyPI
+        continue-on-error: true
+        run: uv publish

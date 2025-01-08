@@ -1,0 +1,16 @@
+[project]
+name = "hmr"
+version = "0.0.1"
+requires-python = ">=3.12"
+description = "Hot Module Reload for Python"
+dependencies = ["watchfiles>=0.21,<2"]
+
+[project.scripts]
+hmr = "reactivity.hmr:cli"
+
+[project.urls]
+repository = "https://github.com/promplate/pyth-on-line/tree/reactivity"
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
