@@ -5,7 +5,7 @@ from weakref import WeakKeyDictionary
 from .primitives import BaseComputation, Batch, Signal, Subscribable
 
 
-class Memoized[T](Subscribable, BaseComputation):
+class Memoized[T](Subscribable, BaseComputation[T]):
     def __init__(self, fn: Callable[[], T]):
         super().__init__()
         self.fn = fn

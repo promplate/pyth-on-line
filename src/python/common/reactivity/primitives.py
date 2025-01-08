@@ -22,7 +22,7 @@ class Subscribable:
                 subscriber.trigger()
 
 
-class BaseComputation:
+class BaseComputation[T]:
     def __init__(self):
         super().__init__()
         self.dependencies = WeakSet[Subscribable]()
@@ -46,7 +46,7 @@ class BaseComputation:
     def __exit__(self, *_):
         self.dispose()
 
-    def trigger(self) -> Any: ...
+    def trigger(self) -> T: ...
 
     def __call__(self):
         return self.trigger()
@@ -94,7 +94,7 @@ class State[T](Signal[T]):
         state.set(value)
 
 
-class Derived[T](BaseComputation):
+class Derived[T](BaseComputation[T]):
     def __init__(self, fn: Callable[[], T], auto_run=True):
         super().__init__()
 
