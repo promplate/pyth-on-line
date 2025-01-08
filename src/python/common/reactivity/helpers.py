@@ -53,9 +53,14 @@ class MemoizedMethod[T, Self]:
     def __init__(self, method: Callable[[Self], T]):
         super().__init__()
         self.method = method
+        self.map = WeakKeyDictionary[Self, Memoized]()
 
     def __get__(self, instance, owner):
-        return Memoized(partial(self.method, instance))
+        try:
+            return self.map[instance]
+        except KeyError:
+            self.map[instance] = memo = Memoized(partial(self.method, instance))
+            return memo
 
 
 class Reactive[K, V](Subscribable, MutableMapping[K, V]):

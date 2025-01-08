@@ -152,12 +152,13 @@ class BaseReloader:
                 if type is Change.modified:
                     path = Path(file).resolve()
                     if path.samefile(self.entry):
-                        self.run_entry_file()
+                        self.run_entry_file.trigger()
                     elif module := path2module.get(path):
                         try:
                             module.load()
                         except Exception as e:
                             sys.excepthook(e.__class__, e, e.__traceback__)
+            self.run_entry_file()
 
 
 class SyncReloader(BaseReloader):
@@ -218,4 +219,4 @@ def cli():
     SyncReloader(entry, excludes={".venv"}).keep_watching_until_interrupt()
 
 
-__version__ = "0.0.1.1"
+__version__ = "0.0.2"

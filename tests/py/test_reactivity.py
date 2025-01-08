@@ -99,6 +99,7 @@ def test_memo():
     assert count == 1
 
     assert doubled() == 2
+    assert doubled() == 2
     assert count == 2
 
 
@@ -124,6 +125,7 @@ def test_memo_property():
 
     r.y = 3
     assert r.size == 6
+    assert r.size == 6
     assert r.count == 3
 
 
@@ -148,6 +150,7 @@ def test_memo_method():
     assert r.get_size() == 0
 
     r.y = 3
+    assert r.get_size() == 6
     assert r.get_size() == 6
     assert r.count == 3
 
