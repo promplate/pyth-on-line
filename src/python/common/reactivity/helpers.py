@@ -2,7 +2,7 @@ from collections.abc import Callable, Mapping, MutableMapping
 from functools import partial
 from weakref import WeakKeyDictionary
 
-from .primitives import BaseComputation, Batch, State, Subscribable
+from .primitives import BaseComputation, Batch, Signal, Subscribable
 
 
 class Memoized[T](Subscribable, BaseComputation):
@@ -66,11 +66,11 @@ class Reactive[K, V](Subscribable, MutableMapping[K, V]):
 
     def __init__(self, initial: Mapping | None = None, check_equality=True):
         super().__init__()
-        self._states: dict[K, State[V]] = {} if initial is None else {k: State(v, check_equality) for k, v in initial.items()}
+        self._signals: dict[K, Signal[V]] = {} if initial is None else {k: Signal(v, check_equality) for k, v in initial.items()}
         self._check_equality = check_equality
 
     def __getitem__(self, key: K):
-        value = self._states.setdefault(key, State(self.UNSET, self._check_equality)).get()
+        value = self._signals.setdefault(key, Signal(self.UNSET, self._check_equality)).get()
         if value is self.UNSET:
             raise KeyError(key)
         return value
@@ -78,14 +78,14 @@ class Reactive[K, V](Subscribable, MutableMapping[K, V]):
     def __setitem__(self, key: K, value: V):
         with Batch():
             try:
-                self._states[key].set(value)
+                self._signals[key].set(value)
             except KeyError:
-                self._states[key] = State(value, self._check_equality)
-                self._states[key].set(value)
+                self._signals[key] = Signal(value, self._check_equality)
+                self._signals[key].set(value)
             self.notify()
 
     def __delitem__(self, key: K):
-        state = self._states[key]
+        state = self._signals[key]
         if state.get(track=False) is self.UNSET:
             raise KeyError(key)
         with Batch():
@@ -95,16 +95,16 @@ class Reactive[K, V](Subscribable, MutableMapping[K, V]):
 
     def __iter__(self):
         self.track()
-        return iter(self._states)
+        return iter(self._signals)
 
     def __len__(self):
         self.track()
-        return len(self._states)
+        return len(self._signals)
 
     def __repr__(self):
         self.track()
-        return repr({k: v.get() for k, v in self._states.items()})
+        return repr({k: v.get() for k, v in self._signals.items()})
 
     def items(self):
         self.track()
-        return ({k: v.get() for k, v in self._states.items()}).items()
+        return ({k: v.get() for k, v in self._signals.items()}).items()
