@@ -1,5 +1,5 @@
 import sys
-from collections.abc import Iterable, Sequence
+from collections.abc import Iterable, MutableMapping, Sequence
 from contextlib import suppress
 from functools import cached_property
 from importlib.abc import Loader, MetaPathFinder
@@ -26,11 +26,25 @@ def is_called_in_this_file() -> bool:
     return frame.f_globals.get("__file__") == __file__
 
 
+class NamespaceProxy(Reactive):
+    def __init__(self, initial: MutableMapping, check_equality=True):
+        super().__init__(initial, check_equality)
+        self._original = initial
+
+    def __setitem__(self, key, value):
+        self._original[key] = value
+        return super().__setitem__(key, value)
+
+    def __delitem__(self, key):
+        del self._original[key]
+        return super().__delitem__(key)
+
+
 class ReactiveModule(ModuleType):
     def __init__(self, file: Path, namespace: dict, name: str, doc: str | None = None):
         super().__init__(name, doc)
         self.__namespace = namespace
-        self.__namespace_proxy = Reactive(namespace)
+        self.__namespace_proxy = NamespaceProxy(namespace)
         self.__file = file
 
     @property
@@ -68,7 +82,6 @@ class ReactiveModuleLoader(Loader):
         if self._is_package:
             assert self._file.name == "__init__.py"
             namespace["__path__"] = [str(self._file.parent.parent)]
-            namespace["__package__"] = spec.name
         return ReactiveModule(self._file, namespace, spec.name)
 
     def exec_module(self, module: ModuleType):
@@ -100,7 +113,7 @@ class ReactiveModuleFinder(MetaPathFinder):
                 return spec_from_loader(fullname, ReactiveModuleLoader(file), origin=str(file))
             file = directory / f"{fullname.replace('.', '/')}/__init__.py"
             if file.is_file() and all(not file.is_relative_to(exclude) for exclude in self.excludes):
-                return spec_from_loader(fullname, ReactiveModuleLoader(file, is_package=True), origin=str(file))
+                return spec_from_loader(fullname, ReactiveModuleLoader(file, is_package=True), origin=str(file), is_package=True)
 
 
 def patch_module(name_or_module: str | ModuleType):
@@ -219,4 +232,4 @@ def cli():
     SyncReloader(entry, excludes={".venv"}).keep_watching_until_interrupt()
 
 
-__version__ = "0.0.2.1"
+__version__ = "0.0.2.2"
