@@ -9,6 +9,7 @@ from inspect import currentframe
 from pathlib import Path
 from runpy import run_path
 from types import ModuleType
+from typing import Any
 
 from . import Reactive, batch, create_effect, memoized_method
 
@@ -26,7 +27,7 @@ def is_called_in_this_file() -> bool:
     return frame.f_globals.get("__file__") == __file__
 
 
-class NamespaceProxy(Reactive):
+class NamespaceProxy(Reactive[str, Any]):
     def __init__(self, initial: MutableMapping, check_equality=True):
         super().__init__(initial, check_equality)
         self._original = initial
@@ -43,6 +44,10 @@ class NamespaceProxy(Reactive):
 class ReactiveModule(ModuleType):
     def __init__(self, file: Path, namespace: dict, name: str, doc: str | None = None):
         super().__init__(name, doc)
+        self.__is_initialized = False
+        self.__dict__.update(namespace)
+        self.__is_initialized = True
+
         self.__namespace = namespace
         self.__namespace_proxy = NamespaceProxy(namespace)
         self.__file = file
@@ -56,8 +61,17 @@ class ReactiveModule(ModuleType):
     @property
     def load(self):
         if is_called_in_this_file():
-            return lambda: exec(self.__file.read_text("utf-8"), self.__namespace, self.__namespace_proxy)
+            code = compile(self.__file.read_text("utf-8"), str(self.__file), "exec", dont_inherit=True)
+            return lambda: exec(code, self.__namespace, self.__namespace_proxy)
         raise AttributeError("load")
+
+    def __dir__(self):
+        return iter(self.__namespace_proxy)
+
+    def __getattribute__(self, name: str):
+        if name == "__dict__" and self.__is_initialized:
+            return self.__namespace
+        return super().__getattribute__(name)
 
     def __getattr__(self, name: str):
         try:
@@ -78,7 +92,7 @@ class ReactiveModuleLoader(Loader):
         self._is_package = is_package
 
     def create_module(self, spec: ModuleSpec):
-        namespace = {}
+        namespace = {"__file__": str(self._file), "__spec__": spec, "__loader__": self}
         if self._is_package:
             assert self._file.name == "__init__.py"
             namespace["__path__"] = [str(self._file.parent.parent)]
@@ -232,4 +246,4 @@ def cli():
     SyncReloader(entry, excludes={".venv"}).keep_watching_until_interrupt()
 
 
-__version__ = "0.0.2.2"
+__version__ = "0.0.3"
