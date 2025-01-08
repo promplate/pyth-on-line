@@ -87,7 +87,7 @@ class ReactiveModuleFinder(MetaPathFinder):
             return None
 
         for p in paths or sys.path:
-            directory = Path(p)
+            directory = Path(p).resolve()
             if directory.is_file():
                 continue
             if any(directory.is_relative_to(exclude) for exclude in self.excludes):
@@ -219,4 +219,4 @@ def cli():
     SyncReloader(entry, excludes={".venv"}).keep_watching_until_interrupt()
 
 
-__version__ = "0.0.2"
+__version__ = "0.0.2.1"
