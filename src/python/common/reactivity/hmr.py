@@ -209,7 +209,13 @@ class AsyncReloader(BaseReloader):
 
 
 def cli():
+    if len(sys.argv) < 2:
+        print("\n Usage: hmr <entry file>, just like python <entry file>\n")
+        exit(1)
     entry = sys.argv[-1]
     assert Path(entry).is_file(), f"{entry} is not a file"
     sys.path.insert(0, ".")
     SyncReloader(entry, excludes={".venv"}).keep_watching_until_interrupt()
+
+
+__version__ = "0.0.1.1"
