@@ -36,11 +36,11 @@ class Memoized[T](Subscribable, BaseComputation[T]):
         self.is_stale = True
 
 
-class MemoizedProperty[T, Self]:
-    def __init__(self, method: Callable[[Self], T]):
+class MemoizedProperty[T, I]:
+    def __init__(self, method: Callable[[I], T]):
         super().__init__()
         self.method = method
-        self.map = WeakKeyDictionary[Self, Memoized]()
+        self.map = WeakKeyDictionary[I, Memoized[T]]()
 
     def __get__(self, instance, owner):
         if func := self.map.get(instance):
@@ -49,11 +49,11 @@ class MemoizedProperty[T, Self]:
         return func()
 
 
-class MemoizedMethod[T, Self]:
-    def __init__(self, method: Callable[[Self], T]):
+class MemoizedMethod[T, I]:
+    def __init__(self, method: Callable[[I], T]):
         super().__init__()
         self.method = method
-        self.map = WeakKeyDictionary[Self, Memoized]()
+        self.map = WeakKeyDictionary[I, Memoized[T]]()
 
     def __get__(self, instance, owner):
         try:

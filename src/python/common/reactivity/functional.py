@@ -27,11 +27,11 @@ def create_memo[T](fn: Callable[[], T]):
     return Memoized(fn)
 
 
-def memoized_property[T, Self](method: Callable[[Self], T]):
+def memoized_property[T, I](method: Callable[[I], T]):
     return MemoizedProperty(method)
 
 
-def memoized_method[T, Self](method: Callable[[Self], T]):
+def memoized_method[T, I](method: Callable[[I], T]):
     return MemoizedMethod(method)
 
 
