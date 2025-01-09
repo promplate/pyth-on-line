@@ -71,11 +71,10 @@ class MemoizedMethod[T, I]:
     def __get__(self, instance: I | None, owner):
         if instance is None:
             return self
-        try:
-            return self.map[instance]
-        except KeyError:
-            self.map[instance] = memo = Memoized(partial(self.method, instance))
+        if memo := self.map.get(instance):
             return memo
+        self.map[instance] = memo = Memoized(partial(self.method, instance))
+        return memo
 
 
 class Reactive[K, V](Subscribable, MutableMapping[K, V]):
