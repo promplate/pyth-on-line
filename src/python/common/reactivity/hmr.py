@@ -11,7 +11,7 @@ from runpy import run_path
 from types import ModuleType
 from typing import Any
 
-from . import Reactive, batch, create_effect, memoized_method
+from . import Reactive, batch, memoized_method
 
 
 def is_called_in_this_file() -> bool:
@@ -58,6 +58,7 @@ class ReactiveModule(ModuleType):
             return self.__file
         raise AttributeError("file")
 
+    @memoized_method
     def __load(self):
         code = compile(self.__file.read_text("utf-8"), str(self.__file), "exec", dont_inherit=True)
         exec(code, self.__namespace, self.__namespace_proxy)
@@ -103,7 +104,7 @@ class ReactiveModuleLoader(Loader):
 
     def exec_module(self, module: ModuleType):
         assert isinstance(module, ReactiveModule)
-        create_effect(lambda: module.load())
+        module.load()
 
 
 class ReactiveModuleFinder(MetaPathFinder):
@@ -112,25 +113,28 @@ class ReactiveModuleFinder(MetaPathFinder):
         self.includes = [Path(i).resolve() for i in includes]
         self.excludes = [Path(e).resolve() for e in excludes]
 
+    def _accept(self, path: Path):
+        return path.is_file() and not is_relative_to_any(path, self.excludes) and is_relative_to_any(path, self.includes)
+
     def find_spec(self, fullname: str, paths: Sequence[str] | None, _=None):
         if fullname in sys.modules:
             return None
 
-        for p in paths or sys.path:
+        for p in sys.path:
             directory = Path(p).resolve()
             if directory.is_file():
                 continue
-            if any(directory.is_relative_to(exclude) for exclude in self.excludes):
-                continue
-            if all(not directory.is_relative_to(include) for include in self.includes):
-                continue
 
             file = directory / f"{fullname.replace('.', '/')}.py"
-            if file.is_file() and all(not file.is_relative_to(exclude) for exclude in self.excludes):
+            if self._accept(file) and (paths is None or is_relative_to_any(file, paths)):
                 return spec_from_loader(fullname, ReactiveModuleLoader(file), origin=str(file))
             file = directory / f"{fullname.replace('.', '/')}/__init__.py"
-            if file.is_file() and all(not file.is_relative_to(exclude) for exclude in self.excludes):
+            if self._accept(file) and (paths is None or is_relative_to_any(file, paths)):
                 return spec_from_loader(fullname, ReactiveModuleLoader(file, is_package=True), origin=str(file), is_package=True)
+
+
+def is_relative_to_any(path: Path, paths: Iterable[str | Path]):
+    return any(path.is_relative_to(p) for p in paths)
 
 
 def patch_module(name_or_module: str | ModuleType):
@@ -182,12 +186,18 @@ class BaseReloader:
                 if type is Change.modified:
                     path = Path(file).resolve()
                     if path.samefile(self.entry):
-                        self.run_entry_file.trigger()
+                        self.run_entry_file.invalidate()
                     elif module := path2module.get(path):
                         try:
-                            module.load()
+                            module.load.invalidate()
                         except Exception as e:
                             sys.excepthook(e.__class__, e, e.__traceback__)
+
+            for module in path2module.values():
+                try:
+                    module.load()
+                except Exception as e:
+                    sys.excepthook(e.__class__, e, e.__traceback__)
             self.run_entry_file()
 
 
@@ -249,4 +259,4 @@ def cli():
     SyncReloader(entry, excludes={".venv"}).keep_watching_until_interrupt()
 
 
-__version__ = "0.0.3.2"
+__version__ = "0.1.0"
