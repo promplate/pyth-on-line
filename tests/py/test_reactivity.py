@@ -4,10 +4,11 @@ from pytest import raises
 from utils import capture_stdout
 
 from src.python.common.reactivity import Reactive, State, batch, create_effect, create_memo, create_signal, memoized_method, memoized_property
+from src.python.common.reactivity.primitives import Signal
 
 
-def test_state_initial_value():
-    assert State().get() is None
+def test_initial_value():
+    assert Signal().get() is None
     assert State(0).get() == 0
 
 
@@ -77,6 +78,28 @@ def test_state_descriptor():
         assert results == [0]
         obj.v = 1
         assert results == [0]
+
+
+def test_state_class_attribute():
+    class A:
+        s1 = Signal(0)
+        s2 = State(0)
+
+    class B(A): ...
+
+    results = []
+
+    with create_effect(lambda: results.append(B.s1.get())):
+        assert results == [0]
+        B.s1.set(1)
+        assert results == [0, 1]
+
+    results = []
+
+    with create_effect(lambda: results.append(B.s2.get())):
+        assert results == [0]
+        B.s2.set(1)
+        assert results == [0, 1]
 
 
 def test_memo():

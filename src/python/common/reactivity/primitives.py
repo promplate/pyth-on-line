@@ -1,5 +1,5 @@
 from collections.abc import Callable
-from typing import Any
+from typing import Any, Self, overload
 from weakref import WeakKeyDictionary, WeakSet
 
 
@@ -79,7 +79,14 @@ class State[T](Signal[T]):
         self._check_equality = check_equality
         self.map = WeakKeyDictionary[Any, Signal[T]]()
 
+    @overload
+    def __get__(self, instance: None, owner: type) -> Self: ...
+    @overload
+    def __get__(self, instance: Any, owner: type) -> T: ...
+
     def __get__(self, instance, owner):
+        if instance is None:
+            return self
         try:
             return self.map[instance].get()
         except KeyError:
