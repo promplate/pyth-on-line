@@ -1,9 +1,11 @@
 import gc
+from typing import assert_type
 
 from pytest import raises
 from utils import capture_stdout
 
 from src.python.common.reactivity import Reactive, State, batch, create_effect, create_memo, create_signal, memoized_method, memoized_property
+from src.python.common.reactivity.helpers import MemoizedMethod, MemoizedProperty
 from src.python.common.reactivity.primitives import Signal
 
 
@@ -86,6 +88,9 @@ def test_state_class_attribute():
         s2 = State(0)
 
     class B(A): ...
+
+    assert_type(B.s1, Signal[int])
+    assert isinstance(B.s2, Signal)
 
     results = []
 
@@ -176,6 +181,35 @@ def test_memo_method():
     assert r.get_size() == 6
     assert r.get_size() == 6
     assert r.count == 3
+
+
+def test_memo_class_attribute():
+    class Rect:
+        x = State(0)
+        y = State(0)
+
+        @memoized_property
+        def size(self):
+            return self.x * self.y
+
+        @memoized_method
+        def get_area(self):
+            return self.x * self.y
+
+    assert_type(Rect.size, MemoizedProperty[int, Rect])
+    assert_type(Rect.get_area, MemoizedMethod[int, Rect])
+
+    assert isinstance(Rect.size, MemoizedProperty)
+    assert isinstance(Rect.get_area, MemoizedMethod)
+
+    r = Rect()
+    r.x = r.y = 2
+
+    assert r.size == 4
+    assert r.get_area() == 4
+
+    assert r in Rect.size.map
+    assert r in Rect.get_area.map
 
 
 def test_batch():

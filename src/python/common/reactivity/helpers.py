@@ -1,5 +1,6 @@
 from collections.abc import Callable, Mapping, MutableMapping
 from functools import partial
+from typing import Self, overload
 from weakref import WeakKeyDictionary
 
 from .primitives import BaseComputation, Batch, Signal, Subscribable
@@ -42,7 +43,14 @@ class MemoizedProperty[T, I]:
         self.method = method
         self.map = WeakKeyDictionary[I, Memoized[T]]()
 
-    def __get__(self, instance, owner):
+    @overload
+    def __get__(self, instance: None, owner: type[I]) -> Self: ...
+    @overload
+    def __get__(self, instance: I, owner: type[I]) -> T: ...
+
+    def __get__(self, instance: I | None, owner):
+        if instance is None:
+            return self
         if func := self.map.get(instance):
             return func()
         self.map[instance] = func = Memoized(partial(self.method, instance))
@@ -55,7 +63,14 @@ class MemoizedMethod[T, I]:
         self.method = method
         self.map = WeakKeyDictionary[I, Memoized[T]]()
 
-    def __get__(self, instance, owner):
+    @overload
+    def __get__(self, instance: None, owner: type[I]) -> Self: ...
+    @overload
+    def __get__(self, instance: I, owner: type[I]) -> Memoized[T]: ...
+
+    def __get__(self, instance: I | None, owner):
+        if instance is None:
+            return self
         try:
             return self.map[instance]
         except KeyError:
