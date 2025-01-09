@@ -1,3 +1,4 @@
+from collections import defaultdict
 from collections.abc import Callable, Mapping, MutableMapping
 from functools import partial
 from typing import Self, overload
@@ -83,24 +84,23 @@ class Reactive[K, V](Subscribable, MutableMapping[K, V]):
     def __hash__(self):
         return id(self)
 
-    def __init__(self, initial: Mapping | None = None, check_equality=True):
+    def _null(self):
+        return Signal(self.UNSET, self._check_equality)
+
+    def __init__(self, initial: Mapping[K, V] | None = None, check_equality=True):
         super().__init__()
-        self._signals: dict[K, Signal[V]] = {} if initial is None else {k: Signal(v, check_equality) for k, v in initial.items()}
+        self._signals = defaultdict[K, Signal[V]](self._null) if initial is None else defaultdict(self._null, {k: Signal(v, check_equality) for k, v in initial.items()})
         self._check_equality = check_equality
 
     def __getitem__(self, key: K):
-        value = self._signals.setdefault(key, Signal(self.UNSET, self._check_equality)).get()
+        value = self._signals[key].get()
         if value is self.UNSET:
             raise KeyError(key)
         return value
 
     def __setitem__(self, key: K, value: V):
         with Batch():
-            try:
-                self._signals[key].set(value)
-            except KeyError:
-                self._signals[key] = Signal(value, self._check_equality)
-                self._signals[key].set(value)
+            self._signals[key].set(value)
             self.notify()
 
     def __delitem__(self, key: K):
@@ -109,7 +109,6 @@ class Reactive[K, V](Subscribable, MutableMapping[K, V]):
             raise KeyError(key)
         with Batch():
             state.set(self.UNSET)
-            state.notify()
             self.notify()
 
     def __iter__(self):
