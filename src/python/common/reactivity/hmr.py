@@ -58,11 +58,14 @@ class ReactiveModule(ModuleType):
             return self.__file
         raise AttributeError("file")
 
+    def __load(self):
+        code = compile(self.__file.read_text("utf-8"), str(self.__file), "exec", dont_inherit=True)
+        exec(code, self.__namespace, self.__namespace_proxy)
+
     @property
     def load(self):
         if is_called_in_this_file():
-            code = compile(self.__file.read_text("utf-8"), str(self.__file), "exec", dont_inherit=True)
-            return lambda: exec(code, self.__namespace, self.__namespace_proxy)
+            return self.__load
         raise AttributeError("load")
 
     def __dir__(self):
@@ -246,4 +249,4 @@ def cli():
     SyncReloader(entry, excludes={".venv"}).keep_watching_until_interrupt()
 
 
-__version__ = "0.0.3"
+__version__ = "0.0.3.1"
