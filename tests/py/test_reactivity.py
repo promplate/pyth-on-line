@@ -285,6 +285,17 @@ def test_reactive():
 def test_error_handling():
     get_s, set_s = create_signal(0)
 
+    @create_memo
+    def should_raise():
+        raise ValueError(get_s())
+
+    set_s(2)
+
+    with raises(ValueError, match="2"):
+        should_raise()
+
+    set_s(0)
+
     with raises(ValueError, match="0"):
 
         @create_effect
