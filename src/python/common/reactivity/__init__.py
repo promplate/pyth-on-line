@@ -1,5 +1,5 @@
 from .functional import batch, create_effect, create_memo, create_signal, memoized_method, memoized_property
 from .helpers import Reactive
-from .primitives import Derived, State
+from .primitives import State
 
-__all__ = ["Derived", "Reactive", "State", "batch", "create_effect", "create_memo", "create_signal", "memoized_method", "memoized_property"]
+__all__ = ["Reactive", "State", "batch", "create_effect", "create_memo", "create_signal", "memoized_method", "memoized_property"]

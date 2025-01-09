@@ -3,7 +3,7 @@ from functools import wraps
 from typing import Protocol, overload
 
 from .helpers import Memoized, MemoizedMethod, MemoizedProperty
-from .primitives import Batch, Derived, Signal
+from .primitives import Batch, Effect, Signal
 
 
 class Getter[T](Protocol):
@@ -19,8 +19,8 @@ def create_signal[T](initial_value: T = None, check_equality=True) -> tuple[Gett
     return signal.get, signal.set
 
 
-def create_effect[T](fn: Callable[[], T], auto_run=True):
-    return Derived(fn, auto_run)
+def create_effect[T](fn: Callable[[], T], call_immediately=True):
+    return Effect(fn, call_immediately)
 
 
 def create_memo[T](fn: Callable[[], T]):

@@ -49,7 +49,7 @@ def test_state_dispose():
     set_s(2)
     assert results == [0, 1]
 
-    with create_effect(lambda: results.clear(), auto_run=False):
+    with create_effect(results.clear, call_immediately=False):
         set_s(3)
         assert results == [0, 1]
 

@@ -94,13 +94,13 @@ class State[T](Signal[T]):
         state.set(value)
 
 
-class Derived[T](BaseComputation[T]):
-    def __init__(self, fn: Callable[[], T], auto_run=True):
+class Effect[T](BaseComputation[T]):
+    def __init__(self, fn: Callable[[], T], call_immediately=True):
         super().__init__()
 
         self._fn = fn
 
-        if auto_run:
+        if call_immediately:
             self()
 
     def trigger(self):
