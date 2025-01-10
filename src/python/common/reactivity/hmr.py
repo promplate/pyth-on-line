@@ -96,7 +96,7 @@ class ReactiveModuleLoader(Loader):
         self._is_package = is_package
 
     def create_module(self, spec: ModuleSpec):
-        namespace = {"__file__": str(self._file), "__spec__": spec, "__loader__": self}
+        namespace = {"__file__": str(self._file), "__spec__": spec, "__loader__": self, "__name__": spec.name}
         if self._is_package:
             assert self._file.name == "__init__.py"
             namespace["__path__"] = [str(self._file.parent)]
@@ -260,4 +260,4 @@ def cli():
     SyncReloader(entry, excludes={".venv"}).keep_watching_until_interrupt()
 
 
-__version__ = "0.1.1"
+__version__ = "0.1.1.1"
