@@ -34,7 +34,7 @@
     "dayjs": "^1.11.13",
     "htmlparser2": "^10.0.0",
     "monaco-editor-core": "^0.52.2",
-    "openai": "^4.77.4",
+    "openai": "^4.78.0",
     "paneforge": "^0.0.6",
     "pyodide": "0.27.0",
     "rehype-parse": "^9.0.1",
@@ -58,7 +58,7 @@
     "vite": "^5.4.11"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^3.12.2",
+    "@antfu/eslint-config": "^3.13.0",
     "@types/mdast": "^4.0.4",
     "@types/turndown": "^5.0.5",
     "@unocss/eslint-config": "^0.65.4",
