@@ -159,11 +159,12 @@ class BaseReloader:
         self.includes = includes
         self.excludes = excludes
         patch_meta_path(includes, excludes)
+        self.last_globals = {}
 
     @memoized_method
     def run_entry_file(self):
         try:
-            run_path(self.entry, run_name="__main__")
+            self.last_globals = run_path(self.entry, self.last_globals, "__main__")
         except Exception as e:
             sys.excepthook(e.__class__, e, e.__traceback__)
 
@@ -259,4 +260,4 @@ def cli():
     SyncReloader(entry, excludes={".venv"}).keep_watching_until_interrupt()
 
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
