@@ -8,7 +8,7 @@ from importlib.util import spec_from_loader
 from inspect import currentframe
 from pathlib import Path
 from runpy import run_path
-from types import ModuleType
+from types import ModuleType, TracebackType
 from typing import Any
 
 from . import Reactive, batch, memoized_method
@@ -60,8 +60,12 @@ class ReactiveModule(ModuleType):
 
     @memoized_method
     def __load(self):
-        code = compile(self.__file.read_text("utf-8"), str(self.__file), "exec", dont_inherit=True)
-        exec(code, self.__namespace, self.__namespace_proxy)
+        try:
+            code = compile(self.__file.read_text("utf-8"), str(self.__file), "exec", dont_inherit=True)
+        except SyntaxError as e:
+            sys.excepthook(type(e), e, e.__traceback__)
+        else:
+            exec(code, self.__namespace, self.__namespace_proxy)
 
     @property
     def load(self):
@@ -153,6 +157,30 @@ def get_path_module_map():
     return {module.file.resolve(): module for module in sys.modules.values() if isinstance(module, ReactiveModule)}
 
 
+class ErrorFilter:
+    def __init__(self, *exclude_filenames: str):
+        self.exclude_filenames = set(exclude_filenames)
+
+    def __call__(self, tb: TracebackType):
+        current = tb
+        while current is not None:
+            if current.tb_frame.f_code.co_filename not in self.exclude_filenames:
+                return current
+            current = current.tb_next
+        return tb
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type: type[BaseException], exc_value: BaseException, traceback: TracebackType):
+        if exc_value is None:
+            return
+        tb = self(traceback)
+        exc_value = exc_value.with_traceback(tb)
+        sys.excepthook(exc_type, exc_value, tb)
+        return True
+
+
 class BaseReloader:
     def __init__(self, entry_file: str, includes: Iterable[str] = (".",), excludes: Iterable[str] = ()):
         self.entry = entry_file
@@ -160,13 +188,12 @@ class BaseReloader:
         self.excludes = excludes
         patch_meta_path(includes, excludes)
         self.last_globals = {}
+        self.error_filter = ErrorFilter(__file__, "<frozen runpy>")
 
     @memoized_method
     def run_entry_file(self):
-        try:
+        with self.error_filter:
             self.last_globals = run_path(self.entry, self.last_globals, "__main__")
-        except Exception as e:
-            sys.excepthook(e.__class__, e, e.__traceback__)
 
     @property
     def watch_filter(self):
@@ -189,16 +216,12 @@ class BaseReloader:
                     if path.samefile(self.entry):
                         self.run_entry_file.invalidate()
                     elif module := path2module.get(path):
-                        try:
+                        with self.error_filter:
                             module.load.invalidate()
-                        except Exception as e:
-                            sys.excepthook(e.__class__, e, e.__traceback__)
 
             for module in path2module.values():
-                try:
+                with self.error_filter:
                     module.load()
-                except Exception as e:
-                    sys.excepthook(e.__class__, e, e.__traceback__)
             self.run_entry_file()
 
 
@@ -260,4 +283,4 @@ def cli():
     SyncReloader(entry, excludes={".venv"}).keep_watching_until_interrupt()
 
 
-__version__ = "0.1.1.1"
+__version__ = "0.1.2"
