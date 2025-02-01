@@ -135,7 +135,7 @@ class ConsoleAPI:
         last = self.items[-1]
 
         if self.can_merge(last, item):
-            last["text"] += f"\n{item["text"]}" if item["type"] == "in" else item["text"]
+            last["text"] += f"\n{item['text']}" if item["type"] == "in" else item["text"]
             self.sync()
             return last
 
