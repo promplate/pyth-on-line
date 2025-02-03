@@ -12,8 +12,10 @@
 </script>
 
 <script lang="ts">
+  import type { Group } from "./Item.svelte";
+
   import Modal from "../Modal.svelte";
-  import Item, { type Group } from "./Item.svelte";
+  import Item from "./Item.svelte";
   import { Command } from "cmdk-sv";
 
   const navigations = {
