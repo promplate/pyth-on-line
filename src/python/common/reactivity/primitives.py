@@ -126,13 +126,13 @@ class Effect[T](BaseComputation[T]):
 
 class Batch:
     def __init__(self, force_flush=True):
-        self.callbacks: list[BaseComputation] = []
+        self.callbacks = set[BaseComputation]()
         self.force_flush = force_flush
 
     def flush(self):
         triggered = set()
         while self.callbacks:
-            callbacks = set(self.callbacks) - triggered
+            callbacks = self.callbacks - triggered
             self.callbacks.clear()
             for computation in callbacks:
                 if computation in self.callbacks:
@@ -159,4 +159,4 @@ _batches: list[Batch] = []
 
 
 def schedule_callbacks(callbacks: Iterable[BaseComputation]):
-    _batches[-1].callbacks.extend(callbacks)
+    _batches[-1].callbacks.update(callbacks)
