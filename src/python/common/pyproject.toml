@@ -3,7 +3,7 @@ name = "hmr"
 dynamic = ["version"]
 requires-python = ">=3.12"
 description = "Hot Module Reload for Python"
-dependencies = ["watchfiles>=0.21,<2"]
+dependencies = ["watchfiles>=0.21,<2 ; sys_platform != 'emscripten'"]
 
 [project.scripts]
 hmr = "reactivity.hmr:cli"
