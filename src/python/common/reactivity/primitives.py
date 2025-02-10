@@ -17,15 +17,11 @@ class Subscribable:
             last.dependencies.add(self)
 
     def notify(self):
-        if not _batches:
+        if _batches:
+            schedule_callbacks(self.subscribers)
+        else:
             with Batch(force_flush=False):
-                self.notify()
-            return
-
-        schedule_callbacks(self.subscribers)
-        for s in self.subscribers:
-            if isinstance(s, Subscribable):
-                s.notify()
+                schedule_callbacks(self.subscribers)
 
 
 class BaseComputation[T]:
