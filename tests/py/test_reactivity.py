@@ -1,7 +1,6 @@
 import gc
 from typing import assert_type
 
-import pytest
 from pytest import raises
 from utils import capture_stdout
 
@@ -442,7 +441,6 @@ def test_memo_property_no_leak():
     assert r2.size == 0
 
 
-@pytest.mark.xfail
 def test_effect_with_memo():
     get_s, set_s = create_signal(0)
 

@@ -1,4 +1,4 @@
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from typing import Any, Self, overload
 from weakref import WeakKeyDictionary, WeakSet
 
@@ -9,17 +9,23 @@ class Subscribable:
         self.subscribers = set[BaseComputation]()
 
     def track(self):
-        for computation in _current_computations:
-            if computation is not self:
-                self.subscribers.add(computation)
-                computation.dependencies.add(self)
+        if not _current_computations:
+            return
+        last = _current_computations[-1]
+        if last is not self:
+            self.subscribers.add(last)
+            last.dependencies.add(self)
 
     def notify(self):
-        if _batches:
-            _batches[-1].callbacks.extend(self.subscribers)
-        else:
-            for subscriber in {*self.subscribers}:
-                subscriber.trigger()
+        if not _batches:
+            with Batch(force_flush=False):
+                self.notify()
+            return
+
+        schedule_callbacks(self.subscribers)
+        for s in self.subscribers:
+            if isinstance(s, Subscribable):
+                s.notify()
 
 
 class BaseComputation[T]:
@@ -119,22 +125,38 @@ class Effect[T](BaseComputation[T]):
 
 
 class Batch:
-    def __init__(self):
+    def __init__(self, force_flush=True):
         self.callbacks: list[BaseComputation] = []
+        self.force_flush = force_flush
 
     def flush(self):
-        callbacks = set(self.callbacks)
-        self.callbacks.clear()
-        for computation in callbacks:
-            computation.trigger()
+        triggered = set()
+        while self.callbacks:
+            callbacks = set(self.callbacks) - triggered
+            self.callbacks.clear()
+            for computation in callbacks:
+                if computation in self.callbacks:
+                    continue  # skip if re-added during callback
+                computation.trigger()
+                triggered.add(computation)
 
     def __enter__(self):
         _batches.append(self)
 
     def __exit__(self, *_):
-        last = _batches.pop()
+        if self.force_flush or len(_batches) == 1:
+            try:
+                self.flush()
+            finally:
+                last = _batches.pop()
+        else:
+            last = _batches.pop()
+            schedule_callbacks(self.callbacks)
         assert last is self
-        self.flush()
 
 
 _batches: list[Batch] = []
+
+
+def schedule_callbacks(callbacks: Iterable[BaseComputation]):
+    _batches[-1].callbacks.extend(callbacks)
