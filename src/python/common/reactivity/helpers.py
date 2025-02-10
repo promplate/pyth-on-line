@@ -13,32 +13,29 @@ class Memoized[T](Subscribable, BaseComputation[T]):
         self.fn = fn
         self.is_stale = True
         self.cached_value: T
-        self._recompute = False
+
+    def recompute(self):
+        self._before()
+        try:
+            self.cached_value = self.fn()
+            self.is_stale = False
+        finally:
+            self._after()
 
     def trigger(self):
-        self.track()
-        if self._recompute:
-            self._recompute = False
-            self._before()
-            try:
-                self.cached_value = self.fn()
-                self.is_stale = False
-            finally:
-                self._after()
-        else:
-            self.invalidate()
+        self.invalidate()
 
     def __call__(self):
+        self.track()
         if self.is_stale:
-            self._recompute = True
-            self.trigger()
-            assert not self._recompute
+            self.recompute()
         return self.cached_value
 
     def invalidate(self):
         if not self.is_stale:
             del self.cached_value
             self.is_stale = True
+            self.notify()
 
 
 class MemoizedProperty[T, I]:
