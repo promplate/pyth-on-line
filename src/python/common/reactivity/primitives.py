@@ -46,9 +46,9 @@ class BaseComputation[T]:
     def __exit__(self, *_):
         self.dispose()
 
-    def trigger(self) -> T: ...
+    def trigger(self) -> Any: ...
 
-    def __call__(self):
+    def __call__(self) -> T:
         return self.trigger()
 
 
