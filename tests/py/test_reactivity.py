@@ -1,6 +1,7 @@
 import gc
 from typing import assert_type
 
+import pytest
 from pytest import raises
 from utils import capture_stdout
 
@@ -439,3 +440,23 @@ def test_memo_property_no_leak():
 
     assert r1.size == 6
     assert r2.size == 0
+
+
+@pytest.mark.xfail
+def test_effect_with_memo():
+    get_s, set_s = create_signal(0)
+
+    @create_memo
+    def f():
+        return get_s() * 2
+
+    @create_memo
+    def g():
+        return get_s() * 3
+
+    with capture_stdout() as stdout, create_effect(lambda: print(f() + g())):
+        assert stdout == "0\n"
+        set_s(1)
+        gc.collect()
+        assert f() + g() == 2 + 3
+        assert stdout == "0\n5\n"
