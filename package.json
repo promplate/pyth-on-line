@@ -19,7 +19,7 @@
     "@ethercorps/sveltekit-og": "^3.0.0",
     "@fontsource-variable/fira-code": "^5.1.1",
     "@fontsource-variable/inter": "^5.1.1",
-    "@iconify/json": "^2.2.304",
+    "@iconify/json": "^2.2.305",
     "@neodrag/svelte": "^2.3.0",
     "@shikijs/monaco": "^2.3.2",
     "@shikijs/rehype": "^2.3.2",
@@ -40,7 +40,7 @@
     "rehype-parse": "^9.0.1",
     "rehype-remark": "^10.0.0",
     "rehype-stringify": "^10.0.1",
-    "remark-gfm": "^4.0.0",
+    "remark-gfm": "^4.0.1",
     "remark-parse": "^11.0.0",
     "remark-rehype": "^11.1.1",
     "remark-stringify": "^11.0.0",
@@ -58,7 +58,7 @@
     "vite": "^5.4.14"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^4.1.1",
+    "@antfu/eslint-config": "^4.2.0",
     "@types/mdast": "^4.0.4",
     "@types/turndown": "^5.0.5",
     "@unocss/eslint-config": "^65.4.3",
