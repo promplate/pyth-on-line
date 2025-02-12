@@ -1,10 +1,8 @@
-import builtins
 from functools import cache, wraps
-from inspect import Signature, getsource
+from inspect import getsource
 from os import getenv
 
 import micropip
-from js import window
 from pyodide.ffi import can_run_sync, run_sync
 
 from .package import get_package_name
@@ -58,14 +56,6 @@ def patch_console():
 
 
 @cache
-def patch_input():
-    def input(prompt=""):
-        return window.prompt(str(prompt)) or ""
-
-    builtins.input = input
-
-
-@cache
 def patch_sync():
     import asyncio
     import time
@@ -96,15 +86,7 @@ def patch_sync():
     time.sleep = _
 
 
-@cache
-def patch_exit():
-    window.close.__signature__ = Signature()  # type: ignore
-    builtins.exit = builtins.quit = window.close
-
-
 patch_install()
 patch_linecache()
 patch_console()
-patch_input()
 patch_sync()
-patch_exit()

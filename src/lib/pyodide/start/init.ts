@@ -6,15 +6,15 @@ import loader from "./loader.py?raw";
 import { dev } from "$app/environment";
 import { cacheSingleton } from "$lib/utils/cache";
 import { getEnv } from "$lib/utils/env";
-import { withToast } from "$lib/utils/toast";
-import { toast } from "svelte-sonner";
+// import { withToast } from "$lib/utils/toast";
+// import { toast } from "svelte-sonner";
 
-const getMinimalPyodide = cacheSingleton(withToast({ loading: "loading pyodide runtime" })(async () => {
+const getMinimalPyodide = cacheSingleton(async () => {
   const { loadPyodide } = await import("pyodide");
   const py = await loadPyodide({ indexURL, env: getEnv(), packages: preloadPackages, args: dev ? [] : ["-O"] });
-  py.globals.set("toast", toast);
+  // py.globals.set("toast", toast);
   return py;
-}));
+});
 
 const getSetupModule = cacheSingleton(async () => {
   const py = await getMinimalPyodide();
