@@ -10,6 +10,9 @@ const config = {
     alias: {
       "$py/*": "src/python/*",
     },
+    output: {
+      preloadStrategy: "preload-mjs",
+    },
   },
 };
 
