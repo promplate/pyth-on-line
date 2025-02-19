@@ -62,7 +62,7 @@
     "@types/mdast": "^4.0.4",
     "@types/turndown": "^5.0.5",
     "@unocss/eslint-config": "^65.5.0",
-    "eslint": "<9.17.0",
+    "eslint": "<9.21.0",
     "eslint-plugin-format": "^1.0.1",
     "eslint-plugin-svelte": "^2.46.1",
     "svelte-check": "^4.1.4"
