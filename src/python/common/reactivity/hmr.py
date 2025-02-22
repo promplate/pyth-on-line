@@ -8,6 +8,7 @@ from importlib.util import spec_from_loader
 from inspect import currentframe
 from pathlib import Path
 from runpy import run_path
+from site import getsitepackages
 from types import ModuleType, TracebackType
 from typing import Any
 
@@ -115,7 +116,7 @@ class ReactiveModuleFinder(MetaPathFinder):
     def __init__(self, includes: Iterable[str] = ".", excludes: Iterable[str] = ()):
         super().__init__()
         self.includes = [Path(i).resolve() for i in includes]
-        self.excludes = [Path(e).resolve() for e in excludes]
+        self.excludes = [Path(e).resolve() for e in (*excludes, *getsitepackages())]
 
     def _accept(self, path: Path):
         return path.is_file() and not is_relative_to_any(path, self.excludes) and is_relative_to_any(path, self.includes)
@@ -149,7 +150,7 @@ def patch_module(name_or_module: str | ModuleType):
     return m
 
 
-def patch_meta_path(includes: Iterable[str] = (".",), excludes: Iterable[str] = (".venv",)):
+def patch_meta_path(includes: Iterable[str] = (".",), excludes: Iterable[str] = ()):
     sys.meta_path.insert(0, ReactiveModuleFinder(includes, excludes))
 
 
@@ -281,7 +282,7 @@ def cli():
     if not (path := Path(entry)).is_file():
         raise FileNotFoundError(path.resolve())
     sys.path.insert(0, ".")
-    SyncReloader(entry, excludes={".venv"}).keep_watching_until_interrupt()
+    SyncReloader(entry).keep_watching_until_interrupt()
 
 
-__version__ = "0.2.0"
+__version__ = "0.2.1"
