@@ -7,12 +7,12 @@ from importlib.machinery import ModuleSpec
 from importlib.util import spec_from_loader
 from inspect import currentframe
 from pathlib import Path
-from runpy import run_path
 from site import getsitepackages
 from types import ModuleType, TracebackType
 from typing import Any
 
-from . import Reactive, batch, memoized_method
+from .. import Reactive, batch, memoized_method
+from .hooks import call_post_reload_hooks, call_pre_reload_hooks
 
 
 def is_called_in_this_file() -> bool:
@@ -188,13 +188,20 @@ class BaseReloader:
         self.includes = includes
         self.excludes = excludes
         patch_meta_path(includes, excludes)
-        self.last_globals = {}
-        self.error_filter = ErrorFilter(__file__, "<frozen runpy>")
+        self.error_filter = ErrorFilter(*(str(i) for i in Path(__file__, "../..").resolve().glob("**/*.py")))
 
     @memoized_method
     def run_entry_file(self):
+        call_pre_reload_hooks()
+
         with self.error_filter:
-            self.last_globals = run_path(self.entry, self.last_globals, "__main__")
+            if not isinstance(module := sys.modules["__main__"], ReactiveModule):
+                namespace = {"__file__": self.entry, "__name__": "__main__"}
+                module = sys.modules["__main__"] = ReactiveModule(Path(self.entry), namespace, "__main__")
+            module.load.invalidate()
+            module.load()
+
+        call_post_reload_hooks()
 
     @property
     def watch_filter(self):
@@ -285,4 +292,4 @@ def cli():
     SyncReloader(entry).keep_watching_until_interrupt()
 
 
-__version__ = "0.2.1"
+__version__ = "0.3.0"
