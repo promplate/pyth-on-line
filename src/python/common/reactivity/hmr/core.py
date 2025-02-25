@@ -219,7 +219,7 @@ class BaseReloader:
 
         with batch():
             for type, file in events:
-                if type is Change.modified:
+                if type is not Change.deleted:
                     path = Path(file).resolve()
                     if path.samefile(self.entry):
                         self.run_entry_file.invalidate()
@@ -292,4 +292,4 @@ def cli():
     SyncReloader(entry).keep_watching_until_interrupt()
 
 
-__version__ = "0.3.0"
+__version__ = "0.3.1"
