@@ -228,6 +228,8 @@ class BaseReloader:
                             module.load.invalidate()
 
             for module in path2module.values():
+                if module.file.samefile(self.entry):
+                    continue
                 with self.error_filter:
                     module.load()
             self.run_entry_file()
@@ -303,4 +305,4 @@ def cli():
     SyncReloader(entry).keep_watching_until_interrupt()
 
 
-__version__ = "0.3.2.1"
+__version__ = "0.3.2.2"
