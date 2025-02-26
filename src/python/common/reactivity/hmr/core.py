@@ -258,8 +258,6 @@ class SyncReloader(BaseReloader):
         for events in watch(self.entry, *self.includes, watch_filter=self.watch_filter, stop_event=self._stop_event):
             self.on_events(events)
 
-        # this should only be called when the stop event is set
-        assert self._stop_event.is_set()
         del self._stop_event
 
     def keep_watching_until_interrupt(self):
@@ -278,13 +276,14 @@ class AsyncReloader(BaseReloader):
 
     def stop_watching(self):
         self._stop_event.set()
-        del self._stop_event
 
     async def start_watching(self):
         from watchfiles import awatch
 
         async for events in awatch(self.entry, *self.includes, watch_filter=self.watch_filter, stop_event=self._stop_event):
             self.on_events(events)
+
+        del self._stop_event
 
     async def keep_watching_until_interrupt(self):
         with suppress(KeyboardInterrupt):
@@ -304,4 +303,4 @@ def cli():
     SyncReloader(entry).keep_watching_until_interrupt()
 
 
-__version__ = "0.3.2"
+__version__ = "0.3.2.1"

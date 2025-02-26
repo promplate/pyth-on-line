@@ -5,7 +5,7 @@ from tempfile import TemporaryDirectory
 
 from utils import capture_stdout
 
-from src.python.common.reactivity.hmr.api import SyncReloaderAPI
+from src.python.common.reactivity.hmr.api import AsyncReloaderAPI, SyncReloaderAPI
 
 
 @contextmanager
@@ -31,7 +31,7 @@ async def test_reusing():
 
     with environment() as stdout:
         Path("main.py").write_text("print(2)")
-        api = SyncReloaderAPI("main.py")
+        api = AsyncReloaderAPI("main.py")
         with api:
             assert stdout == "2\n"
         async with api:
