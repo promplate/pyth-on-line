@@ -233,22 +233,34 @@ class BaseReloader:
             self.run_entry_file()
 
 
+class _SimpleEvent:
+    def __init__(self):
+        self._set = False
+
+    def set(self):
+        self._set = True
+
+    def is_set(self):
+        return self._set
+
+
 class SyncReloader(BaseReloader):
     @cached_property
     def _stop_event(self):
-        from threading import Event
-
-        return Event()
+        return _SimpleEvent()
 
     def stop_watching(self):
         self._stop_event.set()
-        del self._stop_event
 
     def start_watching(self):
         from watchfiles import watch
 
         for events in watch(self.entry, *self.includes, watch_filter=self.watch_filter, stop_event=self._stop_event):
             self.on_events(events)
+
+        # this should only be called when the stop event is set
+        assert self._stop_event.is_set()
+        del self._stop_event
 
     def keep_watching_until_interrupt(self):
         with suppress(KeyboardInterrupt):
@@ -292,4 +304,4 @@ def cli():
     SyncReloader(entry).keep_watching_until_interrupt()
 
 
-__version__ = "0.3.1"
+__version__ = "0.3.2"
