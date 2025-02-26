@@ -224,8 +224,7 @@ class BaseReloader:
                     if path.samefile(self.entry):
                         self.run_entry_file.invalidate()
                     elif module := path2module.get(path):
-                        with self.error_filter:
-                            module.load.invalidate()
+                        module.load.invalidate()
 
             for module in path2module.values():
                 if module.file.samefile(self.entry):
