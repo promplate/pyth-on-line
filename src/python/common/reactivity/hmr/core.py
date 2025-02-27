@@ -194,12 +194,11 @@ class BaseReloader:
     def run_entry_file(self):
         call_pre_reload_hooks()
 
-        with self.error_filter:
-            if not isinstance(module := sys.modules["__main__"], ReactiveModule):
-                namespace = {"__file__": self.entry, "__name__": "__main__"}
-                module = sys.modules["__main__"] = ReactiveModule(Path(self.entry), namespace, "__main__")
-            module.load.invalidate()
-            module.load()
+        if not isinstance(module := sys.modules["__main__"], ReactiveModule):
+            namespace = {"__file__": self.entry, "__name__": "__main__"}
+            module = sys.modules["__main__"] = ReactiveModule(Path(self.entry), namespace, "__main__")
+        module.load.invalidate()
+        module.load()
 
         call_post_reload_hooks()
 
@@ -226,12 +225,12 @@ class BaseReloader:
                     elif module := path2module.get(path):
                         module.load.invalidate()
 
-            for module in path2module.values():
-                if module.file.samefile(self.entry):
-                    continue
-                with self.error_filter:
+            with self.error_filter:
+                for module in path2module.values():
+                    if module.file.samefile(self.entry):
+                        continue
                     module.load()
-            self.run_entry_file()
+                self.run_entry_file()
 
 
 class _SimpleEvent:
@@ -263,7 +262,8 @@ class SyncReloader(BaseReloader):
 
     def keep_watching_until_interrupt(self):
         with suppress(KeyboardInterrupt):
-            self.run_entry_file()
+            with self.error_filter:
+                self.run_entry_file()
             self.start_watching()
         self.run_entry_file.dispose()
 
@@ -288,7 +288,8 @@ class AsyncReloader(BaseReloader):
 
     async def keep_watching_until_interrupt(self):
         with suppress(KeyboardInterrupt):
-            self.run_entry_file()
+            with self.error_filter:
+                self.run_entry_file()
             await self.start_watching()
         self.run_entry_file.dispose()
 
@@ -304,4 +305,4 @@ def cli():
     SyncReloader(entry).keep_watching_until_interrupt()
 
 
-__version__ = "0.3.2.2"
+__version__ = "0.3.3"
