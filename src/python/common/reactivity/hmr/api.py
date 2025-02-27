@@ -1,4 +1,11 @@
-from .core import AsyncReloader, SyncReloader
+from .core import AsyncReloader, BaseReloader, SyncReloader
+
+
+def _clean_up(r: BaseReloader):
+    r.run_entry_file.dispose()
+    r.run_entry_file.invalidate()
+    r.entry_module.load.dispose()
+    r.entry_module.load.invalidate()
 
 
 class SyncReloaderAPI(SyncReloader):
@@ -13,10 +20,7 @@ class SyncReloaderAPI(SyncReloader):
     def __exit__(self, *_):
         self.stop_watching()
         self.thread.join()
-        self.run_entry_file.dispose()
-        self.run_entry_file.invalidate()
-        self.entry_module.load.dispose()
-        self.entry_module.load.invalidate()
+        _clean_up(self)
 
     async def __aenter__(self):
         from asyncio import ensure_future, to_thread
@@ -28,10 +32,7 @@ class SyncReloaderAPI(SyncReloader):
     async def __aexit__(self, *_):
         self.stop_watching()
         await self.future
-        self.run_entry_file.dispose()
-        self.run_entry_file.invalidate()
-        self.entry_module.load.dispose()
-        self.entry_module.load.invalidate()
+        _clean_up(self)
 
 
 class AsyncReloaderAPI(AsyncReloader):
@@ -47,10 +48,7 @@ class AsyncReloaderAPI(AsyncReloader):
     def __exit__(self, *_):
         self.stop_watching()
         self.thread.join()
-        self.run_entry_file.dispose()
-        self.run_entry_file.invalidate()
-        self.entry_module.load.dispose()
-        self.entry_module.load.invalidate()
+        _clean_up(self)
 
     async def __aenter__(self):
         from asyncio import ensure_future, to_thread
@@ -62,7 +60,4 @@ class AsyncReloaderAPI(AsyncReloader):
     async def __aexit__(self, *_):
         self.stop_watching()
         await self.future
-        self.run_entry_file.dispose()
-        self.run_entry_file.invalidate()
-        self.entry_module.load.dispose()
-        self.entry_module.load.invalidate()
+        _clean_up(self)
