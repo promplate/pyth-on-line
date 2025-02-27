@@ -190,15 +190,17 @@ class BaseReloader:
         patch_meta_path(includes, excludes)
         self.error_filter = ErrorFilter(*(str(i) for i in Path(__file__, "../..").resolve().glob("**/*.py")))
 
+    @cached_property
+    def entry_module(self):
+        namespace = {"__file__": self.entry, "__name__": "__main__"}
+        return ReactiveModule(Path(self.entry), namespace, "__main__")
+
     @memoized_method
     def run_entry_file(self):
         call_pre_reload_hooks()
 
-        if not isinstance(module := sys.modules["__main__"], ReactiveModule):
-            namespace = {"__file__": self.entry, "__name__": "__main__"}
-            module = sys.modules["__main__"] = ReactiveModule(Path(self.entry), namespace, "__main__")
-        module.load.invalidate()
-        module.load()
+        self.entry_module.load.invalidate()
+        self.entry_module.load()
 
         call_post_reload_hooks()
 
