@@ -19,7 +19,7 @@ class SyncReloaderAPI(SyncReloader):
     async def __aenter__(self):
         from asyncio import ensure_future, to_thread
 
-        self.run_entry_file()
+        await to_thread(self.run_entry_file)
         self.future = ensure_future(to_thread(self.start_watching))
         return super()
 
