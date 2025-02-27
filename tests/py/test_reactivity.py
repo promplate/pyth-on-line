@@ -212,6 +212,39 @@ def test_memo_class_attribute():
     assert r in Rect.get_area.map
 
 
+def test_nested_memo():
+    @create_memo
+    def f():
+        print("f")
+
+    @create_memo
+    def g():
+        f()
+        print("g")
+
+    @create_memo
+    def h():
+        g()
+        print("h")
+
+    with capture_stdout() as stdout:
+        h()
+        assert stdout == "f\ng\nh\n"
+
+    with capture_stdout() as stdout:
+        g.invalidate()
+        assert stdout == ""
+        h()
+        assert stdout == "g\nh\n"
+
+    with capture_stdout() as stdout:
+        f.invalidate()
+        g()
+        assert stdout == "f\ng\n"
+        h()
+        assert stdout == "f\ng\nh\n"
+
+
 def test_batch():
     class Example:
         value = State(0)
