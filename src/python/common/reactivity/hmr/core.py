@@ -9,7 +9,8 @@ from inspect import currentframe
 from pathlib import Path
 from site import getsitepackages
 from types import ModuleType, TracebackType
-from typing import Any
+from typing import Any, Self
+from weakref import WeakValueDictionary
 
 from .. import Reactive, batch, memoized_method
 from .hooks import call_post_reload_hooks, call_pre_reload_hooks
@@ -43,6 +44,8 @@ class NamespaceProxy(Reactive[str, Any]):
 
 
 class ReactiveModule(ModuleType):
+    instances: WeakValueDictionary[Path, Self] = WeakValueDictionary()
+
     def __init__(self, file: Path, namespace: dict, name: str, doc: str | None = None):
         super().__init__(name, doc)
         self.__is_initialized = False
@@ -52,6 +55,8 @@ class ReactiveModule(ModuleType):
         self.__namespace = namespace
         self.__namespace_proxy = NamespaceProxy(namespace)
         self.__file = file
+
+        self.instances[file.resolve()] = self
 
     @property
     def file(self):
@@ -155,7 +160,7 @@ def patch_meta_path(includes: Iterable[str] = (".",), excludes: Iterable[str] = 
 
 
 def get_path_module_map():
-    return {module.file.resolve(): module for module in sys.modules.values() if isinstance(module, ReactiveModule)}
+    return {**ReactiveModule.instances}
 
 
 class ErrorFilter:
@@ -307,4 +312,4 @@ def cli():
     SyncReloader(entry).keep_watching_until_interrupt()
 
 
-__version__ = "0.3.3.1"
+__version__ = "0.3.3.2"

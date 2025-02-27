@@ -1,8 +1,8 @@
-import sys
 from collections import UserDict
 from collections.abc import Callable
 from functools import wraps
-from inspect import getsource
+from inspect import getsource, getsourcefile
+from pathlib import Path
 from types import FunctionType
 
 from .. import create_memo
@@ -28,7 +28,9 @@ def clear_memos():
 
 
 def cache_across_reloads[T](func: Callable[[], T]) -> Callable[[], T]:
-    module = sys.modules[func.__module__]
+    file = getsourcefile(func)
+    assert file is not None
+    module = ReactiveModule.instances[Path(file).resolve()]
 
     if not isinstance(module, ReactiveModule):
         from functools import cache
