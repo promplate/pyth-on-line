@@ -30,9 +30,9 @@ def clear_memos():
 def cache_across_reloads[T](func: Callable[[], T]) -> Callable[[], T]:
     file = getsourcefile(func)
     assert file is not None
-    module = ReactiveModule.instances[Path(file).resolve()]
+    module = ReactiveModule.instances.get(Path(file).resolve())
 
-    if not isinstance(module, ReactiveModule):
+    if module is None:
         from functools import cache
 
         return cache(func)  # type: ignore
