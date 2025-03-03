@@ -3,7 +3,7 @@
   import remarkRehype from "remark-rehype";
   import { unified } from "unified";
 
-  const processor = unified().use(remarkRehype).use(rehypeStringify);
+  const processor = unified().use(remarkRehype, { allowDangerousHtml: true }).use(rehypeStringify, { allowDangerousHtml: true });
 </script>
 
 <script lang="ts">
