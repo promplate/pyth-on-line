@@ -58,7 +58,7 @@
     "vite": "^5.4.14"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^4.3.0",
+    "@antfu/eslint-config": "^4.4.0",
     "@types/mdast": "^4.0.4",
     "@types/turndown": "^5.0.5",
     "@unocss/eslint-config": "^66.0.0",
