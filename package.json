@@ -20,7 +20,7 @@
     "@fontsource-variable/fira-code": "^5.2.5",
     "@fontsource-variable/inter": "^5.2.5",
     "@iconify/json": "^2.2.314",
-    "@neodrag/svelte": "^2.3.1",
+    "@neodrag/svelte": "^2.3.2",
     "@shikijs/monaco": "^3.1.0",
     "@shikijs/rehype": "^3.1.0",
     "@sveltejs/adapter-netlify": "^4.4.2",
