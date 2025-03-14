@@ -91,6 +91,8 @@ class ReactiveModule(ModuleType):
         try:
             return self.__namespace_proxy[name]
         except KeyError as e:
+            if getattr := self.__namespace_proxy.get("__getattr__"):
+                return getattr(name)
             raise AttributeError(*e.args) from e
 
     def __setattr__(self, name: str, value):
@@ -312,4 +314,4 @@ def cli():
     SyncReloader(entry).keep_watching_until_interrupt()
 
 
-__version__ = "0.3.3.3"
+__version__ = "0.3.3.4"

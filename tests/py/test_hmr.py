@@ -36,3 +36,11 @@ async def test_reusing():
             assert stdout == "2\n"
         async with api:
             assert stdout == "2\n2\n"
+
+
+def test_module_getattr():
+    with environment() as stdout:
+        Path("foo.py").write_text("def __getattr__(name): print(name)")
+        Path("main.py").write_text("import foo\nprint(foo.bar)")
+        with SyncReloaderAPI("main.py"):
+            assert stdout == "bar\nNone\n"
