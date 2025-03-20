@@ -30,7 +30,7 @@
     "@unocss/reset": "^66.0.0",
     "bits-ui": "^0.22.0",
     "cheerio": "^1.0.0",
-    "cmdk-sv": "^0.0.18",
+    "cmdk-sv": "^0.0.19",
     "dayjs": "^1.11.13",
     "htmlparser2": "^10.0.0",
     "monaco-editor-core": "^0.52.2",
