@@ -34,7 +34,7 @@
     "dayjs": "^1.11.13",
     "htmlparser2": "^10.0.0",
     "monaco-editor-core": "^0.52.2",
-    "openai": "^4.87.4",
+    "openai": "^4.88.0",
     "paneforge": "^0.0.6",
     "pyodide": "0.27.3",
     "rehype-parse": "^9.0.1",
@@ -64,7 +64,7 @@
     "@unocss/eslint-config": "^66.0.0",
     "eslint": "^9.22.0",
     "eslint-plugin-format": "^1.0.1",
-    "eslint-plugin-svelte": "^3.3.2",
+    "eslint-plugin-svelte": "^3.3.3",
     "svelte-check": "^4.1.5"
   }
 }
