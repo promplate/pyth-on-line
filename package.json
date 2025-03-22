@@ -19,12 +19,12 @@
     "@ethercorps/sveltekit-og": "^3.0.0",
     "@fontsource-variable/fira-code": "^5.2.5",
     "@fontsource-variable/inter": "^5.2.5",
-    "@iconify/json": "^2.2.318",
+    "@iconify/json": "^2.2.319",
     "@neodrag/svelte": "^2.3.2",
     "@shikijs/monaco": "^3.2.1",
     "@shikijs/rehype": "^3.2.1",
     "@sveltejs/adapter-netlify": "^4.4.2",
-    "@sveltejs/kit": "^2.20.1",
+    "@sveltejs/kit": "^2.20.2",
     "@sveltejs/vite-plugin-svelte": "^3.1.2",
     "@unocss/extractor-svelte": "^66.0.0",
     "@unocss/reset": "^66.0.0",
@@ -58,11 +58,11 @@
     "vite": "^5.4.14"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^4.10.1",
+    "@antfu/eslint-config": "^4.10.2",
     "@types/mdast": "^4.0.4",
     "@types/turndown": "^5.0.5",
     "@unocss/eslint-config": "^66.0.0",
-    "eslint": "^9.22.0",
+    "eslint": "^9.23.0",
     "eslint-plugin-format": "^1.0.1",
     "eslint-plugin-svelte": "^3.3.3",
     "svelte-check": "^4.1.5"
