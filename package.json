@@ -64,7 +64,7 @@
     "@unocss/eslint-config": "^66.0.0",
     "eslint": "^9.23.0",
     "eslint-plugin-format": "^1.0.1",
-    "eslint-plugin-svelte": "^3.3.3",
+    "eslint-plugin-svelte": "^3.4.0",
     "svelte-check": "^4.1.5"
   }
 }
