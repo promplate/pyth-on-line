@@ -13,7 +13,7 @@
   },
   "stackblitz": {
     "installDependencies": false,
-    "startCommand": "pnpm i --prod && pnpm dev"
+    "startCommand": "cp package.json p && jq 'del(.devDependencies)' p > package.json && pnpm i && mv p package.json && pnpm dev"
   },
   "dependencies": {
     "@ethercorps/sveltekit-og": "^3.0.0",
