@@ -6,7 +6,7 @@ from operator import call
 @call
 async def install_requirements():
     from micropip import install
-    from micropip._compat import loadedPackages
+    from micropip._compat import loadedPackages  # type: ignore
 
     requirements = []
 

@@ -1,7 +1,7 @@
 from functools import cache
 from sys import modules
 
-from micropip._compat import REPODATA_PACKAGES
+from micropip._compat import REPODATA_PACKAGES  # type: ignore
 from pyodide.code import find_imports
 
 
