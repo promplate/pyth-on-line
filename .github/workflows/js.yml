@@ -17,7 +17,7 @@ jobs:
       - name: Install modules
         run: bun install
       - name: Run ESLint
-        run: bun -b lint
+        run: bun lint
       - name: Run Svelte Check
         run: |
           bun src/lib/utils/generateDeclarations.js
