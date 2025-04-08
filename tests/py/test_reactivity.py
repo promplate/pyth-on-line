@@ -6,7 +6,7 @@ from utils import capture_stdout
 
 from src.python.common.reactivity import Reactive, State, batch, create_effect, create_memo, create_signal, memoized_method, memoized_property
 from src.python.common.reactivity.helpers import MemoizedMethod, MemoizedProperty
-from src.python.common.reactivity.primitives import Signal
+from src.python.common.reactivity.primitives import Derived, Signal
 
 
 def test_initial_value():
@@ -243,6 +243,29 @@ def test_nested_memo():
         assert stdout == "f\ng\n"
         h()
         assert stdout == "f\ng\nh\n"
+
+
+def test_derived():
+    get_s, set_s = create_signal(0)
+
+    @Derived
+    def f():
+        print(get_s())
+        return get_s() + 1
+
+    with capture_stdout() as stdout:
+        assert stdout == ""
+        assert f() == 1
+        assert stdout == "0\n"
+        f()
+        assert stdout == "0\n"
+        set_s(1)
+        assert stdout == "0\n"
+        assert f() == 2
+        assert stdout == "0\n1\n"
+        set_s(1)
+        f()
+        assert stdout == "0\n1\n"
 
 
 def test_batch():

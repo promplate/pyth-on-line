@@ -156,3 +156,42 @@ _batches: list[Batch] = []
 
 def schedule_callbacks(callbacks: Iterable[BaseComputation]):
     _batches[-1].callbacks.update(callbacks)
+
+
+class Derived[T](Subscribable, BaseComputation[T]):
+    UNSET: T = object()  # type: ignore
+
+    def __init__(self, fn: Callable[[], T], check_equality=True):
+        super().__init__()
+        self.fn = fn
+        self._check_equality = check_equality
+        self._value = self.UNSET
+        self._is_stale = True
+
+    def recompute(self):
+        self._before()
+        try:
+            value = self.fn()
+            self._is_stale = False
+            if self._check_equality and value == self._value:
+                return
+            self._value = value
+            self.notify()
+        finally:
+            self._after()
+
+    def __call__(self):
+        self.track()
+        if self._is_stale:
+            self.recompute()
+
+        return self._value
+
+    def trigger(self):
+        self._is_stale = True
+        if _pulled(self):
+            self()
+
+
+def _pulled(sub: Subscribable):
+    return any(isinstance(s, Subscribable) and _pulled(s) for s in sub.subscribers)
