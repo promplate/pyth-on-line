@@ -184,14 +184,12 @@ class Derived[T](Subscribable, BaseComputation[T]):
         for dep in self.dependencies:
             if isinstance(dep, Derived) and dep._is_stale:  # noqa: SLF001
                 dep()
-        if self._is_stale:
-            self.recompute()
 
     def __call__(self):
         self.track()
+        self._ensure_up_to_date()
         if self._is_stale:
             self.recompute()
-        self._ensure_up_to_date()
 
         return self._value
 

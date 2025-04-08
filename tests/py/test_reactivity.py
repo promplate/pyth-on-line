@@ -294,7 +294,7 @@ def test_nested_derived():
         g.invalidate()
         assert stdout == ""
         assert h() == 0
-        assert stdout == "h\ng\n"
+        assert stdout == "g\nh\n"
 
     with capture_stdout() as stdout:
         set_s(1)
