@@ -50,7 +50,7 @@ def cache_across_reloads[T](func: Callable[[], T]) -> Callable[[], T]:
 
     @wraps(func)
     @create_memo
-    def wrapper():
+    def wrapper() -> T:
         return functions[source]()
 
     memos[source] = wrapper
