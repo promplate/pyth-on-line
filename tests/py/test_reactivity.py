@@ -305,7 +305,22 @@ def test_nested_derived():
 
     with capture_stdout() as stdout:
         set_s(2)
+        assert stdout == ""
         assert g() == 1
+        assert stdout == "f\ng\n"
+        assert h() == 0
+        assert stdout == "f\ng\nh\n"
+
+    with capture_stdout() as stdout, create_effect(lambda: print(h())):
+        assert stdout.delta == "0\n"
+        set_s(3)
+        assert stdout.delta == "f\ng\n"
+        set_s(4)
+        assert stdout.delta == "f\ng\nh\n1\n"
+        set_s(5)
+        assert stdout.delta == "f\ng\n"
+        set_s(6)
+        assert stdout.delta == "f\ng\nh\n"
 
 
 def test_batch():

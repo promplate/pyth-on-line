@@ -8,6 +8,14 @@ class StringIOWrapper(UserString, IO[str]):
         self.data += s
         return len(s)
 
+    offset = 0
+
+    @property
+    def delta(self):
+        value = self[self.offset :]
+        self.offset = len(self)
+        return value
+
 
 @contextmanager
 def capture_stdout():
