@@ -1,7 +1,6 @@
 import gc
 from typing import assert_type
 
-import pytest
 from pytest import raises
 from utils import capture_stdout
 
@@ -269,7 +268,6 @@ def test_derived():
         assert stdout == "0\n1\n"
 
 
-@pytest.mark.xfail
 def test_nested_derived():
     get_s, set_s = create_signal(0)
 
