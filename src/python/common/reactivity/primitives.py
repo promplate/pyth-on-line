@@ -192,6 +192,12 @@ class Derived[T](Subscribable, BaseComputation[T]):
         if _pulled(self):
             self()
 
+    def invalidate(self):
+        if not self._is_stale:
+            self._value = self.UNSET
+            self._is_stale = True
+            self.notify()
+
 
 def _pulled(sub: Subscribable):
     return any(isinstance(s, Subscribable) and _pulled(s) for s in sub.subscribers)

@@ -1,6 +1,7 @@
 import gc
 from typing import assert_type
 
+import pytest
 from pytest import raises
 from utils import capture_stdout
 
@@ -266,6 +267,47 @@ def test_derived():
         set_s(1)
         f()
         assert stdout == "0\n1\n"
+
+
+@pytest.mark.xfail
+def test_nested_derived():
+    get_s, set_s = create_signal(0)
+
+    @Derived
+    def f():
+        print("f")
+        return get_s()
+
+    @Derived
+    def g():
+        print("g")
+        return f() // 2
+
+    @Derived
+    def h():
+        print("h")
+        return g() // 2
+
+    with capture_stdout() as stdout:
+        assert h() == 0
+        assert stdout == "h\ng\nf\n"
+
+    with capture_stdout() as stdout:
+        g.invalidate()
+        assert stdout == ""
+        assert h() == 0
+        assert stdout == "h\ng\n"
+
+    with capture_stdout() as stdout:
+        set_s(1)
+        assert f() == 1
+        assert stdout == "f\n"
+        assert g() == 0
+        assert stdout == "f\ng\n"
+
+    with capture_stdout() as stdout:
+        set_s(2)
+        assert g() == 1
 
 
 def test_batch():
