@@ -322,7 +322,7 @@ def test_nested_batch():
 
 
 def test_reactive():
-    obj = Reactive()
+    obj = Reactive[str, int]()
     obj["x"] = obj["y"] = 0
 
     size_history = []
