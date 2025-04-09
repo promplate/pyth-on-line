@@ -569,3 +569,19 @@ def test_effect_with_memo():
         gc.collect()
         assert f() + g() == 2 + 3
         assert stdout == "0\n5\n"
+
+
+def test_memo_as_hard_puller():
+    get_s, set_s = create_signal(0)
+
+    @Derived
+    def f():
+        return get_s() + 1
+
+    @create_memo
+    def g():
+        return f() + 1
+
+    assert g() == 2
+    set_s(2)
+    assert g() == 4

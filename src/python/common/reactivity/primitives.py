@@ -203,4 +203,4 @@ class Derived[T](Subscribable, BaseComputation[T]):
 
 
 def _pulled(sub: Subscribable):
-    return any(isinstance(s, Effect) or (isinstance(s, Derived) and _pulled(s)) for s in sub.subscribers)
+    return any(not isinstance(s, Derived) or _pulled(s) for s in sub.subscribers)
