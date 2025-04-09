@@ -199,10 +199,7 @@ class Derived[T](Subscribable, BaseComputation[T]):
             self()
 
     def invalidate(self):
-        if not self._is_stale:
-            self._value = self.UNSET
-            self._is_stale = True
-            self.notify()
+        self.trigger()
 
 
 def _pulled(sub: Subscribable):
