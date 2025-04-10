@@ -121,7 +121,8 @@ class Reactive[K, V](Subscribable, MutableMapping[K, V]):
 
     def __repr__(self):
         self.track()
-        return repr({k: v.get() for k, v in self._signals.items()})
+        unset = self.UNSET
+        return repr({k: value for k, v in self._signals.items() if (value := v.get()) is not unset})
 
     def items(self):
         self.track()

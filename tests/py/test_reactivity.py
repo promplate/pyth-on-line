@@ -393,6 +393,15 @@ def test_reactive():
     assert size_history == [0, 0, 6]
 
 
+def test_reactive_repr():
+    obj = Reactive()
+
+    with raises(KeyError):
+        obj["x"]
+
+    assert repr(obj) == "{}"
+
+
 def test_error_handling():
     get_s, set_s = create_signal(0)
 
