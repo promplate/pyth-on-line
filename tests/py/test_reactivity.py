@@ -509,6 +509,21 @@ def test_fine_grained_reactivity():
     assert logs_2 == [2, 3]
 
 
+def test_reactive_inside_batch():
+    context = Reactive()
+    logs = []
+
+    @create_effect
+    def _():
+        logs.append({**context})
+
+    with batch():
+        context[1] = 2
+        context[3] = 4
+        assert logs == [{}]
+    assert logs == [{}, {1: 2, 3: 4}]
+
+
 def test_get_without_tracking():
     get_s, set_s = create_signal(0)
 

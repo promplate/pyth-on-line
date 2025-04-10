@@ -99,7 +99,7 @@ class Reactive[K, V](Subscribable, MutableMapping[K, V]):
         return value
 
     def __setitem__(self, key: K, value: V):
-        with Batch():
+        with Batch(force_flush=False):
             self._signals[key].set(value)
             self.notify()
 
@@ -107,7 +107,7 @@ class Reactive[K, V](Subscribable, MutableMapping[K, V]):
         state = self._signals[key]
         if state.get(track=False) is self.UNSET:
             raise KeyError(key)
-        with Batch():
+        with Batch(force_flush=False):
             state.set(self.UNSET)
             self.notify()
 
