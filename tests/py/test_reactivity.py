@@ -609,3 +609,18 @@ def test_memo_as_hard_puller():
     assert g() == 2
     set_s(2)
     assert g() == 4
+
+
+def test_no_notify_on_first_set():
+    get_s, set_s = create_signal(0)
+
+    @Derived
+    def f():
+        return [get_s()]
+
+    with capture_stdout() as stdout, create_effect(lambda: print(f())):
+        assert stdout == "[0]\n"
+        set_s(1)
+        assert stdout == "[0]\n[1]\n"
+        set_s(2)
+        assert stdout == "[0]\n[1]\n[2]\n"

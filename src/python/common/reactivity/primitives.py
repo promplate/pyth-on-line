@@ -173,8 +173,12 @@ class Derived[T](Subscribable, BaseComputation[T]):
         try:
             value = self.fn()
             self._is_stale = False
-            if self._check_equality and value == self._value:
-                return
+            if self._check_equality:
+                if value == self._value:
+                    return
+                elif self._value is self.UNSET:  # do not notify on first set
+                    self._value = value
+                    return
             self._value = value
             self.notify()
         finally:
