@@ -1,6 +1,5 @@
 from collections import defaultdict
 from collections.abc import Callable, Mapping, MutableMapping
-from functools import partial
 from typing import Self, overload
 from weakref import WeakKeyDictionary
 
@@ -54,7 +53,7 @@ class MemoizedProperty[T, I]:
             return self
         if func := self.map.get(instance):
             return func()
-        self.map[instance] = func = Memoized(partial(self.method, instance))
+        self.map[instance] = func = Memoized(self.method.__get__(instance, owner))
         return func()
 
 
@@ -74,7 +73,7 @@ class MemoizedMethod[T, I]:
             return self
         if memo := self.map.get(instance):
             return memo
-        self.map[instance] = memo = Memoized(partial(self.method, instance))
+        self.map[instance] = memo = Memoized(self.method.__get__(instance, owner))
         return memo
 
 

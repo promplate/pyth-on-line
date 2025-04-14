@@ -1,4 +1,5 @@
 import gc
+from inspect import ismethod
 from typing import assert_type
 
 from pytest import raises
@@ -181,6 +182,8 @@ def test_memo_method():
     assert r.get_size() == 6
     assert r.get_size() == 6
     assert r.count == 3
+
+    assert ismethod(r.get_size.fn)
 
 
 def test_memo_class_attribute():
