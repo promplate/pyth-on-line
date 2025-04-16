@@ -158,7 +158,18 @@ def schedule_callbacks(callbacks: Iterable[BaseComputation]):
     _batches[-1].callbacks.update(callbacks)
 
 
-class Derived[T](Subscribable, BaseComputation[T]):
+class BaseDerived[T](Subscribable, BaseComputation[T]):
+    def __init__(self):
+        super().__init__()
+        self.dirty = True
+
+    def _sync_dirty_deps(self):
+        for dep in self.dependencies:
+            if isinstance(dep, BaseDerived) and dep.dirty:
+                dep()
+
+
+class Derived[T](BaseDerived[T]):
     UNSET: T = object()  # type: ignore
 
     def __init__(self, fn: Callable[[], T], check_equality=True):
@@ -166,13 +177,12 @@ class Derived[T](Subscribable, BaseComputation[T]):
         self.fn = fn
         self._check_equality = check_equality
         self._value = self.UNSET
-        self._is_stale = True
 
     def recompute(self):
         self._before()
         try:
             value = self.fn()
-            self._is_stale = False
+            self.dirty = False
             if self._check_equality:
                 if value == self._value:
                     return
@@ -184,21 +194,16 @@ class Derived[T](Subscribable, BaseComputation[T]):
         finally:
             self._after()
 
-    def _ensure_up_to_date(self):
-        for dep in self.dependencies:
-            if isinstance(dep, Derived) and dep._is_stale:  # noqa: SLF001
-                dep()
-
     def __call__(self):
         self.track()
-        self._ensure_up_to_date()
-        if self._is_stale:
+        self._sync_dirty_deps()
+        if self.dirty:
             self.recompute()
 
         return self._value
 
     def trigger(self):
-        self._is_stale = True
+        self.dirty = True
         if _pulled(self):
             self()
 
@@ -207,4 +212,4 @@ class Derived[T](Subscribable, BaseComputation[T]):
 
 
 def _pulled(sub: Subscribable):
-    return any(not isinstance(s, Derived) or _pulled(s) for s in sub.subscribers)
+    return any(not isinstance(s, BaseDerived) or _pulled(s) for s in sub.subscribers)
