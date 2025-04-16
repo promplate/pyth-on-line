@@ -2,8 +2,6 @@ from .core import AsyncReloader, BaseReloader, SyncReloader
 
 
 def _clean_up(r: BaseReloader):
-    r.run_entry_file.dispose()
-    r.run_entry_file.invalidate()
     r.entry_module.load.dispose()
     r.entry_module.load.invalidate()
 

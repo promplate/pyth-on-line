@@ -3,7 +3,7 @@ from collections.abc import Callable, Mapping, MutableMapping
 from typing import Self, overload
 from weakref import WeakKeyDictionary
 
-from .primitives import BaseComputation, Batch, Signal, Subscribable
+from .primitives import BaseComputation, Batch, Derived, Signal, Subscribable
 
 
 class Memoized[T](Subscribable, BaseComputation[T]):
@@ -126,3 +126,45 @@ class Reactive[K, V](Subscribable, MutableMapping[K, V]):
     def items(self):
         self.track()
         return ({k: v.get() for k, v in self._signals.items()}).items()
+
+
+class DerivedProperty[T, I]:
+    def __init__(self, method: Callable[[I], T]):
+        super().__init__()
+        self.method = method
+        self.map = WeakKeyDictionary[I, Derived[T]]()
+
+    @overload
+    def __get__(self, instance: None, owner: type[I]) -> Self: ...
+    @overload
+    def __get__(self, instance: I, owner: type[I]) -> T: ...
+
+    def __get__(self, instance: I | None, owner):
+        if instance is None:
+            return self
+        if func := self.map.get(instance):
+            return func()
+        self.map[instance] = func = Derived(self.method.__get__(instance, owner))
+        return func()
+
+
+class DerivedMethod[T, I]:
+    def __init__(self, method: Callable[[I], T], check_equality=True):
+        super().__init__()
+        self.method = method
+        self.check_equality = check_equality
+        self.map = WeakKeyDictionary[I, Derived[T]]()
+
+    @overload
+    def __get__(self, instance: None, owner: type[I]) -> Self: ...
+    @overload
+    def __get__(self, instance: I, owner: type[I]) -> Derived[T]: ...
+
+    def __get__(self, instance: I | None, owner):
+        if instance is None:
+            return self
+        if func := self.map.get(instance):
+            return func
+
+        self.map[instance] = func = Derived(self.method.__get__(instance, owner), self.check_equality)
+        return func

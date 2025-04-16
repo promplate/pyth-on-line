@@ -5,14 +5,17 @@ from functools import cached_property
 from importlib.abc import Loader, MetaPathFinder
 from importlib.machinery import ModuleSpec
 from importlib.util import spec_from_loader
-from inspect import currentframe
+from inspect import currentframe, ismethod
 from pathlib import Path
 from site import getsitepackages
 from types import ModuleType, TracebackType
 from typing import Any, Self
 from weakref import WeakValueDictionary
 
-from .. import Reactive, batch, memoized_method
+from .. import Reactive, batch
+from ..functional import create_effect
+from ..helpers import DerivedMethod
+from ..primitives import BaseDerived, Derived, Signal
 from .hooks import call_post_reload_hooks, call_pre_reload_hooks
 
 
@@ -29,10 +32,31 @@ def is_called_in_this_file() -> bool:
     return frame.f_globals.get("__file__") == __file__
 
 
+class Name(Signal, BaseDerived):
+    def __init__(self, initial_value):
+        super().__init__(initial_value)
+
+
 class NamespaceProxy(Reactive[str, Any]):
-    def __init__(self, initial: MutableMapping, check_equality=True):
+    def __init__(self, initial: MutableMapping, module: "ReactiveModule", check_equality=True):
         super().__init__(initial, check_equality)
         self._original = initial
+        self.module = module
+
+    def _null(self):
+        self.module.load.subscribers.add(signal := Name(self.UNSET))
+        signal.dependencies.add(self.module.load)
+        return signal
+
+    def __getitem__(self, key: str):
+        try:
+            return super().__getitem__(key)
+        finally:
+            signal = self._signals[key]
+            if self.module.load in signal.subscribers:
+                # a module's loader shouldn't subscribe its variables
+                signal.subscribers.remove(self.module.load)
+                self.module.load.dependencies.remove(signal)
 
     def __setitem__(self, key, value):
         self._original[key] = value
@@ -53,7 +77,7 @@ class ReactiveModule(ModuleType):
         self.__is_initialized = True
 
         self.__namespace = namespace
-        self.__namespace_proxy = NamespaceProxy(namespace)
+        self.__namespace_proxy = NamespaceProxy(namespace, self)
         self.__file = file
 
         self.instances[file.resolve()] = self
@@ -64,7 +88,7 @@ class ReactiveModule(ModuleType):
             return self.__file
         raise AttributeError("file")
 
-    @memoized_method
+    @DerivedMethod
     def __load(self):
         try:
             code = compile(self.__file.read_text("utf-8"), str(self.__file), "exec", dont_inherit=True)
@@ -72,6 +96,13 @@ class ReactiveModule(ModuleType):
             sys.excepthook(type(e), e, e.__traceback__)
         else:
             exec(code, self.__namespace, self.__namespace_proxy)
+        finally:
+            for dep in list((load := self.__load).dependencies):
+                assert ismethod(load.fn)  # for type narrowing
+                if isinstance(dep, Derived) and ismethod(dep.fn) and isinstance(dep.fn.__self__, ReactiveModule) and dep.fn.__func__ is load.fn.__func__:
+                    # unsubscribe it because we want invalidation to be fine-grained
+                    dep.subscribers.remove(load)
+                    load.dependencies.remove(dep)
 
     @property
     def load(self):
@@ -202,14 +233,9 @@ class BaseReloader:
         namespace = {"__file__": self.entry, "__name__": "__main__"}
         return ReactiveModule(Path(self.entry), namespace, "__main__")
 
-    @memoized_method
     def run_entry_file(self):
-        call_pre_reload_hooks()
-
-        self.entry_module.load.invalidate()
-        self.entry_module.load()
-
-        call_post_reload_hooks()
+        with self.error_filter:
+            self.entry_module.load()
 
     @property
     def watch_filter(self):
@@ -224,22 +250,23 @@ class BaseReloader:
             return
 
         path2module = get_path_module_map()
+        staled_modules: set[ReactiveModule] = set()
+
+        call_pre_reload_hooks()
 
         with batch():
             for type, file in events:
                 if type is not Change.deleted:
                     path = Path(file).resolve()
-                    if path.samefile(self.entry):
-                        self.run_entry_file.invalidate()
-                    elif module := path2module.get(path):
-                        module.load.invalidate()
+                    if module := path2module.get(path):
+                        staled_modules.add(module)
 
-            with self.error_filter:
-                for module in path2module.values():
-                    if module.file.samefile(self.entry):
-                        continue
-                    module.load()
-                self.run_entry_file()
+            for module in staled_modules:
+                with self.error_filter:
+                    module.load.invalidate()
+                    module.load()  # because `module.load` is not pulled by anyone
+
+        call_post_reload_hooks()
 
 
 class _SimpleEvent:
@@ -270,11 +297,10 @@ class SyncReloader(BaseReloader):
         del self._stop_event
 
     def keep_watching_until_interrupt(self):
-        with suppress(KeyboardInterrupt):
-            with self.error_filter:
-                self.run_entry_file()
+        call_pre_reload_hooks()
+        with suppress(KeyboardInterrupt), create_effect(self.run_entry_file):
+            call_post_reload_hooks()
             self.start_watching()
-        self.run_entry_file.dispose()
 
 
 class AsyncReloader(BaseReloader):
@@ -296,11 +322,8 @@ class AsyncReloader(BaseReloader):
         del self._stop_event
 
     async def keep_watching_until_interrupt(self):
-        with suppress(KeyboardInterrupt):
-            with self.error_filter:
-                self.run_entry_file()
+        with suppress(KeyboardInterrupt), create_effect(self.run_entry_file):
             await self.start_watching()
-        self.run_entry_file.dispose()
 
 
 def cli():
@@ -314,4 +337,4 @@ def cli():
     SyncReloader(entry).keep_watching_until_interrupt()
 
 
-__version__ = "0.3.3.4"
+__version__ = "0.4.0"
