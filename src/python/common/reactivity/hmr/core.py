@@ -322,7 +322,9 @@ class AsyncReloader(BaseReloader):
         del self._stop_event
 
     async def keep_watching_until_interrupt(self):
+        call_pre_reload_hooks()
         with suppress(KeyboardInterrupt), create_effect(self.run_entry_file):
+            call_post_reload_hooks()
             await self.start_watching()
 
 
@@ -337,4 +339,4 @@ def cli():
     SyncReloader(entry).keep_watching_until_interrupt()
 
 
-__version__ = "0.4.0"
+__version__ = "0.4.0.1"
