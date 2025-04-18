@@ -1,14 +1,15 @@
-from .core import AsyncReloader, BaseReloader, SyncReloader
+from .core import AsyncReloader, BaseReloader, SyncReloader, create_effect
 from .hooks import call_post_reload_hooks, call_pre_reload_hooks
 
 
 class LifecycleMixin(BaseReloader):
     def run_with_hooks(self):
         call_pre_reload_hooks()
-        self.run_entry_file()
+        self.effect = create_effect(self.run_entry_file)
         call_post_reload_hooks()
 
     def clean_up(self):
+        self.effect.dispose()
         self.entry_module.load.dispose()
         self.entry_module.load.invalidate()
 
