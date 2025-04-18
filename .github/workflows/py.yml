@@ -48,7 +48,7 @@ jobs:
           uv pip install -r pyproject.toml -r src/python/common/pyproject.toml
       - name: Run tests
         run: |
-          pytest -v
+          pytest -v --color=yes
   publish-hmr:
     needs: [test, check]
     runs-on: ubuntu-latest
