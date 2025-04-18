@@ -1,4 +1,5 @@
 from .core import AsyncReloader, BaseReloader, SyncReloader
+from .hooks import call_post_reload_hooks, call_pre_reload_hooks
 
 
 def _clean_up(r: BaseReloader):
@@ -6,11 +7,18 @@ def _clean_up(r: BaseReloader):
     r.entry_module.load.invalidate()
 
 
-class SyncReloaderAPI(SyncReloader):
+class ReloadHooksMixin(BaseReloader):
+    def run_with_hooks(self):
+        call_pre_reload_hooks()
+        self.run_entry_file()
+        call_post_reload_hooks()
+
+
+class SyncReloaderAPI(SyncReloader, ReloadHooksMixin):
     def __enter__(self):
         from threading import Thread
 
-        self.run_entry_file()
+        self.run_with_hooks()
         self.thread = Thread(target=self.start_watching)
         self.thread.start()
         return super()
@@ -23,7 +31,7 @@ class SyncReloaderAPI(SyncReloader):
     async def __aenter__(self):
         from asyncio import ensure_future, to_thread
 
-        await to_thread(self.run_entry_file)
+        await to_thread(self.run_with_hooks)
         self.future = ensure_future(to_thread(self.start_watching))
         return super()
 
@@ -33,12 +41,12 @@ class SyncReloaderAPI(SyncReloader):
         _clean_up(self)
 
 
-class AsyncReloaderAPI(AsyncReloader):
+class AsyncReloaderAPI(AsyncReloader, ReloadHooksMixin):
     def __enter__(self):
         from asyncio import run
         from threading import Thread
 
-        self.run_entry_file()
+        self.run_with_hooks()
         self.thread = Thread(target=lambda: run(self.start_watching()))
         self.thread.start()
         return super()
@@ -51,7 +59,7 @@ class AsyncReloaderAPI(AsyncReloader):
     async def __aenter__(self):
         from asyncio import ensure_future, to_thread
 
-        await to_thread(self.run_entry_file)
+        await to_thread(self.run_with_hooks)
         self.future = ensure_future(self.start_watching())
         return super()
 
