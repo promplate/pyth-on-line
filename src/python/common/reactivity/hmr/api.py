@@ -2,19 +2,18 @@ from .core import AsyncReloader, BaseReloader, SyncReloader
 from .hooks import call_post_reload_hooks, call_pre_reload_hooks
 
 
-def _clean_up(r: BaseReloader):
-    r.entry_module.load.dispose()
-    r.entry_module.load.invalidate()
-
-
-class ReloadHooksMixin(BaseReloader):
+class LifecycleMixin(BaseReloader):
     def run_with_hooks(self):
         call_pre_reload_hooks()
         self.run_entry_file()
         call_post_reload_hooks()
 
+    def clean_up(self):
+        self.entry_module.load.dispose()
+        self.entry_module.load.invalidate()
 
-class SyncReloaderAPI(SyncReloader, ReloadHooksMixin):
+
+class SyncReloaderAPI(SyncReloader, LifecycleMixin):
     def __enter__(self):
         from threading import Thread
 
@@ -26,7 +25,7 @@ class SyncReloaderAPI(SyncReloader, ReloadHooksMixin):
     def __exit__(self, *_):
         self.stop_watching()
         self.thread.join()
-        _clean_up(self)
+        self.clean_up()
 
     async def __aenter__(self):
         from asyncio import ensure_future, to_thread
@@ -38,10 +37,10 @@ class SyncReloaderAPI(SyncReloader, ReloadHooksMixin):
     async def __aexit__(self, *_):
         self.stop_watching()
         await self.future
-        _clean_up(self)
+        self.clean_up()
 
 
-class AsyncReloaderAPI(AsyncReloader, ReloadHooksMixin):
+class AsyncReloaderAPI(AsyncReloader, LifecycleMixin):
     def __enter__(self):
         from asyncio import run
         from threading import Thread
@@ -54,7 +53,7 @@ class AsyncReloaderAPI(AsyncReloader, ReloadHooksMixin):
     def __exit__(self, *_):
         self.stop_watching()
         self.thread.join()
-        _clean_up(self)
+        self.clean_up()
 
     async def __aenter__(self):
         from asyncio import ensure_future, to_thread
@@ -66,4 +65,4 @@ class AsyncReloaderAPI(AsyncReloader, ReloadHooksMixin):
     async def __aexit__(self, *_):
         self.stop_watching()
         await self.future
-        _clean_up(self)
+        self.clean_up()
