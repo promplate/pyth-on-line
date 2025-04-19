@@ -29,10 +29,11 @@ class SyncReloaderAPI(SyncReloader, LifecycleMixin):
         self.clean_up()
 
     async def __aenter__(self):
-        from asyncio import ensure_future, to_thread
+        from asyncio import ensure_future, sleep, to_thread
 
         await to_thread(self.run_with_hooks)
         self.future = ensure_future(to_thread(self.start_watching))
+        await sleep(0)
         return super()
 
     async def __aexit__(self, *_):
@@ -44,11 +45,19 @@ class SyncReloaderAPI(SyncReloader, LifecycleMixin):
 class AsyncReloaderAPI(AsyncReloader, LifecycleMixin):
     def __enter__(self):
         from asyncio import run
-        from threading import Thread
+        from threading import Event, Thread
 
         self.run_with_hooks()
-        self.thread = Thread(target=lambda: run(self.start_watching()))
+
+        e = Event()
+
+        async def task():
+            e.set()
+            await self.start_watching()
+
+        self.thread = Thread(target=lambda: run(task()))
         self.thread.start()
+        e.wait()
         return super()
 
     def __exit__(self, *_):
@@ -57,10 +66,11 @@ class AsyncReloaderAPI(AsyncReloader, LifecycleMixin):
         self.clean_up()
 
     async def __aenter__(self):
-        from asyncio import ensure_future, to_thread
+        from asyncio import ensure_future, sleep, to_thread
 
         await to_thread(self.run_with_hooks)
         self.future = ensure_future(self.start_watching())
+        await sleep(0)
         return super()
 
     async def __aexit__(self, *_):
