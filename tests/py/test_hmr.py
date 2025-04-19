@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager, chdir, contextmanager
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
+import pytest
 from utils import capture_stdout
 
 from src.python.common.reactivity.hmr.api import AsyncReloaderAPI, SyncReloaderAPI
@@ -142,3 +143,18 @@ async def test_getattr_no_redundant_trigger():
             async with await_for_tick():
                 foo.write_text("def __getattr__(name): return name * 4")
             assert stdout.delta == "bbbb\n"
+
+
+@pytest.mark.xfail(raises=AssertionError)
+async def test_switch_to_getattr():
+    with environment() as stdout:
+        foo = Path("foo.py")
+        main = Path("main.py")
+        foo.write_text("a = 123\ndef __getattr__(name): return name")
+        main.write_text("from foo import a\nprint(a)")
+        async with AsyncReloaderAPI("main.py"):
+            assert stdout.delta == "123\n"
+
+            async with await_for_tick():
+                foo.write_text("def __getattr__(name): return name")
+            assert stdout.delta == "a\n"
