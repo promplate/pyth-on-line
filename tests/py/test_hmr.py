@@ -3,7 +3,6 @@ from contextlib import chdir, contextmanager
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-import pytest
 from utils import capture_stdout
 
 from src.python.common.reactivity.hmr.api import AsyncReloaderAPI, SyncReloaderAPI
@@ -39,7 +38,6 @@ async def test_reusing():
             assert stdout == "2\n2\n"
 
 
-@pytest.mark.xfail(strict=True)
 def test_module_getattr():
     with environment() as stdout:
         Path("foo.py").write_text("def __getattr__(name): print(name)")

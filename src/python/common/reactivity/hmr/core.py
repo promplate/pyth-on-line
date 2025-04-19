@@ -122,7 +122,8 @@ class ReactiveModule(ModuleType):
         try:
             return self.__namespace_proxy[name]
         except KeyError as e:
-            if getattr := self.__namespace_proxy.get("__getattr__"):
+            caller = currentframe().f_back.f_globals["__name__"]  # type: ignore
+            if caller != "importlib._bootstrap" and (getattr := self.__namespace_proxy.get("__getattr__")):
                 return getattr(name)
             raise AttributeError(*e.args) from e
 
@@ -339,4 +340,4 @@ def cli():
     SyncReloader(entry).keep_watching_until_interrupt()
 
 
-__version__ = "0.4.0.3"
+__version__ = "0.4.0.4"
