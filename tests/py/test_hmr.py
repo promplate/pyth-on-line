@@ -25,17 +25,17 @@ async def test_reusing():
         Path("main.py").write_text("print(1)")
         api = SyncReloaderAPI("main.py")
         with api:
-            assert stdout == "1\n"
+            assert stdout.delta == "1\n"
         async with api:
-            assert stdout == "1\n1\n"
+            assert stdout.delta == "1\n"
 
     with environment() as stdout:
         Path("main.py").write_text("print(2)")
         api = AsyncReloaderAPI("main.py")
         with api:
-            assert stdout == "2\n"
+            assert stdout.delta == "2\n"
         async with api:
-            assert stdout == "2\n2\n"
+            assert stdout.delta == "2\n"
 
 
 def test_module_getattr():
