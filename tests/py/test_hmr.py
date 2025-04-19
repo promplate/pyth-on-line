@@ -116,3 +116,29 @@ async def test_simple_triggering():
             async with await_for_tick():
                 bar.write_text("def baz(): return 2")
             assert stdout.delta == "2\n"
+
+
+async def test_getattr_no_redundant_trigger():
+    with environment() as stdout:
+        foo = Path("foo.py")
+        main = Path("main.py")
+        foo.write_text("a = 123\ndef __getattr__(name): return name")
+        main.write_text("from foo import a\nprint(a)")
+        async with AsyncReloaderAPI("main.py"):
+            assert stdout.delta == "123\n"
+
+            async with await_for_tick():
+                foo.write_text("a = 123\ndef __getattr__(name): return name * 2")
+            assert stdout.delta == ""
+
+            async with await_for_tick():
+                foo.write_text("a = 234")
+            assert stdout.delta == "234\n"
+
+            async with await_for_tick():
+                main.write_text("from foo import b\nprint(b)")
+            assert stdout.delta == "bb\n"
+
+            async with await_for_tick():
+                foo.write_text("def __getattr__(name): return name * 4")
+            assert stdout.delta == "bbbb\n"
