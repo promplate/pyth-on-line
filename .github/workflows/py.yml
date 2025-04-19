@@ -15,7 +15,7 @@ jobs:
           cache-dependency-glob: "**/pyproject.toml"
       - name: Install dependencies
         run: |
-          uv pip install -r pyproject.toml basedpyright isort black -r src/python/common/pyproject.toml
+          uv pip install -r pyproject.toml basedpyright isort black -r src/python/common/pyproject.toml --color always
       - name: Run isort check
         run: |
           python -m isort . --check --diff
@@ -45,7 +45,7 @@ jobs:
           cache-dependency-glob: "**/pyproject.toml"
       - name: Install dependencies
         run: |
-          uv pip install -r pyproject.toml -r src/python/common/pyproject.toml
+          uv pip install -r pyproject.toml -r src/python/common/pyproject.toml --color always
       - name: Run tests
         run: |
           pytest -v --color=yes
