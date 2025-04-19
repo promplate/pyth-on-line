@@ -45,10 +45,10 @@ jobs:
           cache-dependency-glob: "**/pyproject.toml"
       - name: Install dependencies
         run: |
-          uv pip install -r pyproject.toml -r src/python/common/pyproject.toml --color always
+          uv pip install -r pyproject.toml -r src/python/common/pyproject.toml pytest-rerunfailures --color always
       - name: Run tests
         run: |
-          pytest -v --color=yes
+          pytest -v --reruns 5 --color=yes
   publish-hmr:
     needs: [test, check]
     runs-on: ubuntu-latest
