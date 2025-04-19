@@ -103,3 +103,16 @@ def test_module_getattr():
             with wait_for_tick():
                 Path("foo.py").write_text("def __getattr__(name): return name")
             assert stdout.delta == "bar\n"
+
+
+async def test_simple_triggering():
+    with environment() as stdout:
+        foo = Path("foo.py")
+        bar = Path("bar.py")
+        foo.write_text("from bar import baz\nprint(baz())")
+        bar.write_text("def baz(): return 1")
+        async with AsyncReloaderAPI("foo.py"):
+            assert stdout.delta == "1\n"
+            async with await_for_tick():
+                bar.write_text("def baz(): return 2")
+            assert stdout.delta == "2\n"
