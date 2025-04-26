@@ -133,14 +133,13 @@ class ReactiveModule(ModuleType):
 
 
 class ReactiveModuleLoader(Loader):
-    def __init__(self, file: Path, is_package=False):
+    def __init__(self, file: Path):
         super().__init__()
         self._file = file
-        self._is_package = is_package
 
     def create_module(self, spec: ModuleSpec):
         namespace = {"__file__": str(self._file), "__spec__": spec, "__loader__": self, "__name__": spec.name}
-        if self._is_package:
+        if spec.submodule_search_locations is not None:
             assert self._file.name == "__init__.py"
             namespace["__path__"] = [str(self._file.parent)]
         return ReactiveModule(self._file, namespace, spec.name)
@@ -173,7 +172,7 @@ class ReactiveModuleFinder(MetaPathFinder):
                 return spec_from_loader(fullname, ReactiveModuleLoader(file), origin=str(file))
             file = directory / f"{fullname.replace('.', '/')}/__init__.py"
             if self._accept(file) and (paths is None or is_relative_to_any(file, paths)):
-                return spec_from_loader(fullname, ReactiveModuleLoader(file, is_package=True), origin=str(file), is_package=True)
+                return spec_from_loader(fullname, ReactiveModuleLoader(file), origin=str(file), is_package=True)
 
 
 def is_relative_to_any(path: Path, paths: Iterable[str | Path]):
