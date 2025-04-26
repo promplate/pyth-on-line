@@ -96,8 +96,9 @@ class ReactiveModule(ModuleType):
         else:
             exec(code, self.__namespace, self.__namespace_proxy)
         finally:
-            for dep in list((load := self.__load).dependencies):
-                assert ismethod(load.fn)  # for type narrowing
+            load = self.__load
+            assert ismethod(load.fn)  # for type narrowing
+            for dep in list(load.dependencies):
                 if isinstance(dep, Derived) and ismethod(dep.fn) and isinstance(dep.fn.__self__, ReactiveModule) and dep.fn.__func__ is load.fn.__func__:
                     # unsubscribe it because we want invalidation to be fine-grained
                     dep.subscribers.remove(load)
