@@ -33,8 +33,7 @@ def is_called_in_this_file() -> bool:
 
 
 class Name(Signal, BaseDerived):
-    def __init__(self, initial_value):
-        super().__init__(initial_value)
+    pass
 
 
 class NamespaceProxy(Reactive[str, Any]):
@@ -44,7 +43,7 @@ class NamespaceProxy(Reactive[str, Any]):
         self.module = module
 
     def _null(self):
-        self.module.load.subscribers.add(signal := Name(self.UNSET))
+        self.module.load.subscribers.add(signal := Name(self.UNSET, self._check_equality))
         signal.dependencies.add(self.module.load)
         return signal
 
