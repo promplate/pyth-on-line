@@ -106,14 +106,14 @@ class ReactiveModule(ModuleType):
                 elif isinstance(dep, BaseComputation):
                     visited = set()  # cache visited nodes, maybe share cache between iteration too (?)
                     to_visit: set[BaseComputation] = {dep}
-                    while to_visit and (current := to_visit.pop()) not in visited:
-                        visited.add(current)
+                    while to_visit:
+                        visited.add(current := to_visit.pop())
                         if load in current.dependencies:
                             # unsubscribe it to avoid circular dependencies
                             dep.subscribers.remove(load)
                             load.dependencies.remove(dep)
                             break
-                        to_visit.update(i for i in current.dependencies if isinstance(i, BaseComputation))
+                        to_visit.update(i for i in current.dependencies if isinstance(i, BaseComputation) and i not in visited)
 
     @property
     def load(self):
