@@ -15,7 +15,7 @@ from weakref import WeakValueDictionary
 from .. import Reactive, batch
 from ..functional import create_effect
 from ..helpers import DerivedMethod
-from ..primitives import BaseComputation, BaseDerived, Derived, Signal
+from ..primitives import BaseDerived, Derived, Signal
 from .hooks import call_post_reload_hooks, call_pre_reload_hooks
 
 
@@ -103,17 +103,6 @@ class ReactiveModule(ModuleType):
                     # unsubscribe it because we want invalidation to be fine-grained
                     dep.subscribers.remove(load)
                     load.dependencies.remove(dep)
-                elif isinstance(dep, BaseComputation):
-                    visited = set()  # cache visited nodes, maybe share cache between iteration too (?)
-                    to_visit: set[BaseComputation] = {dep}
-                    while to_visit and (current := to_visit.pop()) not in visited:
-                        visited.add(current)
-                        if load in current.dependencies:
-                            # unsubscribe it to avoid circular dependencies
-                            dep.subscribers.remove(load)
-                            load.dependencies.remove(dep)
-                            break
-                        to_visit.update(i for i in current.dependencies if isinstance(i, BaseComputation))
 
     @property
     def load(self):
@@ -349,4 +338,4 @@ def cli():
     SyncReloader(entry).keep_watching_until_interrupt()
 
 
-__version__ = "0.4.2"
+__version__ = "0.4.1.1"
