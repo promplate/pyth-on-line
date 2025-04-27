@@ -112,11 +112,13 @@ class Reactive[K, V](Subscribable, MutableMapping[K, V]):
 
     def __iter__(self):
         self.track()
-        return iter(self._signals)
+        unset = self.UNSET
+        return (key for key, signal in self._signals.items() if signal.get(track=False) is not unset)
 
     def __len__(self):
         self.track()
-        return len(self._signals)
+        unset = self.UNSET
+        return sum(signal.get(track=False) is not unset for signal in self._signals.values())
 
     def __repr__(self):
         self.track()

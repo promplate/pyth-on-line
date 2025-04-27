@@ -2,7 +2,6 @@ import gc
 from inspect import ismethod
 from typing import assert_type
 
-import pytest
 from pytest import raises
 from utils import capture_stdout
 
@@ -397,13 +396,13 @@ def test_reactive():
     assert size_history == [0, 0, 6]
 
 
-@pytest.mark.xfail
 def test_reactive_spread():
     obj = Reactive()
     with raises(KeyError, match="key"):
         obj["key"]
 
     assert {**obj} == {}
+    assert len(obj) == 0
 
 
 def test_reactive_repr():
@@ -474,7 +473,6 @@ def test_exec_inside_reactive_namespace():
         assert stdout == "345\n"
 
 
-@pytest.mark.xfail
 def test_complex_exec():
     namespace = type("", (Reactive, dict), {})()
 
