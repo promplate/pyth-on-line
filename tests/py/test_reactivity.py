@@ -2,6 +2,7 @@ import gc
 from inspect import ismethod
 from typing import assert_type
 
+import pytest
 from pytest import raises
 from utils import capture_stdout
 
@@ -396,6 +397,15 @@ def test_reactive():
     assert size_history == [0, 0, 6]
 
 
+@pytest.mark.xfail
+def test_reactive_spread():
+    obj = Reactive()
+    with raises(KeyError, match="key"):
+        obj["key"]
+
+    assert {**obj} == {}
+
+
 def test_reactive_repr():
     obj = Reactive()
 
@@ -462,6 +472,24 @@ def test_exec_inside_reactive_namespace():
         exec("a = 345", None, context)
         assert context["a"] == 345
         assert stdout == "345\n"
+
+
+@pytest.mark.xfail
+def test_complex_exec():
+    namespace = type("", (Reactive, dict), {})()
+
+    def run(source: str):
+        return exec(source, namespace, namespace)
+
+    with capture_stdout() as stdout:
+        run("a = 1; b = a + 1; print(b)")
+        assert stdout.delta == "2\n"
+        assert {**namespace} == {"a": 1, "b": 2}
+
+        with create_effect(lambda: run("a = 1; b = a + 1; print(b)")):
+            assert stdout.delta == "2\n"
+            namespace["a"] = 2
+            assert stdout.delta == "2\n"
 
 
 def test_equality_checks():
