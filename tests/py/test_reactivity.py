@@ -489,6 +489,11 @@ def test_complex_exec():
             namespace["a"] = 2
             assert stdout.delta == "2\n"
 
+        with create_effect(lambda: run("print(b)")):
+            assert stdout.delta == "2\n"
+            namespace["a"] = 3
+            assert stdout.delta == ""
+
 
 def test_equality_checks():
     get_s, set_s = create_signal(0)
