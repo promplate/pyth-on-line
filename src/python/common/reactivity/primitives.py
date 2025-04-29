@@ -212,4 +212,13 @@ class Derived[T](BaseDerived[T]):
 
 
 def _pulled(sub: Subscribable):
-    return any(not isinstance(s, BaseDerived) or _pulled(s) for s in sub.subscribers)
+    visited = set()
+    to_visit: set[Subscribable] = {sub}
+    while to_visit:
+        visited.add(current := to_visit.pop())
+        for s in current.subscribers:
+            if not isinstance(s, BaseDerived):
+                return True
+            if s not in visited:
+                to_visit.add(s)
+    return False
