@@ -23,8 +23,8 @@
     "@neodrag/svelte": "^2.3.2",
     "@shikijs/monaco": "^3.3.0",
     "@shikijs/rehype": "^3.3.0",
-    "@sveltejs/adapter-netlify": "^5.0.0",
-    "@sveltejs/kit": "^2.20.7",
+    "@sveltejs/adapter-netlify": "^5.0.1",
+    "@sveltejs/kit": "^2.20.8",
     "@sveltejs/vite-plugin-svelte": "^3.1.2",
     "@unocss/extractor-svelte": "^66.0.0",
     "@unocss/reset": "^66.0.0",
@@ -55,7 +55,7 @@
     "unified": "^11.0.5",
     "unocss": "^66.0.0",
     "unzipit": "^1.4.3",
-    "vite": "^5.4.18"
+    "vite": "^5.4.19"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^4.12.0",
