@@ -61,3 +61,7 @@ def cache_across_reloads[T](func: Callable[[], T]) -> Callable[[], T]:
 class DictProxy(UserDict, dict):  # type: ignore
     def __init__(self, data):
         self.data = data
+
+
+def load(module: ReactiveModule):
+    return module.load()

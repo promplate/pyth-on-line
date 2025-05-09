@@ -7,7 +7,9 @@ import pytest
 from utils import capture_stdout
 
 from src.python.common.reactivity.hmr.api import AsyncReloaderAPI, SyncReloaderAPI
+from src.python.common.reactivity.hmr.core import ReactiveModule
 from src.python.common.reactivity.hmr.hooks import use_post_reload
+from src.python.common.reactivity.hmr.utils import load
 
 
 @contextmanager
@@ -165,3 +167,20 @@ def test_private_methods_inaccessible():
         Path("main.py").touch()
         with SyncReloaderAPI("main.py"), pytest.raises(ImportError):
             exec("from main import load")
+
+
+async def test_reload_from_outside():
+    with environment() as stdout:
+        file = Path("main.py")
+        file.write_text("print(123)")
+        module = ReactiveModule(file, {}, "main")
+        assert stdout == ""
+
+        with pytest.raises(AttributeError):
+            module.load()
+
+        load(module)
+        assert stdout.delta == "123\n"
+
+        load(module)
+        assert stdout.delta == ""
