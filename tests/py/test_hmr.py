@@ -160,7 +160,6 @@ async def test_switch_to_getattr():
             assert stdout.delta == "a\n"
 
 
-@pytest.mark.xfail
 def test_private_methods_inaccessible():
     with environment():
         Path("main.py").touch()

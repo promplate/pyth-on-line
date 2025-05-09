@@ -19,17 +19,17 @@ from ..primitives import BaseDerived, Derived, Signal
 from .hooks import call_post_reload_hooks, call_pre_reload_hooks
 
 
-def is_called_in_this_file() -> bool:
+def is_called_internally(*, extra_depth=0) -> bool:
+    """Protect private methods from being called from outside this package."""
+
     frame = currentframe()  # this function
     assert frame is not None
 
-    frame = frame.f_back  # the function calling this function
-    assert frame is not None
+    for _ in range(extra_depth + 2):
+        frame = frame.f_back
+        assert frame is not None
 
-    frame = frame.f_back  # the function calling the function calling this function
-    assert frame is not None
-
-    return frame.f_globals.get("__file__") == __file__
+    return frame.f_globals.get("__package__") == __package__
 
 
 class Name(Signal, BaseDerived):
@@ -83,7 +83,7 @@ class ReactiveModule(ModuleType):
 
     @property
     def file(self):
-        if is_called_in_this_file():
+        if is_called_internally(extra_depth=1):  # + 1 for `__getattribute__`
             return self.__file
         raise AttributeError("file")
 
@@ -106,7 +106,7 @@ class ReactiveModule(ModuleType):
 
     @property
     def load(self):
-        if is_called_in_this_file():
+        if is_called_internally(extra_depth=1):  # + 1 for `__getattribute__`
             return self.__load
         raise AttributeError("load")
 
@@ -127,7 +127,7 @@ class ReactiveModule(ModuleType):
             raise AttributeError(*e.args) from e
 
     def __setattr__(self, name: str, value):
-        if is_called_in_this_file():
+        if is_called_internally():
             return super().__setattr__(name, value)
         self.__namespace_proxy[name] = value
 
