@@ -158,3 +158,11 @@ async def test_switch_to_getattr():
             async with await_for_tick():
                 foo.write_text("def __getattr__(name): return name")
             assert stdout.delta == "a\n"
+
+
+@pytest.mark.xfail
+def test_private_methods_inaccessible():
+    with environment():
+        Path("main.py").touch()
+        with SyncReloaderAPI("main.py"), pytest.raises(ImportError):
+            exec("from main import load")
