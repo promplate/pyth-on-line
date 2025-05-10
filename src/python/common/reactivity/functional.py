@@ -11,7 +11,7 @@ class Getter[T](Protocol):
 
 
 class Setter[T](Protocol):
-    def __call__(self, value: T): ...
+    def __call__(self, value: T) -> bool: ...
 
 
 def create_signal[T](initial_value: T = None, check_equality=True) -> tuple[Getter[T], Setter[T]]:
