@@ -169,7 +169,7 @@ def test_private_methods_inaccessible():
             exec("from main import load")
 
 
-async def test_reload_from_outside():
+def test_reload_from_outside():
     with environment() as stdout:
         file = Path("main.py")
         file.write_text("print(123)")
