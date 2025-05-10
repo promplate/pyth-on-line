@@ -414,6 +414,17 @@ def test_reactive_repr():
     assert repr(obj) == "{}"
 
 
+def test_reactive_lazy_notify():
+    obj = Reactive({1: 2})
+
+    with capture_stdout() as stdout, create_effect(lambda: print(obj)):
+        assert stdout.delta == f"{ {1: 2} }\n"
+        obj[1] = 2
+        assert stdout.delta == ""
+        obj[1] = 3
+        assert stdout.delta == f"{ {1: 3} }\n"
+
+
 def test_error_handling():
     get_s, set_s = create_signal(0)
 

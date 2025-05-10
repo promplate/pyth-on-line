@@ -338,4 +338,4 @@ def cli():
     SyncReloader(entry).keep_watching_until_interrupt()
 
 
-__version__ = "0.5.0"
+__version__ = "0.5.1"

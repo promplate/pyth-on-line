@@ -72,6 +72,8 @@ class Signal[T](Subscribable):
         if not self._check_equality or self._value != value:
             self._value = value
             self.notify()
+            return True
+        return False
 
 
 class State[T](Signal[T]):
