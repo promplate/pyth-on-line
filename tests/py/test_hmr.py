@@ -162,6 +162,29 @@ async def test_switch_to_getattr():
             assert stdout.delta == "a\n"
 
 
+@pytest.mark.xfail(raises=AssertionError)
+def test_simple_circular_dependency():
+    with environment() as stdout:
+        Path("a.py").write_text("print('a')\n\none = 1\n\nfrom b import two\n\nthree = two + 1\n")
+        Path("b.py").write_text("print('b')\n\nfrom a import one\n\ntwo = one + 1\n")
+        Path("c.py").write_text("print('c')\n\nfrom a import three\n\nprint(three)\n")
+
+        with SyncReloaderAPI("c.py"):
+            assert stdout.delta == "c\na\nb\n3\n"  # c -> a -> b
+
+            with wait_for_tick():
+                Path("a.py").write_text("print('a')\n\none = 1\n\nfrom b import two\n\nthree = two + 2\n")
+            assert stdout.delta == "a\nc\n4\n"  # a <- c
+
+            with wait_for_tick():
+                Path("b.py").write_text("print('b')\n\nfrom a import one\n\ntwo = one + 2\n")
+            assert stdout.delta == "b\na\nc\n5\n"  # b <- a <- c
+
+            with wait_for_tick():
+                Path("a.py").write_text("print('a')\n\none = 2\n\nfrom b import two\n\nthree = two + 2\n")
+            assert stdout.delta == "a\nb\nc\n6"  # a <- b <- c
+
+
 def test_private_methods_inaccessible():
     with environment():
         Path("main.py").touch()
