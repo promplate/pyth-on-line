@@ -207,3 +207,10 @@ def test_reload_from_outside():
 
         load(module)
         assert stdout.delta == ""
+
+
+def test_getsourcefile():
+    with environment() as stdout:
+        Path("main.py").write_text("from inspect import getsourcefile\n\nclass Foo: ...\n\nprint(getsourcefile(Foo))")
+        with SyncReloaderAPI("main.py"):
+            assert stdout == "main.py\n"

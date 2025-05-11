@@ -331,11 +331,14 @@ def cli():
     if len(sys.argv) < 2:
         print("\n Usage: hmr <entry file>, just like python <entry file>\n")
         exit(1)
-    entry = sys.argv[-1]
+    sys.argv.pop(0)  # this file itself
+    entry = sys.argv[0]
     if not (path := Path(entry)).is_file():
         raise FileNotFoundError(path.resolve())
     sys.path.insert(0, ".")
-    SyncReloader(entry).keep_watching_until_interrupt()
+    reloader = SyncReloader(entry)
+    sys.modules["__main__"] = reloader.entry_module
+    reloader.keep_watching_until_interrupt()
 
 
-__version__ = "0.5.1"
+__version__ = "0.5.2"
