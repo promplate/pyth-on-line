@@ -4,12 +4,11 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 import pytest
+from reactivity.hmr.api import AsyncReloaderAPI, SyncReloaderAPI
+from reactivity.hmr.core import ReactiveModule
+from reactivity.hmr.hooks import use_post_reload
+from reactivity.hmr.utils import load
 from utils import capture_stdout
-
-from src.python.common.reactivity.hmr.api import AsyncReloaderAPI, SyncReloaderAPI
-from src.python.common.reactivity.hmr.core import ReactiveModule
-from src.python.common.reactivity.hmr.hooks import use_post_reload
-from src.python.common.reactivity.hmr.utils import load
 
 
 @contextmanager

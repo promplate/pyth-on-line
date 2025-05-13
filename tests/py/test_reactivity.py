@@ -3,11 +3,10 @@ from inspect import ismethod
 from typing import assert_type
 
 from pytest import raises
+from reactivity import Reactive, State, batch, create_effect, create_memo, create_signal, memoized_method, memoized_property
+from reactivity.helpers import MemoizedMethod, MemoizedProperty
+from reactivity.primitives import Derived, Signal
 from utils import capture_stdout
-
-from src.python.common.reactivity import Reactive, State, batch, create_effect, create_memo, create_signal, memoized_method, memoized_property
-from src.python.common.reactivity.helpers import MemoizedMethod, MemoizedProperty
-from src.python.common.reactivity.primitives import Derived, Signal
 
 
 def test_initial_value():
@@ -448,7 +447,7 @@ def test_error_handling():
     with raises(ValueError, match="1"):
         set_s(1)
 
-    from src.python.common.reactivity.primitives import _current_computations
+    from reactivity.primitives import _current_computations
 
     assert _current_computations == []
 
