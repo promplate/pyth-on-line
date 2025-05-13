@@ -1,5 +1,6 @@
 [project]
 name = "hmr"
+readme = "README.md"
 dynamic = ["version"]
 requires-python = ">=3.12"
 description = "Hot Module Reload for Python"
