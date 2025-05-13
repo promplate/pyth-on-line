@@ -2,7 +2,7 @@
 
 # HMR for Python
 
-<sup> on-demand · fine-grained · pull-push reactivity </sup>
+<sup> on-demand · fine-grained · push-pull reactivity </sup>
 
 [![PyPI - Version](https://img.shields.io/pypi/v/hmr)](https://pypi.org/project/hmr/)
 [![Supported Python Version](https://img.shields.io/python/required-version-toml?tomlFilePath=https://github.com/promplate/pyth-on-line/raw/refs/heads/reactivity/packages/hmr/pyproject.toml)](https://github.com/promplate/pyth-on-line/blob/reactivity/packages/hmr/pyproject.toml)
