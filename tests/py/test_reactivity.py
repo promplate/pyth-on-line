@@ -679,8 +679,8 @@ def test_equality_check_among_arrays():
         assert stdout.delta == "[[[0 1]]]\n"
         set_arr(np.array([[[0, 1]]]))
         assert stdout.delta == ""
-        set_arr(np.array([[[1, 2]]]))
-        assert stdout.delta == "[[[1 2]]]\n"
+        set_arr(np.array([[[1, 2, 3]]]))
+        assert stdout.delta == "[[[1 2 3]]]\n"
 
 
 def test_equality_check_among_dataframes():
