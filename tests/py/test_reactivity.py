@@ -2,6 +2,8 @@ import gc
 from inspect import ismethod
 from typing import assert_type
 
+import numpy as np
+import pandas as pd
 from pytest import raises
 from reactivity import Reactive, State, batch, create_effect, create_memo, create_signal, memoized_method, memoized_property
 from reactivity.helpers import MemoizedMethod, MemoizedProperty
@@ -671,8 +673,6 @@ def test_no_notify_on_first_set():
 
 
 def test_equality_check_among_arrays():
-    import numpy as np
-
     get_arr, set_arr = create_signal(np.array([[[0, 1]]]))
 
     with capture_stdout() as stdout, create_effect(lambda: print(get_arr())):
@@ -684,8 +684,6 @@ def test_equality_check_among_arrays():
 
 
 def test_equality_check_among_dataframes():
-    import pandas as pd
-
     get_df, set_df = create_signal(pd.DataFrame({"a": [0], "b": [1]}))
     with capture_stdout() as stdout, create_effect(lambda: print(get_df())):
         assert stdout.delta == "   a  b\n0  0  1\n"
