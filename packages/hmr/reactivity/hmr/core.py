@@ -79,7 +79,7 @@ class ReactiveModule(ModuleType):
         self.__namespace_proxy = NamespaceProxy(namespace, self)
         self.__file = file
 
-        self.instances[file.resolve()] = self
+        __class__.instances[file.resolve()] = self
 
     @property
     def file(self):
