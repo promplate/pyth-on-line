@@ -3,6 +3,22 @@ from typing import Any, Self, overload
 from weakref import WeakKeyDictionary, WeakSet
 
 
+def _equal(a, b):
+    if a is b:
+        return True
+    comparison_result = a == b
+    for _ in range(3):  # pandas DataFrame's .all() returns a Series, which is still incompatible :(
+        try:
+            if comparison_result:
+                return True
+        except ValueError as e:
+            if ".all()" in str(e) and hasattr(comparison_result, "all"):  # array-like instances
+                comparison_result = comparison_result.all()
+            else:
+                return False
+    return False
+
+
 class Subscribable:
     def __init__(self):
         super().__init__()
@@ -69,7 +85,7 @@ class Signal[T](Subscribable):
         return self._value
 
     def set(self, value: T):
-        if not self._check_equality or self._value != value:
+        if not self._check_equality or not _equal(self._value, value):
             self._value = value
             self.notify()
             return True
@@ -186,7 +202,7 @@ class Derived[T](BaseDerived[T]):
             value = self.fn()
             self.dirty = False
             if self._check_equality:
-                if value == self._value:
+                if _equal(value, self._value):
                     return
                 elif self._value is self.UNSET:  # do not notify on first set
                     self._value = value

@@ -668,3 +668,28 @@ def test_no_notify_on_first_set():
         assert stdout == "[0]\n[1]\n"
         set_s(2)
         assert stdout == "[0]\n[1]\n[2]\n"
+
+
+def test_equality_check_among_arrays():
+    import numpy as np
+
+    get_arr, set_arr = create_signal(np.array([[[0, 1]]]))
+
+    with capture_stdout() as stdout, create_effect(lambda: print(get_arr())):
+        assert stdout.delta == "[[[0 1]]]\n"
+        set_arr(np.array([[[0, 1]]]))
+        assert stdout.delta == ""
+        set_arr(np.array([[[1, 2]]]))
+        assert stdout.delta == "[[[1 2]]]\n"
+
+
+def test_equality_check_among_dataframes():
+    import pandas as pd
+
+    get_df, set_df = create_signal(pd.DataFrame({"a": [0], "b": [1]}))
+    with capture_stdout() as stdout, create_effect(lambda: print(get_df())):
+        assert stdout.delta == "   a  b\n0  0  1\n"
+        set_df(pd.DataFrame({"a": [0], "b": [1]}))
+        assert stdout.delta == ""
+        set_df(pd.DataFrame({"a": [1], "b": [2]}))
+        assert stdout.delta == "   a  b\n0  1  2\n"
