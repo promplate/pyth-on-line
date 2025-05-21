@@ -271,6 +271,19 @@ def test_derived():
         f()
         assert stdout == "0\n1\n"
 
+    @Derived
+    def g():
+        print(f() + 1)
+        return f() + 1
+
+    with capture_stdout() as stdout:
+        assert g() == 3
+        assert stdout.delta == "3\n"
+        f.invalidate()
+        assert stdout.delta == ""
+        assert g() == 3
+        assert stdout.delta == "1\n"  # only f() recomputed
+
 
 def test_nested_derived():
     get_s, set_s = create_signal(0)
