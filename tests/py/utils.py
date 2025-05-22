@@ -19,5 +19,5 @@ class StringIOWrapper(UserString, IO[str]):
 
 @contextmanager
 def capture_stdout():
-    with redirect_stdout(io := StringIOWrapper("")):
+    with redirect_stdout(io := StringIOWrapper("")):  # type: ignore
         yield io
