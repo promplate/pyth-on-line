@@ -335,10 +335,10 @@ def cli():
     entry = sys.argv[0]
     if not (path := Path(entry)).is_file():
         raise FileNotFoundError(path.resolve())
-    sys.path.insert(0, ".")
+    sys.path.insert(0, str(path.parent.resolve()))
     reloader = SyncReloader(entry)
     sys.modules["__main__"] = reloader.entry_module
     reloader.keep_watching_until_interrupt()
 
 
-__version__ = "0.5.2.3"
+__version__ = "0.5.3"
