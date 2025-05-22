@@ -1,7 +1,9 @@
 import sys
 from contextlib import asynccontextmanager, chdir, contextmanager
+from inspect import getsource
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from textwrap import dedent
 
 import pytest
 from reactivity.hmr.api import AsyncReloaderAPI, SyncReloaderAPI
@@ -223,3 +225,30 @@ def test_getsourcefile():
         Path("main.py").write_text("from inspect import getsourcefile\n\nclass Foo: ...\n\nprint(getsourcefile(Foo))")
         with SyncReloaderAPI("main.py"):
             assert stdout == "main.py\n"
+
+
+@pytest.mark.xfail(raises=AssertionError)
+def test_using_reactivity_under_hmr():
+    with environment() as stdout:
+
+        def simple_test():
+            from reactivity import create_effect, create_signal
+            from utils import capture_stdout
+
+            get_s, set_s = create_signal(0)
+
+            with capture_stdout() as stdout, create_effect(lambda: print(get_s())):
+                assert stdout.delta == "0\n"
+                set_s(1)
+                assert stdout.delta == "1\n"
+
+        simple_test()
+
+        source = f"{dedent(getsource(simple_test))}\n\n{simple_test.__name__}()"
+
+        Path("main.py").write_text(source)
+
+        with SyncReloaderAPI("main.py"), wait_for_tick():
+            Path("main.py").write_text(source)
+
+        assert stdout == "", stdout
