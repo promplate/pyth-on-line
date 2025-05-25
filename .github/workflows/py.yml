@@ -52,6 +52,7 @@ jobs:
   publish-hmr:
     needs: [test, check]
     runs-on: ubuntu-latest
+    if: github.ref_type == 'tag'
     permissions:
       id-token: write
     steps:
