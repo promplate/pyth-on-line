@@ -462,9 +462,9 @@ def test_error_handling():
     with raises(ValueError, match="1"):
         set_s(1)
 
-    from reactivity.primitives import _current_computations
+    from reactivity.context import default_context
 
-    assert _current_computations == []
+    assert default_context.current_computations == []
 
 
 def test_exec_inside_reactive_namespace():

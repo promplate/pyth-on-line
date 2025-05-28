@@ -27,11 +27,12 @@ class Subscribable:
     def __init__(self):
         super().__init__()
         self.subscribers = set[BaseComputation]()
+        self.context = default_context
 
     def track(self):
-        if not _current_computations:
+        if not self.context.current_computations:
             return
-        last = _current_computations[-1]
+        last = self.context.current_computations[-1]
         if last is not self:
             self.subscribers.add(last)
             last.dependencies.add(self)
@@ -48,6 +49,7 @@ class BaseComputation[T]:
     def __init__(self):
         super().__init__()
         self.dependencies = WeakSet[Subscribable]()
+        self.context = default_context
 
     def dispose(self):
         for dep in self.dependencies:
@@ -55,7 +57,7 @@ class BaseComputation[T]:
         self.dependencies.clear()
 
     def _enter(self):
-        return default_context.enter(self)
+        return self.context.enter(self)
 
     def __enter__(self):
         return self
@@ -138,6 +140,7 @@ class Batch:
     def __init__(self, force_flush=True):
         self.callbacks = set[BaseComputation]()
         self.force_flush = force_flush
+        self.context = default_context
 
     def flush(self):
         triggered = set()
@@ -151,17 +154,17 @@ class Batch:
                 triggered.add(computation)
 
     def __enter__(self):
-        _batches.append(self)
+        self.context.batches.append(self)
 
     def __exit__(self, *_):
-        if self.force_flush or len(_batches) == 1:
+        if self.force_flush or len(self.context.batches) == 1:
             try:
                 self.flush()
             finally:
-                last = _batches.pop()
+                last = self.context.batches.pop()
         else:
-            last = _batches.pop()
-            schedule_callbacks(self.callbacks)
+            last = self.context.batches.pop()
+            self.context.schedule_callbacks(self.callbacks)
         assert last is self
 
 
