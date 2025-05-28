@@ -54,13 +54,8 @@ class BaseComputation[T]:
             dep.subscribers.remove(self)
         self.dependencies.clear()
 
-    def _before(self):
-        self.dispose()
-        _current_computations.append(self)
-
-    def _after(self):
-        last = _current_computations.pop()
-        assert last is self  # sanity check
+    def _enter(self):
+        return default_context.enter(self)
 
     def __enter__(self):
         return self
@@ -135,11 +130,8 @@ class Effect[T](BaseComputation[T]):
             self()
 
     def trigger(self):
-        self._before()
-        try:
+        with self._enter():
             return self._fn()
-        finally:
-            self._after()
 
 
 class Batch:
@@ -201,8 +193,7 @@ class Derived[T](BaseDerived[T]):
         self._value = self.UNSET
 
     def recompute(self):
-        self._before()
-        try:
+        with self._enter():
             value = self.fn()
             self.dirty = False
             if self._check_equality:
@@ -213,8 +204,6 @@ class Derived[T](BaseDerived[T]):
                     return
             self._value = value
             self.notify()
-        finally:
-            self._after()
 
     def __call__(self):
         self.track()
