@@ -2,6 +2,8 @@ from collections.abc import Callable, Iterable
 from typing import Any, Self, overload
 from weakref import WeakKeyDictionary, WeakSet
 
+from .context import default_context
+
 
 def _equal(a, b):
     if a is b:
@@ -72,7 +74,7 @@ class BaseComputation[T]:
         return self.trigger()
 
 
-_current_computations: list[BaseComputation] = []
+_current_computations = default_context.current_computations
 
 
 class Signal[T](Subscribable):
@@ -171,7 +173,7 @@ class Batch:
         assert last is self
 
 
-_batches: list[Batch] = []
+_batches = default_context.batches
 
 
 def schedule_callbacks(callbacks: Iterable[BaseComputation]):
