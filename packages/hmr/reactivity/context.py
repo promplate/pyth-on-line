@@ -9,8 +9,8 @@ if TYPE_CHECKING:
 
 
 class Context(NamedTuple):
-    current_computations: list[BaseComputation] = []  # noqa: RUF012
-    batches: list[Batch] = []  # noqa: RUF012
+    current_computations: list[BaseComputation]
+    batches: list[Batch]
 
     def schedule_callbacks(self, callbacks: Iterable[BaseComputation]):
         self.batches[-1].callbacks.update(callbacks)
@@ -26,4 +26,8 @@ class Context(NamedTuple):
             assert last is computation  # sanity check
 
 
-default_context = Context()
+def new_context():
+    return Context([], [])
+
+
+default_context = new_context()
