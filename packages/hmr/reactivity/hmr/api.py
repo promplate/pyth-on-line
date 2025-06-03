@@ -1,6 +1,6 @@
 import sys
 
-from .core import AsyncReloader, BaseReloader, SyncReloader, create_effect
+from .core import HMR_CONTEXT, AsyncReloader, BaseReloader, SyncReloader
 from .hooks import call_post_reload_hooks, call_pre_reload_hooks
 
 
@@ -9,7 +9,7 @@ class LifecycleMixin(BaseReloader):
         self._original_main_module = sys.modules["__main__"]
         sys.modules["__main__"] = self.entry_module
         call_pre_reload_hooks()
-        self.effect = create_effect(self.run_entry_file)
+        self.effect = HMR_CONTEXT.effect(self.run_entry_file)
         call_post_reload_hooks()
 
     def clean_up(self):

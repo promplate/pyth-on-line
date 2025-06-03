@@ -1,7 +1,7 @@
 import sys
 from collections.abc import Iterable, MutableMapping, Sequence
 from contextlib import suppress
-from functools import cached_property
+from functools import cached_property, partial
 from importlib.abc import Loader, MetaPathFinder
 from importlib.machinery import ModuleSpec
 from importlib.util import spec_from_loader
@@ -12,8 +12,8 @@ from types import ModuleType, TracebackType
 from typing import Any, Self
 from weakref import WeakValueDictionary
 
-from .. import Reactive, batch
-from ..functional import create_effect
+from .. import Reactive
+from ..context import new_context
 from ..helpers import DerivedMethod
 from ..primitives import BaseDerived, Derived, Signal
 from .hooks import call_post_reload_hooks, call_pre_reload_hooks
@@ -36,14 +36,17 @@ class Name(Signal, BaseDerived):
     pass
 
 
+HMR_CONTEXT = new_context()
+
+
 class NamespaceProxy(Reactive[str, Any]):
     def __init__(self, initial: MutableMapping, module: "ReactiveModule", check_equality=True):
-        super().__init__(initial, check_equality)
+        super().__init__(initial, check_equality, context=HMR_CONTEXT)
         self._original = initial
         self.module = module
 
     def _null(self):
-        self.module.load.subscribers.add(signal := Name(self.UNSET, self._check_equality))
+        self.module.load.subscribers.add(signal := Name(self.UNSET, self._check_equality, context=HMR_CONTEXT))
         signal.dependencies.add(self.module.load)
         return signal
 
@@ -87,7 +90,7 @@ class ReactiveModule(ModuleType):
             return self.__file
         raise AttributeError("file")
 
-    @DerivedMethod
+    @partial(DerivedMethod, context=HMR_CONTEXT)
     def __load(self):
         try:
             code = compile(self.__file.read_text("utf-8"), str(self.__file), "exec", dont_inherit=True)
@@ -253,7 +256,7 @@ class BaseReloader:
 
         call_pre_reload_hooks()
 
-        with batch():
+        with HMR_CONTEXT.batch():
             for type, file in events:
                 if type is not Change.deleted:
                     path = Path(file).resolve()
@@ -297,7 +300,7 @@ class SyncReloader(BaseReloader):
 
     def keep_watching_until_interrupt(self):
         call_pre_reload_hooks()
-        with suppress(KeyboardInterrupt), create_effect(self.run_entry_file):
+        with suppress(KeyboardInterrupt), HMR_CONTEXT.effect(self.run_entry_file):
             call_post_reload_hooks()
             self.start_watching()
 
@@ -322,7 +325,7 @@ class AsyncReloader(BaseReloader):
 
     async def keep_watching_until_interrupt(self):
         call_pre_reload_hooks()
-        with suppress(KeyboardInterrupt), create_effect(self.run_entry_file):
+        with suppress(KeyboardInterrupt), HMR_CONTEXT.effect(self.run_entry_file):
             call_post_reload_hooks()
             await self.start_watching()
 

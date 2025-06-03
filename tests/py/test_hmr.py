@@ -227,7 +227,6 @@ def test_getsourcefile():
             assert stdout == "main.py\n"
 
 
-@pytest.mark.xfail(raises=AssertionError)
 def test_using_reactivity_under_hmr():
     with environment() as stdout:
 
@@ -246,7 +245,7 @@ def test_using_reactivity_under_hmr():
 
         source = f"{dedent(getsource(simple_test))}\n\n{simple_test.__name__}()"
 
-        Path("main.py").write_text(source)
+        Path("main.py").touch()
 
         with SyncReloaderAPI("main.py"), wait_for_tick():
             Path("main.py").write_text(source)
