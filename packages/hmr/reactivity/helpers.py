@@ -3,12 +3,13 @@ from collections.abc import Callable, Mapping, MutableMapping
 from typing import Self, overload
 from weakref import WeakKeyDictionary
 
+from .context import Context
 from .primitives import BaseComputation, Batch, Derived, Signal, Subscribable
 
 
 class Memoized[T](Subscribable, BaseComputation[T]):
-    def __init__(self, fn: Callable[[], T]):
-        super().__init__()
+    def __init__(self, fn: Callable[[], T], *, context: Context | None = None):
+        super().__init__(context=context)
         self.fn = fn
         self.is_stale = True
         self.cached_value: T
@@ -35,10 +36,11 @@ class Memoized[T](Subscribable, BaseComputation[T]):
 
 
 class MemoizedProperty[T, I]:
-    def __init__(self, method: Callable[[I], T]):
+    def __init__(self, method: Callable[[I], T], *, context: Context | None = None):
         super().__init__()
         self.method = method
         self.map = WeakKeyDictionary[I, Memoized[T]]()
+        self.context = context
 
     @overload
     def __get__(self, instance: None, owner: type[I]) -> Self: ...
@@ -50,15 +52,16 @@ class MemoizedProperty[T, I]:
             return self
         if func := self.map.get(instance):
             return func()
-        self.map[instance] = func = Memoized(self.method.__get__(instance, owner))
+        self.map[instance] = func = Memoized(self.method.__get__(instance, owner), context=self.context)
         return func()
 
 
 class MemoizedMethod[T, I]:
-    def __init__(self, method: Callable[[I], T]):
+    def __init__(self, method: Callable[[I], T], *, context: Context | None = None):
         super().__init__()
         self.method = method
         self.map = WeakKeyDictionary[I, Memoized[T]]()
+        self.context = context
 
     @overload
     def __get__(self, instance: None, owner: type[I]) -> Self: ...
@@ -70,7 +73,7 @@ class MemoizedMethod[T, I]:
             return self
         if memo := self.map.get(instance):
             return memo
-        self.map[instance] = memo = Memoized(self.method.__get__(instance, owner))
+        self.map[instance] = memo = Memoized(self.method.__get__(instance, owner), context=self.context)
         return memo
 
 
@@ -83,9 +86,9 @@ class Reactive[K, V](Subscribable, MutableMapping[K, V]):
     def _null(self):
         return Signal(self.UNSET, self._check_equality)
 
-    def __init__(self, initial: Mapping[K, V] | None = None, check_equality=True):
-        super().__init__()
-        self._signals = defaultdict[K, Signal[V]](self._null) if initial is None else defaultdict(self._null, {k: Signal(v, check_equality) for k, v in initial.items()})
+    def __init__(self, initial: Mapping[K, V] | None = None, check_equality=True, *, context: Context | None = None):
+        super().__init__(context=context)
+        self._signals = defaultdict[K, Signal[V]](self._null) if initial is None else defaultdict(self._null, {k: Signal(v, check_equality, context=context) for k, v in initial.items()})
         self._check_equality = check_equality
 
     def __getitem__(self, key: K):
@@ -95,7 +98,7 @@ class Reactive[K, V](Subscribable, MutableMapping[K, V]):
         return value
 
     def __setitem__(self, key: K, value: V):
-        with Batch(force_flush=False):
+        with Batch(force_flush=False, context=self.context):
             if self._signals[key].set(value):
                 self.notify()
 
@@ -103,7 +106,7 @@ class Reactive[K, V](Subscribable, MutableMapping[K, V]):
         state = self._signals[key]
         if state.get(track=False) is self.UNSET:
             raise KeyError(key)
-        with Batch(force_flush=False):
+        with Batch(force_flush=False, context=self.context):
             state.set(self.UNSET)
             self.notify()
 
@@ -128,10 +131,11 @@ class Reactive[K, V](Subscribable, MutableMapping[K, V]):
 
 
 class DerivedProperty[T, I]:
-    def __init__(self, method: Callable[[I], T]):
+    def __init__(self, method: Callable[[I], T], *, context: Context | None = None):
         super().__init__()
         self.method = method
         self.map = WeakKeyDictionary[I, Derived[T]]()
+        self.context = context
 
     @overload
     def __get__(self, instance: None, owner: type[I]) -> Self: ...
@@ -143,16 +147,17 @@ class DerivedProperty[T, I]:
             return self
         if func := self.map.get(instance):
             return func()
-        self.map[instance] = func = Derived(self.method.__get__(instance, owner))
+        self.map[instance] = func = Derived(self.method.__get__(instance, owner), context=self.context)
         return func()
 
 
 class DerivedMethod[T, I]:
-    def __init__(self, method: Callable[[I], T], check_equality=True):
+    def __init__(self, method: Callable[[I], T], check_equality=True, *, context: Context | None = None):
         super().__init__()
         self.method = method
         self.check_equality = check_equality
         self.map = WeakKeyDictionary[I, Derived[T]]()
+        self.context = context
 
     @overload
     def __get__(self, instance: None, owner: type[I]) -> Self: ...
@@ -165,5 +170,5 @@ class DerivedMethod[T, I]:
         if func := self.map.get(instance):
             return func
 
-        self.map[instance] = func = Derived(self.method.__get__(instance, owner), self.check_equality)
+        self.map[instance] = func = Derived(self.method.__get__(instance, owner), self.check_equality, context=self.context)
         return func

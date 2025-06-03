@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from contextlib import contextmanager
+from functools import partial
 from typing import TYPE_CHECKING, NamedTuple
 
 if TYPE_CHECKING:
@@ -24,6 +25,24 @@ class Context(NamedTuple):
         finally:
             last = self.current_computations.pop()
             assert last is computation  # sanity check
+
+    @property
+    def batch(self):
+        from .primitives import Batch
+
+        return partial(Batch, context=self)
+
+    @property
+    def signal(self):
+        from .primitives import Signal
+
+        return partial(Signal, context=self)
+
+    @property
+    def effect(self):
+        from .primitives import Effect
+
+        return partial(Effect, context=self)
 
 
 def new_context():

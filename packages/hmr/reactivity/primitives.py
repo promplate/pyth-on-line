@@ -1,8 +1,8 @@
-from collections.abc import Callable, Iterable
+from collections.abc import Callable
 from typing import Any, Self, overload
 from weakref import WeakKeyDictionary, WeakSet
 
-from .context import default_context
+from .context import Context, default_context
 
 
 def _equal(a, b):
@@ -24,10 +24,10 @@ def _equal(a, b):
 
 
 class Subscribable:
-    def __init__(self):
+    def __init__(self, *, context: Context | None = None):
         super().__init__()
         self.subscribers = set[BaseComputation]()
-        self.context = default_context
+        self.context = context or default_context
 
     def track(self):
         if not self.context.current_computations:
@@ -38,18 +38,18 @@ class Subscribable:
             last.dependencies.add(self)
 
     def notify(self):
-        if _batches:
-            schedule_callbacks(self.subscribers)
+        if self.context.batches:
+            self.context.schedule_callbacks(self.subscribers)
         else:
-            with Batch(force_flush=False):
-                schedule_callbacks(self.subscribers)
+            with Batch(force_flush=False, context=self.context):
+                self.context.schedule_callbacks(self.subscribers)
 
 
 class BaseComputation[T]:
-    def __init__(self):
+    def __init__(self, *, context: Context | None = None):
         super().__init__()
         self.dependencies = WeakSet[Subscribable]()
-        self.context = default_context
+        self.context = context or default_context
 
     def dispose(self):
         for dep in self.dependencies:
@@ -71,12 +71,9 @@ class BaseComputation[T]:
         return self.trigger()
 
 
-_current_computations = default_context.current_computations
-
-
 class Signal[T](Subscribable):
-    def __init__(self, initial_value: T = None, check_equality=True):
-        super().__init__()
+    def __init__(self, initial_value: T = None, check_equality=True, *, context: Context | None = None):
+        super().__init__(context=context)
         self._value: T = initial_value
         self._check_equality = check_equality
 
@@ -94,8 +91,8 @@ class Signal[T](Subscribable):
 
 
 class State[T](Signal[T]):
-    def __init__(self, initial_value: T = None, check_equality=True):
-        super().__init__(initial_value, check_equality)
+    def __init__(self, initial_value: T = None, check_equality=True, *, context: Context | None = None):
+        super().__init__(initial_value, check_equality, context=context)
         self._value = initial_value
         self._check_equality = check_equality
         self.map = WeakKeyDictionary[Any, Signal[T]]()
@@ -111,20 +108,20 @@ class State[T](Signal[T]):
         try:
             return self.map[instance].get()
         except KeyError:
-            self.map[instance] = state = Signal(self._value, self._check_equality)
+            self.map[instance] = state = Signal(self._value, self._check_equality, context=self.context)
             return state.get()
 
     def __set__(self, instance, value: T):
         try:
             state = self.map[instance]
         except KeyError:
-            self.map[instance] = state = Signal(self._value, self._check_equality)
+            self.map[instance] = state = Signal(self._value, self._check_equality, context=self.context)
         state.set(value)
 
 
 class Effect[T](BaseComputation[T]):
-    def __init__(self, fn: Callable[[], T], call_immediately=True):
-        super().__init__()
+    def __init__(self, fn: Callable[[], T], call_immediately=True, *, context: Context | None = None):
+        super().__init__(context=context)
 
         self._fn = fn
 
@@ -137,10 +134,10 @@ class Effect[T](BaseComputation[T]):
 
 
 class Batch:
-    def __init__(self, force_flush=True):
+    def __init__(self, force_flush=True, *, context: Context | None = None):
         self.callbacks = set[BaseComputation]()
         self.force_flush = force_flush
-        self.context = default_context
+        self.context = context or default_context
 
     def flush(self):
         triggered = set()
@@ -168,16 +165,9 @@ class Batch:
         assert last is self
 
 
-_batches = default_context.batches
-
-
-def schedule_callbacks(callbacks: Iterable[BaseComputation]):
-    _batches[-1].callbacks.update(callbacks)
-
-
 class BaseDerived[T](Subscribable, BaseComputation[T]):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *, context: Context | None = None):
+        super().__init__(context=context)
         self.dirty = True
 
     def _sync_dirty_deps(self):
@@ -189,8 +179,8 @@ class BaseDerived[T](Subscribable, BaseComputation[T]):
 class Derived[T](BaseDerived[T]):
     UNSET: T = object()  # type: ignore
 
-    def __init__(self, fn: Callable[[], T], check_equality=True):
-        super().__init__()
+    def __init__(self, fn: Callable[[], T], check_equality=True, *, context: Context | None = None):
+        super().__init__(context=context)
         self.fn = fn
         self._check_equality = check_equality
         self._value = self.UNSET

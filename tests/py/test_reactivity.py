@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 from pytest import raises
 from reactivity import Reactive, State, batch, create_effect, create_memo, create_signal, memoized_method, memoized_property
+from reactivity.context import new_context
 from reactivity.helpers import MemoizedMethod, MemoizedProperty
 from reactivity.primitives import Derived, Signal
 from utils import capture_stdout
@@ -704,3 +705,25 @@ def test_equality_check_among_dataframes():
         assert stdout.delta == ""
         set_df(pd.DataFrame({"a": [1], "b": [2]}))
         assert stdout.delta == "   a  b\n0  1  2\n"
+
+
+def test_context():
+    a = new_context()
+    b = new_context()
+
+    class Rect:
+        x = State(1, context=a)
+        y = State(2, context=b)
+
+        @property
+        def size(self):
+            return self.x * self.y
+
+    r = Rect()
+
+    with capture_stdout() as stdout, a.effect(lambda: print(f"a{r.size}"), context=a), b.effect(lambda: print(f"b{r.size}"), context=b):
+        assert stdout.delta == "a2\nb2\n"
+        r.x = 3
+        assert stdout.delta == "a6\n"
+        r.y = 4
+        assert stdout.delta == "b12\n"
