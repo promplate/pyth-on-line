@@ -427,6 +427,7 @@ def test_reactive_repr():
         obj["x"]
 
     assert repr(obj) == "{}"
+    assert [*obj.items()] == []
 
 
 def test_reactive_lazy_notify():

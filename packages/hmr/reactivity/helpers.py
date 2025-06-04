@@ -127,7 +127,8 @@ class Reactive[K, V](Subscribable, MutableMapping[K, V]):
 
     def items(self):
         self.track()
-        return ({k: v.get() for k, v in self._signals.items()}).items()
+        unset = self.UNSET
+        return ({k: v for k, signal in self._signals.items() if (v := signal.get()) is not unset}).items()
 
 
 class DerivedProperty[T, I]:
