@@ -9,6 +9,6 @@
 
 <HeadlessNotebook let:pyNotebook>
   <WithMarkdown let:parse>
-    <Router node={parse(text)} {OverrideCode} codeProps={{ pyNotebook }} inlineCodeProps={{ inspect: pyNotebook?.inspect }} />
+    <Router node={parse(text)} {OverrideCode} codeProps={{ pyNotebook }} inlineCodeProps={{ watch: pyNotebook?.watch }} />
   </WithMarkdown>
 </HeadlessNotebook>
