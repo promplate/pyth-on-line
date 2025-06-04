@@ -455,6 +455,19 @@ def test_reactive_lazy_notify():
         assert stdout.delta == f"{ {1: 3} }\n"
 
 
+def test_fine_grained_reactive():
+    obj = Reactive({1: 2, 3: 4})
+
+    a, b, c = [], [], []
+
+    with create_effect(lambda: a.append(obj[1])), create_effect(lambda: b.append(list(obj))), create_effect(lambda: c.append(str(obj))):
+        obj[1] = 20
+
+    assert a == [2, 20]
+    assert b == [[1, 3]]
+    assert c == [str({1: 2, 3: 4}), str({1: 20, 3: 4})]
+
+
 def test_error_handling():
     get_s, set_s = create_signal(0)
 

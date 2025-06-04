@@ -99,7 +99,9 @@ class Reactive[K, V](Subscribable, MutableMapping[K, V]):
 
     def __setitem__(self, key: K, value: V):
         with Batch(force_flush=False, context=self.context):
-            if self._signals[key].set(value):
+            old_value = self._signals[key].get(track=False)
+            self._signals[key].set(value)
+            if old_value is self.UNSET:
                 self.notify()
 
     def __delitem__(self, key: K):
