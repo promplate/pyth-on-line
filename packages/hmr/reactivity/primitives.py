@@ -34,8 +34,9 @@ class Subscribable:
             return
         last = self.context.current_computations[-1]
         if last is not self:
-            self.subscribers.add(last)
-            last.dependencies.add(self)
+            with self.context.untrack():
+                self.subscribers.add(last)
+                last.dependencies.add(self)
 
     def notify(self):
         if self.context.batches:

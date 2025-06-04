@@ -38,6 +38,15 @@ class Context(NamedTuple):
     def effect(self):
         return partial(Effect, context=self)
 
+    @contextmanager
+    def untrack(self):
+        computations = self.current_computations[:]
+        self.current_computations.clear()
+        try:
+            yield
+        finally:
+            self.current_computations[:] = computations
+
 
 def new_context():
     return Context([], [])
