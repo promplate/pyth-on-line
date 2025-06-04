@@ -4,6 +4,7 @@ from typing import assert_type
 
 import numpy as np
 import pandas as pd
+import pytest
 from pytest import raises
 from reactivity import Reactive, State, batch, create_effect, create_memo, create_signal, memoized_method, memoized_property
 from reactivity.context import new_context
@@ -418,6 +419,21 @@ def test_reactive_spread():
 
     assert {**obj} == {}
     assert len(obj) == 0
+
+
+@pytest.mark.xfail(raises=RecursionError, strict=True)
+def test_reactive_as_signal():
+    obj = Reactive()
+
+    with create_effect(lambda: [*obj]):
+        """
+
+        Evaluating `list(obj)` or `[*obj]` will invoke `__iter__` and `__len__` (I don't know why)
+        Both methods internally call `track()`
+        Inside `track()`, `last.dependencies.add(self)` tries to add the Reactive object to a weak set
+        This ends up calling `__eq__`, which in turn calls `items()`, leading to infinite recursion
+
+        """
 
 
 def test_reactive_repr():
