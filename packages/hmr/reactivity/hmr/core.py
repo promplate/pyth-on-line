@@ -127,7 +127,7 @@ class ReactiveModule(ModuleType):
         except KeyError as e:
             if name != "__path__" and (getattr := self.__namespace_proxy.get("__getattr__")):
                 return getattr(name)
-            raise AttributeError(*e.args) from e
+            raise AttributeError(*e.args) from None
 
     def __setattr__(self, name: str, value):
         if is_called_internally():
@@ -344,4 +344,4 @@ def cli():
     reloader.keep_watching_until_interrupt()
 
 
-__version__ = "0.6.1"
+__version__ = "0.6.1.1"
