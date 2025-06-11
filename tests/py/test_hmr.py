@@ -253,7 +253,6 @@ def test_using_reactivity_under_hmr():
         assert stdout == "", stdout
 
 
-@pytest.mark.xfail(raises=AssertionError)
 def test_cache_across_reloads():
     with environment() as stdout:
         file = Path("main.py")

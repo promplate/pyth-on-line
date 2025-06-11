@@ -5,8 +5,8 @@ from inspect import getsource, getsourcefile
 from pathlib import Path
 from types import FunctionType
 
-from .. import create_memo
-from .core import NamespaceProxy, ReactiveModule
+from ..helpers import Memoized
+from .core import HMR_CONTEXT, NamespaceProxy, ReactiveModule
 from .hooks import post_reload, pre_reload
 
 memos: dict[str, Callable] = {}
@@ -48,14 +48,12 @@ def cache_across_reloads[T](func: Callable[[], T]) -> Callable[[], T]:
     if source in memos and source in functions_last:
         return memos[source]
 
-    @wraps(func)
-    @create_memo
     def wrapper() -> T:
         return functions[source]()
 
-    memos[source] = wrapper
+    memos[source] = memo = Memoized(wrapper, context=HMR_CONTEXT)
 
-    return wrapper
+    return wraps(func)(memo)
 
 
 class DictProxy(UserDict, dict):  # type: ignore

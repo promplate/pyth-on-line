@@ -344,4 +344,4 @@ def cli():
     reloader.keep_watching_until_interrupt()
 
 
-__version__ = "0.6.1.2"
+__version__ = "0.6.1.3"
