@@ -46,7 +46,7 @@ class NamespaceProxy(Reactive[str, Any]):
         self.module = module
 
     def _null(self):
-        self.module.load.subscribers.add(signal := Name(self.UNSET, self._check_equality, context=HMR_CONTEXT))
+        self.module.load.subscribers.add(signal := Name(self.UNSET, self._check_equality, context=self.context))
         signal.dependencies.add(self.module.load)
         return signal
 
@@ -344,4 +344,4 @@ def cli():
     reloader.keep_watching_until_interrupt()
 
 
-__version__ = "0.6.1.1"
+__version__ = "0.6.1.2"
