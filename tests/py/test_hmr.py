@@ -251,3 +251,40 @@ def test_using_reactivity_under_hmr():
             Path("main.py").write_text(source)
 
         assert stdout == "", stdout
+
+
+@pytest.mark.xfail(raises=AssertionError)
+def test_cache_across_reloads():
+    with environment() as stdout:
+        file = Path("main.py")
+        file.write_text(
+            source := dedent(
+                """
+
+        from reactivity.hmr import cache_across_reloads
+
+        a = 1
+
+        @cache_across_reloads
+        def f():
+            print(a + 1)
+
+        f()
+
+            """
+            )
+        )
+
+        Path("main.py").write_text(source)
+
+        with SyncReloaderAPI("main.py"):
+            assert stdout.delta == "2\n"
+            with wait_for_tick():
+                Path("main.py").write_text(source)
+            assert stdout.delta == ""
+            with wait_for_tick():
+                Path("main.py").write_text(source := source.replace("a = 1", "a = 2"))
+            assert stdout.delta == "3\n"
+            with wait_for_tick():
+                Path("main.py").write_text(source := source.replace("a + 1", "a + 2"))
+            assert stdout.delta == "4\n"
