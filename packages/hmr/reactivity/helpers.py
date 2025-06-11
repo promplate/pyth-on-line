@@ -84,7 +84,7 @@ class Reactive[K, V](Subscribable, MutableMapping[K, V]):
         return id(self)
 
     def _null(self):
-        return Signal(self.UNSET, self._check_equality)
+        return Signal(self.UNSET, self._check_equality, context=self.context)
 
     def __init__(self, initial: Mapping[K, V] | None = None, check_equality=True, *, context: Context | None = None):
         super().__init__(context=context)
