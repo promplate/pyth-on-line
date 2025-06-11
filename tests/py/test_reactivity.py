@@ -755,3 +755,21 @@ def test_context():
         assert stdout.delta == "a6\n"
         r.y = 4
         assert stdout.delta == "b12\n"
+
+
+def test_context_usage_with_reactive_namespace():
+    c = new_context()
+    dct = Reactive(context=c)
+
+    with capture_stdout() as stdout:
+
+        @c.effect
+        def _():
+            try:
+                print(dct[1])
+            except KeyError:
+                print()
+
+        assert stdout.delta == "\n"
+        dct[1] = 2
+        assert stdout.delta == "2\n"
