@@ -1,4 +1,3 @@
-import gc
 from inspect import ismethod
 from typing import assert_type
 
@@ -8,7 +7,7 @@ from pytest import raises
 from reactivity import Reactive, State, batch, create_effect, create_memo, create_signal, memoized_method, memoized_property
 from reactivity.context import new_context
 from reactivity.helpers import MemoizedMethod, MemoizedProperty
-from reactivity.primitives import Derived, Signal
+from reactivity.primitives import Derived, Effect, Signal
 from utils import capture_stdout
 
 
@@ -37,7 +36,6 @@ def test_state_notify():
     assert s == 1
 
     del _
-    gc.collect()
 
     set_s(2)
     assert s == 2
@@ -108,6 +106,28 @@ def test_state_class_attribute():
         assert results == [0]
         B.s2.set(1)
         assert results == [0, 1]
+
+
+def test_gc():
+    class E(Effect):
+        def __del__(self):
+            print("E")
+
+    class S(Signal):
+        def __del__(self):
+            print("S")
+
+    with capture_stdout() as stdout:
+        s = S(0)
+
+        with E(lambda: print(s.get())):  # noqa: F821
+            assert stdout.delta == "0\n"
+        assert stdout.delta == "E\n"
+
+        E(lambda: print(s.get()))  # noqa: F821
+        assert stdout.delta == "0\n"
+        del s
+        assert stdout.delta == "S\nE\n"
 
 
 def test_memo():
@@ -678,7 +698,6 @@ def test_effect_with_memo():
     with capture_stdout() as stdout, create_effect(lambda: print(f() + g())):
         assert stdout == "0\n"
         set_s(1)
-        gc.collect()
         assert f() + g() == 2 + 3
         assert stdout == "0\n5\n"
 
