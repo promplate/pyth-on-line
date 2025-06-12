@@ -17,7 +17,7 @@ class ReactiveNamespace(Reactive, dict): ...
 
 class NotebookAPI:
     def __init__(self):
-        self.builtins = builtins.__dict__.copy()
+        self.builtins = ReactiveNamespace(builtins.__dict__)
         self.context = ReactiveNamespace({"__builtins__": self.builtins, "__name__": "__main__", "__doc__": None, "__package__": None, "__loader__": None, "__spec__": None})
         self.counter = count(1)
 
