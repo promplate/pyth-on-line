@@ -9,14 +9,14 @@ from inspect import currentframe, ismethod
 from pathlib import Path
 from site import getsitepackages
 from types import ModuleType, TracebackType
-from typing import Any, Self
+from typing import Self
 from weakref import WeakValueDictionary
 
-from .. import Reactive
-from ..context import new_context
+from ..context import Context, new_context
 from ..helpers import DerivedMethod
 from ..primitives import BaseDerived, Derived, Signal
 from .hooks import call_post_reload_hooks, call_pre_reload_hooks
+from .proxy import Proxy
 
 
 def is_called_internally(*, extra_depth=0) -> bool:
@@ -39,10 +39,9 @@ class Name(Signal, BaseDerived):
 HMR_CONTEXT = new_context()
 
 
-class NamespaceProxy(Reactive[str, Any]):
-    def __init__(self, initial: MutableMapping, module: "ReactiveModule", check_equality=True):
-        super().__init__(initial, check_equality, context=HMR_CONTEXT)
-        self._original = initial
+class NamespaceProxy(Proxy):
+    def __init__(self, initial: MutableMapping, module: "ReactiveModule", check_equality=True, *, context: Context | None = None):
+        super().__init__(initial, check_equality, context=context)
         self.module = module
 
     def _null(self):
@@ -50,7 +49,7 @@ class NamespaceProxy(Reactive[str, Any]):
         signal.dependencies.add(self.module.load)
         return signal
 
-    def __getitem__(self, key: str):
+    def __getitem__(self, key):
         try:
             return super().__getitem__(key)
         finally:
@@ -59,14 +58,6 @@ class NamespaceProxy(Reactive[str, Any]):
                 # a module's loader shouldn't subscribe its variables
                 signal.subscribers.remove(self.module.load)
                 self.module.load.dependencies.remove(signal)
-
-    def __setitem__(self, key, value):
-        self._original[key] = value
-        return super().__setitem__(key, value)
-
-    def __delitem__(self, key):
-        del self._original[key]
-        return super().__delitem__(key)
 
 
 class ReactiveModule(ModuleType):
@@ -79,7 +70,7 @@ class ReactiveModule(ModuleType):
         self.__is_initialized = True
 
         self.__namespace = namespace
-        self.__namespace_proxy = NamespaceProxy(namespace, self)
+        self.__namespace_proxy = NamespaceProxy(namespace, self, context=HMR_CONTEXT)
         self.__file = file
 
         __class__.instances[file.resolve()] = self
@@ -344,4 +335,4 @@ def cli():
     reloader.keep_watching_until_interrupt()
 
 
-__version__ = "0.6.1.3"
+__version__ = "0.6.2"
