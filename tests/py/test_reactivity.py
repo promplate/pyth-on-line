@@ -7,6 +7,7 @@ from pytest import raises
 from reactivity import Reactive, State, batch, create_effect, create_memo, create_signal, memoized_method, memoized_property
 from reactivity.context import new_context
 from reactivity.helpers import MemoizedMethod, MemoizedProperty
+from reactivity.hmr.proxy import Proxy
 from reactivity.primitives import Derived, Effect, Signal
 from utils import capture_stdout
 
@@ -792,3 +793,13 @@ def test_context_usage_with_reactive_namespace():
         assert stdout.delta == "\n"
         dct[1] = 2
         assert stdout.delta == "2\n"
+
+
+def test_reactive_proxy():
+    context = Proxy({"a": 123})
+    with capture_stdout() as stdout, create_effect(lambda: exec("""class _: print(a)""", context.raw, context)):
+        assert stdout.delta == "123\n"
+        context["a"] = 234
+
+        with raises(AssertionError):  # Because of https://github.com/python/cpython/issues/121306
+            assert stdout.delta == "234\n", "(xfail)"

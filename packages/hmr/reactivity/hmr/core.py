@@ -97,7 +97,7 @@ class ReactiveModule(ModuleType):
         except SyntaxError as e:
             sys.excepthook(type(e), e, e.__traceback__)
         else:
-            exec(code, self.__namespace, self.__namespace_proxy)
+            exec(code, self.__namespace, self.__namespace_proxy)  # https://github.com/python/cpython/issues/121306
         finally:
             load = self.__load
             assert ismethod(load.fn)  # for type narrowing

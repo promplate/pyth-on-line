@@ -6,13 +6,10 @@ from itertools import count
 
 from common.inspection import inspect
 from pyodide.ffi import create_once_callable, to_js
-from reactivity import Reactive, create_effect
+from reactivity import create_effect
 
-from .exec import console_exec_source, exec_source
+from .exec import ReactiveNamespace, console_exec_source, exec_source
 from .stream import StreamManager
-
-
-class ReactiveNamespace(Reactive, dict): ...
 
 
 class NotebookAPI:
