@@ -4,6 +4,7 @@
 
   export let target: HTMLElement;
   export let show: boolean;
+  export let onHide: () => void = () => {};
 
   let position = { top: 0, left: 0 };
   let div: HTMLDivElement;
@@ -49,7 +50,7 @@
 {#if show || showing}
   <Portal>
     {@const hiding = !show || !showing}
-    <div on:transitionend={() => showing = show} class:op-0={hiding} class:pointer-events-none={hiding} class="fixed transition-opacity" style:top style:left bind:this={div}>
+    <div on:transitionend={() => [(showing = show), !show && onHide()]} class:op-0={hiding} class:pointer-events-none={hiding} class="fixed transition-opacity" style:top style:left bind:this={div}>
       <slot />
     </div>
   </Portal>

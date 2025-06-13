@@ -16,3 +16,5 @@ vite.config.ts.timestamp-*
 .netlify
 /.pdm-python
 /src/python/**/index.d.ts
+/packages/**/index.d.ts
+__pycache__

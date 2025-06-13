@@ -1,19 +1,21 @@
 import builtins
 from ast import parse
+from collections.abc import Callable
 from contextlib import suppress
 from itertools import count
 
 from common.inspection import inspect
-from pyodide.ffi import to_js
+from pyodide.ffi import create_once_callable, to_js
+from reactivity import create_effect
 
-from .exec import console_exec_source, exec_source
+from .exec import ReactiveNamespace, console_exec_source, exec_source
 from .stream import StreamManager
 
 
 class NotebookAPI:
     def __init__(self):
-        self.builtins = builtins.__dict__.copy()
-        self.context = {"__builtins__": self.builtins, "__name__": "__main__", "__doc__": None, "__package__": None, "__loader__": None, "__spec__": None}
+        self.builtins = ReactiveNamespace(builtins.__dict__)
+        self.context = ReactiveNamespace({"__builtins__": self.builtins, "__name__": "__main__", "__doc__": None, "__package__": None, "__loader__": None, "__spec__": None})
         self.counter = count(1)
 
     @property
@@ -32,6 +34,10 @@ class NotebookAPI:
 
     def inspect(self, name: str):
         return to_js(inspect(name, self.context, self.builtins))
+
+    def watch(self, name: str, callback: Callable):
+        effect = create_effect(lambda: callback(self.inspect(name)))
+        return create_once_callable(effect.dispose)
 
     @staticmethod
     def is_python(source: str):
