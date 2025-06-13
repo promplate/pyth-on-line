@@ -13,7 +13,7 @@
 HMR means Hot Module Reload / [Hot Module Replacement](https://webpack.js.org/concepts/hot-module-replacement/). It is a feature that allows part of your app to be updated at runtime without a full rerun.
 
 - The module whose source file **you changed** will rerun
-- The module / function that **depend on** the changed module will rerun
+- The module / function that **depends on** the changed module will rerun
 - Other modules that are unaffected (like third-party libraries) will not rerun
 
 Thus, in contrast to the traditional way of **cold-reloading** Python applications (like [watchfiles CLI](https://watchfiles.helpmanual.io/cli/)), HMR is just more efficient.
