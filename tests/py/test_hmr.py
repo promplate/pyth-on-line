@@ -15,6 +15,11 @@ from utils import capture_stdout
 
 @contextmanager
 def environment():
+    """
+    Creates an isolated temporary environment for testing modules.
+    
+    This context manager sets up a temporary directory as the working directory, appends it to `sys.path`, captures standard output, and yields the captured output stream. Upon exit, it restores `sys.path` and `sys.modules` to their original states, ensuring test isolation.
+    """
     with TemporaryDirectory() as tmpdir, chdir(tmpdir), capture_stdout() as stdout:
         sys.path.append(tmpdir)
         modules = sys.modules.copy()
@@ -27,6 +32,11 @@ def environment():
 
 @contextmanager
 def wait_for_tick(timeout=1):
+    """
+    Context manager that waits for a hot module reload event to occur within a timeout.
+    
+    Yields control to the caller, then blocks until a reload event is triggered or the timeout elapses.
+    """
     from threading import Event
 
     event = Event()
@@ -40,6 +50,14 @@ def wait_for_tick(timeout=1):
 
 @asynccontextmanager
 async def await_for_tick(timeout=1):
+    """
+    Asynchronous context manager that yields control and waits for a module reload event.
+    
+    Waits for a reload event to be triggered via `use_post_reload`, or until the specified timeout elapses.
+    
+    Args:
+        timeout: Maximum time in seconds to wait for the reload event (default is 1).
+    """
     from asyncio import Event, wait_for
 
     event = Event()
@@ -52,6 +70,9 @@ async def await_for_tick(timeout=1):
 
 
 async def test_reusing():
+    """
+    Tests reuse of synchronous and asynchronous reloader APIs, verifying that module reloads are triggered and output is captured correctly after file changes using both sync and async contexts.
+    """
     with environment() as stdout:
         Path("main.py").write_text("print(1)")
         api = SyncReloaderAPI("main.py")
@@ -99,6 +120,11 @@ async def test_reusing():
 
 
 def test_module_getattr():
+    """
+    Tests that module-level __getattr__ is invoked on attribute access and that changes to __getattr__ trigger a reload.
+    
+    Verifies that printing an attribute from a module with __getattr__ produces the expected output, and that modifying __getattr__ updates the output after a reload.
+    """
     with environment() as stdout:
         Path("foo.py").write_text("def __getattr__(name): print(name)")
         Path("main.py").write_text("import foo\nprint(foo.bar)")
@@ -110,6 +136,11 @@ def test_module_getattr():
 
 
 async def test_simple_triggering():
+    """
+    Tests that modifying a dependency module triggers a reload and updates output.
+    
+    This test verifies that when a dependency ("bar.py") of a module ("foo.py") is changed, the hot module reloader detects the change, reloads the dependent module, and the output reflects the updated dependency.
+    """
     with environment() as stdout:
         foo = Path("foo.py")
         bar = Path("bar.py")
@@ -123,6 +154,11 @@ async def test_simple_triggering():
 
 
 async def test_getattr_no_redundant_trigger():
+    """
+    Tests that changes to a module's __getattr__ do not trigger redundant reloads if exported values remain unchanged.
+    
+    Verifies that reloads and output updates occur only when actual exported values change, not when only the implementation of __getattr__ is modified without affecting exports.
+    """
     with environment() as stdout:
         foo = Path("foo.py")
         main = Path("main.py")
@@ -150,6 +186,12 @@ async def test_getattr_no_redundant_trigger():
 
 @pytest.mark.xfail(raises=AssertionError, strict=True)
 async def test_switch_to_getattr():
+    """
+    Tests switching a module from explicit exports to only using __getattr__.
+    
+    Verifies that removing an explicitly exported variable and relying solely on
+    __getattr__ changes the imported value after a hot reload.
+    """
     with environment() as stdout:
         foo = Path("foo.py")
         main = Path("main.py")
@@ -164,6 +206,14 @@ async def test_switch_to_getattr():
 
 
 def test_simple_circular_dependency():
+    """
+    Tests hot module reloading behavior with circular dependencies among modules.
+    
+    Creates three modules ("a.py", "b.py", "c.py") with circular imports and verifies
+    the order and output of reloads after modifying each module. Asserts that reloads
+    propagate through the dependency chain and that output reflects updated values.
+    Includes comments on suboptimal reload order and possible improvements.
+    """
     with environment() as stdout:
         Path("a.py").write_text("print('a')\n\none = 1\n\nfrom b import two\n\nthree = two + 1\n")
         Path("b.py").write_text("print('b')\n\nfrom a import one\n\ntwo = one + 1\n")
@@ -197,6 +247,11 @@ def test_simple_circular_dependency():
 
 
 def test_private_methods_inaccessible():
+    """
+    Tests that private methods in a module are not accessible for import.
+    
+    Verifies that attempting to import a private method (such as 'load') from a module under hot module reloading raises an ImportError.
+    """
     with environment():
         Path("main.py").touch()
         with SyncReloaderAPI("main.py"), pytest.raises(ImportError):
@@ -204,6 +259,11 @@ def test_private_methods_inaccessible():
 
 
 def test_reload_from_outside():
+    """
+    Tests manual reloading of a ReactiveModule instance using the load utility.
+    
+    Verifies that calling load on a ReactiveModule triggers module execution and output, and that repeated calls without changes do not produce additional output. Also checks that calling the module's load method directly raises an AttributeError.
+    """
     with environment() as stdout:
         file = Path("main.py")
         file.write_text("print(123)")
@@ -221,6 +281,9 @@ def test_reload_from_outside():
 
 
 def test_getsourcefile():
+    """
+    Tests that `inspect.getsourcefile` returns the correct filename for a class defined in a reloaded module.
+    """
     with environment() as stdout:
         Path("main.py").write_text("from inspect import getsourcefile\n\nclass Foo: ...\n\nprint(getsourcefile(Foo))")
         with SyncReloaderAPI("main.py"):
@@ -228,6 +291,11 @@ def test_getsourcefile():
 
 
 def test_using_reactivity_under_hmr():
+    """
+    Tests integration of reactivity primitives with hot module reloading.
+    
+    Verifies that signals and effects from the `reactivity` library function correctly within a reloaded module, ensuring reactive updates propagate as expected after reloads.
+    """
     with environment() as stdout:
 
         def simple_test():
@@ -254,6 +322,11 @@ def test_using_reactivity_under_hmr():
 
 
 def test_cache_across_reloads():
+    """
+    Tests that the `cache_across_reloads` decorator preserves function results across module reloads.
+    
+    Verifies that output is only produced when the function's dependencies or logic change, and not on redundant reloads.
+    """
     with environment() as stdout:
         file = Path("main.py")
         file.write_text(
@@ -291,6 +364,11 @@ def test_cache_across_reloads():
 
 @pytest.mark.xfail(raises=NameError, strict=True)
 def test_cache_across_reloads_with_class():
+    """
+    Tests that using cache_across_reloads with a function defining a class referencing an external variable triggers correct output and error handling.
+    
+    This test writes a function decorated with cache_across_reloads that defines a class referencing a variable 'a', loads the module, and asserts the expected output.
+    """
     with environment() as stdout:
         Path("main.py").write_text("from reactivity.hmr import cache_across_reloads\n\n@cache_across_reloads\ndef f():\n    class _:\n        print(a)\n\nf()\n")
         load(ReactiveModule(Path("main.py"), {"a": 1}, "main"))
