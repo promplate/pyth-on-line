@@ -18,12 +18,20 @@ def test_initial_value():
 
 
 def test_state_set():
+    """
+    Tests that setting a new value on a State updates its stored value correctly.
+    """
     s = State(0)
     s.set(1)
     assert s.get() == 1
 
 
 def test_state_notify():
+    """
+    Tests that effects created with `create_effect` react to changes in signals.
+
+    Verifies that updating a signal via its setter triggers the associated effect and updates dependent state.
+    """
     get_s, set_s = create_signal(0)
 
     s = 0
@@ -43,6 +51,9 @@ def test_state_notify():
 
 
 def test_state_dispose():
+    """
+    Tests that effects stop reacting to signal changes after disposal and that effects with call_immediately=False do not execute until triggered by a dependency change.
+    """
     get_s, set_s = create_signal(0)
 
     results = []
@@ -63,6 +74,10 @@ def test_state_dispose():
 
 
 def test_state_descriptor():
+    """
+    Tests that State descriptors on class attributes are reactive, triggering effects on value changes, while normal attributes do not trigger effects.
+    """
+
     class Example:
         s = State(0)  # reactive attribute
         v = 0  # normal attribute
@@ -85,6 +100,10 @@ def test_state_descriptor():
 
 
 def test_state_class_attribute():
+    """
+    Tests that Signal and State used as class attributes are correctly inherited, typed, and remain reactive, ensuring effects respond to updates on subclass attributes.
+    """
+
     class A:
         s1 = Signal(0)
         s2 = State(0)
@@ -110,6 +129,10 @@ def test_state_class_attribute():
 
 
 def test_gc():
+    """
+    Tests that Effect and Signal objects print messages upon garbage collection, verifying that cleanup occurs when they are deleted or go out of scope.
+    """
+
     class E(Effect):
         def __del__(self):
             print("E")
@@ -132,12 +155,22 @@ def test_gc():
 
 
 def test_memo():
+    """
+    Tests memoized computation with create_memo, ensuring lazy evaluation and caching.
+
+    Verifies that the memoized function is only recomputed when its dependencies change, and that repeated calls without changes do not trigger recomputation.
+    """
     get_s, set_s = create_signal(0)
 
     count = 0
 
     @create_memo
     def doubled():
+        """
+        Computes and returns twice the current value of `s`, incrementing the `count` variable.
+
+        Increments the external `count` variable each time the function is called, then returns double the value obtained from `get_s()`.
+        """
         nonlocal count
         count += 1
         return get_s() * 2
@@ -156,6 +189,10 @@ def test_memo():
 
 
 def test_memo_property():
+    """
+    Tests that the `memoized_property` decorator correctly caches computed property values and invalidates the cache when dependent reactive state attributes change.
+    """
+
     class Rect:
         x = State(0)
         y = State(0)
@@ -190,6 +227,14 @@ def test_memo_method():
 
         @memoized_method
         def get_size(self):
+            """
+            Calculates the area based on the current values of x and y.
+
+            Increments the internal count each time the method is called.
+
+            Returns:
+                The product of x and y.
+            """
             self.count += 1
             return self.x * self.y
 
@@ -210,6 +255,10 @@ def test_memo_method():
 
 
 def test_memo_class_attribute():
+    """
+    Tests that memoized properties and methods are correctly typed and stored as class attributes, and that their instance caches are maintained and updated as expected.
+    """
+
     class Rect:
         x = State(0)
         y = State(0)
@@ -239,17 +288,29 @@ def test_memo_class_attribute():
 
 
 def test_nested_memo():
+    """
+    Tests nested memoized computations and their invalidation behavior.
+
+    Verifies that nested memoized functions recompute only when their dependencies are invalidated, and that recomputation order is correct. Ensures that invalidating an inner memo triggers selective recomputation of dependent memos.
+    """
+
     @create_memo
     def f():
         print("f")
 
     @create_memo
     def g():
+        """
+        Calls the function `f` and prints 'g' to standard output.
+        """
         f()
         print("g")
 
     @create_memo
     def h():
+        """
+        Calls the function `g` and prints 'h' to standard output.
+        """
         g()
         print("h")
 
@@ -272,10 +333,18 @@ def test_nested_memo():
 
 
 def test_derived():
+    """
+    Tests the behavior of the `Derived` decorator for reactive computed values.
+
+    Verifies that derived computations cache their results, only recompute when dependencies change, and support explicit invalidation. Also checks correct propagation of invalidation in nested derived computations and that side effects (such as print statements) occur only on recomputation.
+    """
     get_s, set_s = create_signal(0)
 
     @Derived
     def f():
+        """
+        Returns the value of `get_s()` incremented by 1 after printing its current value.
+        """
         print(get_s())
         return get_s() + 1
 
@@ -295,6 +364,9 @@ def test_derived():
 
     @Derived
     def g():
+        """
+        Calls the function `f`, adds 1 to its result, prints the value, and returns it.
+        """
         print(f() + 1)
         return f() + 1
 
@@ -308,20 +380,34 @@ def test_derived():
 
 
 def test_nested_derived():
+    """
+    Tests nested derived computations for correct invalidation, recomputation order, and effect propagation.
+
+    Verifies that nested `@Derived` functions recompute only when their dependencies change, that invalidation propagates selectively, and that effects depending on derived values are triggered in the correct order. Also checks that redundant invalidations do not cause unnecessary recomputation.
+    """
     get_s, set_s = create_signal(0)
 
     @Derived
     def f():
+        """
+        Returns the result of get_s() after printing 'f' to standard output.
+        """
         print("f")
         return get_s()
 
     @Derived
     def g():
+        """
+        Calls function f(), divides its result by 2, and returns the result after printing 'g'.
+        """
         print("g")
         return f() // 2
 
     @Derived
     def h():
+        """
+        Calls the function `g`, prints 'h', and returns half of its result.
+        """
         print("h")
         return g() // 2
 
@@ -363,6 +449,10 @@ def test_nested_derived():
 
 
 def test_batch():
+    """
+    Tests that state updates within a batch are deferred and effects are notified only once after the batch completes.
+    """
+
     class Example:
         value = State(0)
 
@@ -377,6 +467,9 @@ def test_batch():
     assert history == [0]
 
     def increment():
+        """
+        Increments the value attribute of the obj object by one.
+        """
         obj.value += 1
 
     increment()
@@ -395,9 +488,17 @@ def test_batch():
 
 
 def test_nested_batch():
+    """
+    Tests that nested batching defers effect notifications until the outermost batch completes.
+
+    Verifies that multiple state updates within nested `batch()` contexts only trigger effect execution after all batches have exited, ensuring correct notification order and batching semantics.
+    """
     get_s, set_s = create_signal(0)
 
     def increment():
+        """
+        Increments the value of the signal `s` by one.
+        """
         set_s(get_s() + 1)
 
     with capture_stdout() as stdout, create_effect(lambda: print(get_s())):
@@ -416,6 +517,11 @@ def test_nested_batch():
 
 
 def test_reactive():
+    """
+    Tests that a Reactive dictionary triggers effects when its keys are updated.
+
+    Verifies that effects depending on specific keys are re-executed when those keys change, and that the computed values reflect the latest state.
+    """
     obj = Reactive[str, int]()
     obj["x"] = obj["y"] = 0
 
@@ -433,6 +539,11 @@ def test_reactive():
 
 
 def test_reactive_spread():
+    """
+    Tests spreading and length operations on an empty Reactive object.
+
+    Verifies that accessing a missing key raises KeyError, spreading the object yields an empty dictionary, and its length is zero.
+    """
     obj = Reactive()
     with raises(KeyError, match="key"):
         obj["key"]
@@ -456,6 +567,11 @@ def test_reactive_tracking():
 
 
 def test_reactive_repr():
+    """
+    Tests the string representation and item iteration of an empty Reactive object.
+
+    Verifies that accessing a missing key raises KeyError, the representation is an empty dictionary, and item iteration yields no items.
+    """
     obj = Reactive()
 
     with raises(KeyError):
@@ -466,6 +582,11 @@ def test_reactive_repr():
 
 
 def test_reactive_lazy_notify():
+    """
+    Tests that a Reactive object only notifies effects when a value actually changes.
+
+    Verifies that setting a key to its current value does not trigger effect notifications, while changing the value does.
+    """
     obj = Reactive({1: 2})
 
     with capture_stdout() as stdout, create_effect(lambda: print(obj)):
@@ -477,6 +598,11 @@ def test_reactive_lazy_notify():
 
 
 def test_fine_grained_reactive():
+    """
+    Tests fine-grained reactivity of the Reactive object for key access and full object views.
+
+    Verifies that effects depending on individual keys, the list of keys, and the string representation of a Reactive object are notified appropriately when only a specific key is updated.
+    """
     obj = Reactive({1: 2, 3: 4})
 
     a, b, c = [], [], []
@@ -490,10 +616,16 @@ def test_fine_grained_reactive():
 
 
 def test_error_handling():
+    """
+    Tests that exceptions raised inside memoized computations and effects propagate correctly and that the reactive context is properly cleaned up after errors.
+    """
     get_s, set_s = create_signal(0)
 
     @create_memo
     def should_raise():
+        """
+        Raises a ValueError with a message obtained from get_s().
+        """
         raise ValueError(get_s())
 
     set_s(2)
@@ -518,6 +650,11 @@ def test_error_handling():
 
 
 def test_exec_inside_reactive_namespace():
+    """
+    Tests executing code with `exec` inside a `Reactive` namespace.
+
+    Verifies that variable access, assignment, and deletion within a `Reactive` context behave as expected, including correct exception handling and effect triggering on updates.
+    """
     context = Reactive()
 
     with raises(NameError):
@@ -549,9 +686,20 @@ def test_exec_inside_reactive_namespace():
 
 
 def test_complex_exec():
+    """
+    Tests executing complex code snippets with exec in a Reactive subclass namespace.
+
+    Verifies that variable assignments, updates, and effect-triggered re-execution work as expected within a reactive dictionary context, including correct propagation of changes and output capture.
+    """
     namespace = type("", (Reactive, dict), {})()
 
     def run(source: str):
+        """
+        Executes the given source code string within the provided namespace.
+
+        Args:
+            source: The Python source code to execute.
+        """
         return exec(source, namespace, namespace)
 
     with capture_stdout() as stdout:
@@ -571,6 +719,11 @@ def test_complex_exec():
 
 
 def test_equality_checks():
+    """
+    Tests equality check behavior for signals and reactive dictionaries.
+
+    Verifies that signals and reactive dictionaries with equality checking enabled do not trigger redundant notifications when set to the same value, while disabling equality checks causes notifications on every set, even if the value does not change.
+    """
     get_s, set_s = create_signal(0)
     with capture_stdout() as stdout, create_effect(lambda: print(get_s())):
         assert stdout == "0\n"
@@ -599,6 +752,9 @@ def test_equality_checks():
 
 
 def test_reactive_initial_value():
+    """
+    Tests that a Reactive object initialized with a dictionary returns the correct initial value and triggers effects when updated.
+    """
     context = Reactive({1: 2})
     assert context[1] == 2
 
@@ -608,6 +764,11 @@ def test_reactive_initial_value():
 
 
 def test_fine_grained_reactivity():
+    """
+    Tests that effects react selectively to changes in a Reactive dictionary.
+
+    Verifies that an effect tracking the full dictionary is notified on any key change, while an effect tracking a specific key is only notified when that key changes.
+    """
     context = Reactive({1: 2})
 
     logs_1 = []
@@ -628,6 +789,11 @@ def test_fine_grained_reactivity():
 
 
 def test_reactive_inside_batch():
+    """
+    Tests that multiple updates to a Reactive dictionary within a batch trigger a single effect notification after the batch completes.
+
+    Ensures that the effect observes the combined state changes only once, after all batched updates are applied.
+    """
     context = Reactive()
     logs = []
 
@@ -643,6 +809,11 @@ def test_reactive_inside_batch():
 
 
 def test_get_without_tracking():
+    """
+    Tests that a signal's value can be accessed without tracking dependencies inside an effect.
+
+    Verifies that using `get_s(track=False)` inside an effect does not establish a reactive dependency, so subsequent updates do not trigger the effect.
+    """
     get_s, set_s = create_signal(0)
 
     with capture_stdout() as stdout, create_effect(lambda: print(get_s(track=False))):
@@ -652,6 +823,12 @@ def test_get_without_tracking():
 
 
 def test_state_descriptor_no_leak():
+    """
+    Tests that State descriptors do not share state between different instances of a class.
+
+    Ensures that assigning a value to a State attribute on one instance does not affect the value on another instance.
+    """
+
     class Counter:
         value = State(0)
 
@@ -672,6 +849,12 @@ def test_memo_property_no_leak():
 
         @memoized_property
         def size(self):
+            """
+            Calculates the product of x and y, incrementing the count each time it is called.
+
+            Returns:
+                The product of self.x and self.y.
+            """
             self.count += 1
             return self.x * self.y
 
@@ -686,14 +869,25 @@ def test_memo_property_no_leak():
 
 
 def test_effect_with_memo():
+    """
+    Tests that multiple memoized computations can be used within a single effect and that the effect reacts correctly to their updates.
+
+    Verifies that the effect prints the sum of two memoized values, and that updates to the underlying signal trigger recomputation and effect execution as expected.
+    """
     get_s, set_s = create_signal(0)
 
     @create_memo
     def f():
+        """
+        Returns twice the value obtained from get_s().
+        """
         return get_s() * 2
 
     @create_memo
     def g():
+        """
+        Returns three times the current value of the signal obtained from get_s().
+        """
         return get_s() * 3
 
     with capture_stdout() as stdout, create_effect(lambda: print(f() + g())):
@@ -704,14 +898,23 @@ def test_effect_with_memo():
 
 
 def test_memo_as_hard_puller():
+    """
+    Tests that a memoized computation can depend on a derived computation and updates correctly when dependencies change.
+    """
     get_s, set_s = create_signal(0)
 
     @Derived
     def f():
+        """
+        Returns the value of `get_s()` incremented by 1.
+        """
         return get_s() + 1
 
     @create_memo
     def g():
+        """
+        Returns the result of calling function f() incremented by 1.
+        """
         return f() + 1
 
     assert g() == 2
@@ -720,10 +923,18 @@ def test_memo_as_hard_puller():
 
 
 def test_no_notify_on_first_set():
+    """
+    Tests that effects are not notified on the initial set if the value does not change.
+
+    Verifies that an effect only reacts to subsequent changes in a signal's value, and not when the initial set matches the default value.
+    """
     get_s, set_s = create_signal(0)
 
     @Derived
     def f():
+        """
+        Returns a list containing the result of calling get_s().
+        """
         return [get_s()]
 
     with capture_stdout() as stdout, create_effect(lambda: print(f())):
@@ -735,6 +946,11 @@ def test_no_notify_on_first_set():
 
 
 def test_equality_check_among_arrays():
+    """
+    Tests that reactive signals holding NumPy arrays only trigger effects when the array content changes.
+
+    Verifies that setting a signal to a new NumPy array with identical content does not notify effects, while changing the array's content does.
+    """
     get_arr, set_arr = create_signal(np.array([[[0, 1]]]))
 
     with capture_stdout() as stdout, create_effect(lambda: print(get_arr())):
@@ -746,6 +962,11 @@ def test_equality_check_among_arrays():
 
 
 def test_equality_check_among_dataframes():
+    """
+    Tests that reactive signals holding pandas DataFrames only trigger effects when the DataFrame content changes.
+
+    Verifies that setting a signal to a DataFrame with identical content does not notify effects, while setting it to a DataFrame with different content does.
+    """
     get_df, set_df = create_signal(pd.DataFrame({"a": [0], "b": [1]}))
     with capture_stdout() as stdout, create_effect(lambda: print(get_df())):
         assert stdout.delta == "   a  b\n0  0  1\n"
@@ -756,6 +977,11 @@ def test_equality_check_among_dataframes():
 
 
 def test_context():
+    """
+    Tests that reactive states and effects respect their assigned contexts.
+
+    Verifies that state updates only trigger effects within the same context, ensuring context isolation for reactive attributes and effect execution.
+    """
     a = new_context()
     b = new_context()
 
@@ -765,6 +991,12 @@ def test_context():
 
         @property
         def size(self):
+            """
+            Calculates the product of the x and y attributes.
+
+            Returns:
+                The result of multiplying self.x by self.y.
+            """
             return self.x * self.y
 
     r = Rect()
@@ -778,6 +1010,11 @@ def test_context():
 
 
 def test_context_usage_with_reactive_namespace():
+    """
+    Tests that a Reactive dictionary within a custom context triggers effects on key updates.
+
+    Verifies that effects registered in a specific context react to changes in a Reactive object created with that context, including correct handling of missing keys and subsequent updates.
+    """
     c = new_context()
     dct = Reactive(context=c)
 
@@ -785,6 +1022,9 @@ def test_context_usage_with_reactive_namespace():
 
         @c.effect
         def _():
+            """
+            Attempts to print the value for key 1 in the dictionary `dct`, printing a blank line if the key is missing.
+            """
             try:
                 print(dct[1])
             except KeyError:
@@ -796,6 +1036,11 @@ def test_context_usage_with_reactive_namespace():
 
 
 def test_reactive_proxy():
+    """
+    Tests the Proxy wrapper for reactive dictionary access and effect triggering.
+
+    Verifies that executing code with exec in a Proxy context correctly accesses and prints reactive values, and that updates to the Proxy trigger effects. Also checks for known Python assertion behavior related to exec and context updates.
+    """
     context = Proxy({"a": 123})
     with capture_stdout() as stdout, create_effect(lambda: exec("""class _: print(a)""", context.raw, context)):
         assert stdout.delta == "123\n"
