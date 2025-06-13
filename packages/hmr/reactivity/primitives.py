@@ -8,7 +8,7 @@ from .context import Context, default_context
 def _equal(a, b):
     """
     Compares two values for equality, handling special cases for array-like objects.
-    
+
     Attempts to compare `a` and `b` up to three times, using `.all()` if the initial comparison raises a ValueError and the result supports it. Returns True if the values are considered equal, otherwise False.
     """
     if a is b:
@@ -32,7 +32,7 @@ class Subscribable:
     def __init__(self, *, context: Context | None = None):
         """
         Initializes a Subscribable object with an empty set of subscribers and an optional reactive context.
-        
+
         Args:
             context: The reactive context to associate with this Subscribable. If not provided, the default context is used.
         """
@@ -43,7 +43,7 @@ class Subscribable:
     def track(self):
         """
         Registers the current computation as a subscriber to this object if tracking is active.
-        
+
         If there is an active computation in the context, adds it as a subscriber and establishes a dependency, ensuring that updates to this object will notify the computation.
         """
         if not self.context.current_computations:
@@ -57,7 +57,7 @@ class Subscribable:
     def notify(self):
         """
         Notifies all subscribers of this object about a change.
-        
+
         If batching is active in the current context, schedules subscriber callbacks for execution. Otherwise, creates a new batch to schedule the callbacks, ensuring updates are processed efficiently.
         """
         if self.context.batches:
@@ -71,7 +71,7 @@ class BaseComputation[T]:
     def __init__(self, *, context: Context | None = None):
         """
         Initializes a reactive computation with an optional context.
-        
+
         Args:
             context: The reactive context to associate with this computation. If not provided, the default context is used.
         """
@@ -90,7 +90,7 @@ class BaseComputation[T]:
     def _enter(self):
         """
         Enters this computation into the current reactive context for dependency tracking.
-        
+
         Returns:
             The result of entering this computation in the context, as provided by the context's `enter` method.
         """
@@ -108,10 +108,10 @@ class BaseComputation[T]:
         """
         self.dispose()
 
-    def trigger(self) -> Any: """
-Executes the effect's function within the reactive computation context and returns its result.
-"""
-...
+    def trigger(self) -> Any:
+        """
+        Executes the effect's function within the reactive computation context and returns its result.
+        """
 
     def __call__(self) -> T:
         """
@@ -124,7 +124,7 @@ class Signal[T](Subscribable):
     def __init__(self, initial_value: T = None, check_equality=True, *, context: Context | None = None):
         """
         Initializes a reactive signal with an optional initial value and equality checking.
-        
+
         Args:
             initial_value: The starting value for the signal.
             check_equality: If True, updates only trigger notifications when the value changes.
@@ -137,10 +137,10 @@ class Signal[T](Subscribable):
     def get(self, track=True):
         """
         Returns the current value of the signal, optionally registering a dependency.
-        
+
         Args:
             track: If True, registers the current computation as a dependent of this signal.
-        
+
         Returns:
             The current stored value.
         """
@@ -151,10 +151,10 @@ class Signal[T](Subscribable):
     def set(self, value: T):
         """
         Sets the signal's value and notifies subscribers if the value has changed.
-        
+
         Args:
             value: The new value to assign to the signal.
-        
+
         Returns:
             True if the value was updated and subscribers were notified, False if the value was unchanged.
         """
@@ -169,7 +169,7 @@ class State[T](Signal[T]):
     def __init__(self, initial_value: T = None, check_equality=True, *, context: Context | None = None):
         """
         Initializes a State descriptor for managing per-instance reactive state.
-        
+
         Args:
             initial_value: The default value for new instances.
             check_equality: If True, updates only trigger notifications when the value changes.
@@ -181,22 +181,23 @@ class State[T](Signal[T]):
         self.map = WeakKeyDictionary[Any, Signal[T]]()
 
     @overload
-    def __get__(self, instance: None, owner: type) -> Self: """
-Returns the descriptor itself when accessed on the class rather than an instance.
-"""
-...
-    @overload
-    def __get__(self, instance: Any, owner: type) -> T: """
-Retrieves the reactive state value for the given instance.
+    def __get__(self, instance: None, owner: type) -> Self:
+        """
+        Returns the descriptor itself when accessed on the class rather than an instance.
+        """
 
-If accessed on the class, returns the descriptor itself. Otherwise, returns the value associated with the instance, creating a new reactive signal if necessary.
-"""
-...
+    @overload
+    def __get__(self, instance: Any, owner: type) -> T:
+        """
+        Retrieves the reactive state value for the given instance.
+
+        If accessed on the class, returns the descriptor itself. Otherwise, returns the value associated with the instance, creating a new reactive signal if necessary.
+        """
 
     def __get__(self, instance, owner):
         """
         Retrieves the reactive state value for the given instance.
-        
+
         If accessed on the class, returns the descriptor itself. If accessed on an instance, returns the current value, creating a new reactive signal for the instance if necessary.
         """
         if instance is None:
@@ -210,7 +211,7 @@ If accessed on the class, returns the descriptor itself. Otherwise, returns the 
     def __set__(self, instance, value: T):
         """
         Sets the reactive state value for the given instance.
-        
+
         If the instance does not yet have an associated Signal, creates one before setting the value.
         """
         try:
@@ -224,7 +225,7 @@ class Effect[T](BaseComputation[T]):
     def __init__(self, fn: Callable[[], T], call_immediately=True, *, context: Context | None = None):
         """
         Initializes an Effect that runs a reactive function and tracks its dependencies.
-        
+
         Args:
             fn: The function to execute reactively.
             call_immediately: If True, the function is executed immediately upon creation.
@@ -249,7 +250,7 @@ class Batch:
     def __init__(self, force_flush=True, *, context: Context | None = None):
         """
         Initializes a new batch for grouping reactive updates.
-        
+
         Args:
             force_flush: If True, flushes all scheduled callbacks when the batch exits.
             context: Optional reactive context to use; defaults to the global context.
@@ -261,7 +262,7 @@ class Batch:
     def flush(self):
         """
         Executes all scheduled reactive computations in the batch.
-        
+
         Ensures each computation is triggered only once, even if re-added during execution.
         """
         triggered = set()
@@ -283,7 +284,7 @@ class Batch:
     def __exit__(self, *_):
         """
         Exits the batch context, flushing or scheduling callbacks as appropriate.
-        
+
         If this is the last batch or force flushing is enabled, all scheduled callbacks are executed immediately. Otherwise, callbacks are scheduled for later execution. Ensures the batch is properly removed from the context stack.
         """
         if self.force_flush or len(self.context.batches) == 1:
@@ -301,7 +302,7 @@ class BaseDerived[T](Subscribable, BaseComputation[T]):
     def __init__(self, *, context: Context | None = None):
         """
         Initializes a derived reactive computation and marks it as dirty.
-        
+
         Args:
             context: Optional reactive context to associate with this computation.
         """
@@ -311,7 +312,7 @@ class BaseDerived[T](Subscribable, BaseComputation[T]):
     def _sync_dirty_deps(self):
         """
         Recursively synchronizes and recomputes dirty derived dependencies.
-        
+
         Triggers any dependent `BaseDerived` computations that are marked as dirty to ensure their values are up to date.
         """
         for dep in self.dependencies:
@@ -325,7 +326,7 @@ class Derived[T](BaseDerived[T]):
     def __init__(self, fn: Callable[[], T], check_equality=True, *, context: Context | None = None):
         """
         Initializes a derived reactive value with a computation function.
-        
+
         Args:
             fn: A callable that computes the derived value.
             check_equality: If True, notifies subscribers only when the computed value changes.
@@ -339,7 +340,7 @@ class Derived[T](BaseDerived[T]):
     def recompute(self):
         """
         Recomputes the derived value and notifies subscribers if it has changed.
-        
+
         Runs the computation function within the reactive context, updates the cached value, and marks the derived value as clean. Subscribers are notified only if the value has changed, except on the initial set.
         """
         with self._enter():
@@ -357,7 +358,7 @@ class Derived[T](BaseDerived[T]):
     def __call__(self):
         """
         Returns the current value of the derived computation, recomputing if dependencies have changed.
-        
+
         Tracks dependencies, synchronizes any dirty dependent computations, and triggers recomputation if needed before returning the cached value.
         """
         self.track()
@@ -370,7 +371,7 @@ class Derived[T](BaseDerived[T]):
     def trigger(self):
         """
         Marks the derived computation as dirty and triggers recomputation if it is actively observed.
-        
+
         If the derived value is currently being used by an active consumer, recomputes its value immediately.
         """
         self.dirty = True
@@ -380,7 +381,7 @@ class Derived[T](BaseDerived[T]):
     def invalidate(self):
         """
         Marks the derived computation as dirty and triggers recomputation if actively used.
-        
+
         This method is an alias for `trigger()`.
         """
         self.trigger()
@@ -389,7 +390,7 @@ class Derived[T](BaseDerived[T]):
 def _pulled(sub: Subscribable):
     """
     Determines whether a Subscribable is actively observed by any non-derived subscriber.
-    
+
     Traverses the subscriber graph starting from the given Subscribable. Returns True if any subscriber is not a BaseDerived instance, indicating the value is being "pulled" by an active consumer; otherwise, returns False.
     """
     visited = set()
