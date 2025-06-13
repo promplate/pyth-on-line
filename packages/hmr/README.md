@@ -10,6 +10,9 @@
 
 </div>
 
+> [!TIP]
+> This branch has been merged into `main`. If you came here from PyPI, please switch to the `main` branch for the latest updates.
+
 HMR means Hot Module Reload / [Hot Module Replacement](https://webpack.js.org/concepts/hot-module-replacement/). It is a feature that allows part of your app to be updated at runtime without a full rerun.
 
 - The module whose source file **you changed** will rerun
