@@ -59,10 +59,9 @@
 
   <Command.Item value={item.text} onSelect={() => acted = true} asChild let:action let:attrs>
     {@const highlighted = attrs["data-selected"]}
-    <!-- eslint-disable-next-line no-unused-vars -->
-    {@const _ = (browser && highlighted && preloadData(item.href))}
     <a href={item.href} use:action {...attrs} class:highlighted>
-      {item.text}
+      <!-- eslint-disable-next-line no-sequences -->
+      {(browser && highlighted && preloadData(item.href)), item.text}
     </a>
   </Command.Item>
 

@@ -9,5 +9,5 @@ export const load = (async ({ fetch }) => {
     redirect(307, "/oauth");
   }
 
-  return (await res.json()) as { name: string | null; login: string; avatarUrl: string;total: number; gists: GistMetadata[] };
+  return (await res.json()) as { name: string | null; login: string; avatarUrl: string; total: number; gists: GistMetadata[] };
 }) satisfies PageLoad;

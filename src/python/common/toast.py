@@ -4,7 +4,7 @@ from itertools import count
 from typing import TYPE_CHECKING, Literal
 
 if TYPE_CHECKING:
-    from stub import toast
+    from ..stub import toast
 else:
     from __main__ import toast
 

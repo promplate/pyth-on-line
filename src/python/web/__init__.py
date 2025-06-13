@@ -19,4 +19,4 @@ async def get_cpython_docs(html: str, pathname: str):
 
     from html2text import html2text
 
-    return html2text(nodes[0], f"/cpython/{pathname.removeprefix("/cpython")}").replace("¶", "")
+    return html2text(nodes[0], f"/cpython/{pathname.removeprefix('/cpython')}").replace("¶", "")
