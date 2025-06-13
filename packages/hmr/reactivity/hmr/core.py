@@ -22,10 +22,10 @@ from .proxy import Proxy
 def is_called_internally(*, extra_depth=0) -> bool:
     """
     Determines if the caller is within the same package as this code.
-    
+
     Args:
         extra_depth: Additional stack frames to skip when checking the caller.
-    
+
     Returns:
         True if the caller's global package matches the current package; otherwise, False.
     """
@@ -51,7 +51,7 @@ class NamespaceProxy(Proxy):
     def __init__(self, initial: MutableMapping, module: "ReactiveModule", check_equality=True, *, context: Context | None = None):
         """
         Initializes the NamespaceProxy with a namespace mapping, associated ReactiveModule, and optional context.
-        
+
         Args:
             initial: The initial namespace mapping to wrap.
             module: The ReactiveModule instance this proxy is associated with.
@@ -64,7 +64,7 @@ class NamespaceProxy(Proxy):
     def _null(self):
         """
         Creates a new reactive signal linked to the module's load signal.
-        
+
         Returns:
             A `Name` signal instance that depends on the module's load signal.
         """
@@ -75,7 +75,7 @@ class NamespaceProxy(Proxy):
     def __getitem__(self, key):
         """
         Retrieves an item from the proxied namespace and ensures the module's load signal does not subscribe to the variable's signal.
-        
+
         Removes the module's load signal from the variable's signal subscribers to prevent self-subscription and redundant invalidation.
         """
         try:
@@ -94,7 +94,7 @@ class ReactiveModule(ModuleType):
     def __init__(self, file: Path, namespace: dict, name: str, doc: str | None = None):
         """
         Initializes a ReactiveModule with the given file path, namespace, and name.
-        
+
         Creates a proxy for the module's namespace to enable reactive tracking and registers the module instance for hot reloading.
         """
         super().__init__(name, doc)
@@ -112,7 +112,7 @@ class ReactiveModule(ModuleType):
     def file(self):
         """
         Returns the file path of the module if accessed internally.
-        
+
         Raises:
             AttributeError: If accessed from outside the internal context.
         """
@@ -124,7 +124,7 @@ class ReactiveModule(ModuleType):
     def __load(self):
         """
         Compiles and executes the module's source code within its reactive namespace.
-        
+
         If a syntax error occurs during compilation, the exception is passed to the system exception hook. After execution, cleans up subscriptions to ensure fine-grained invalidation of dependencies.
         """
         try:
@@ -146,7 +146,7 @@ class ReactiveModule(ModuleType):
     def load(self):
         """
         Provides access to the module's internal load method if called from within the package.
-        
+
         Raises:
             AttributeError: If accessed externally.
         """
@@ -157,7 +157,7 @@ class ReactiveModule(ModuleType):
     def __dir__(self):
         """
         Returns an iterator over the keys in the module's namespace proxy.
-        
+
         This provides attribute names available on the reactive module for introspection tools.
         """
         return iter(self.__namespace_proxy)
@@ -173,7 +173,7 @@ class ReactiveModule(ModuleType):
     def __getattr__(self, name: str):
         """
         Retrieves an attribute from the module's namespace proxy.
-        
+
         If the attribute is not found and the attribute name is not "__path__", attempts to call a custom `__getattr__` defined in the module's namespace. Raises `AttributeError` if the attribute cannot be resolved.
         """
         try:
@@ -186,7 +186,7 @@ class ReactiveModule(ModuleType):
     def __setattr__(self, name: str, value):
         """
         Sets an attribute on the module, restricting direct assignment to internal calls.
-        
+
         If called externally, assigns the value to the module's namespace proxy to enable reactive tracking.
         """
         if is_called_internally():
@@ -198,7 +198,7 @@ class ReactiveModuleLoader(Loader):
     def __init__(self, file: Path):
         """
         Initializes the loader with the specified module file path.
-        
+
         Args:
             file: The path to the Python module file to be loaded.
         """
@@ -208,7 +208,7 @@ class ReactiveModuleLoader(Loader):
     def create_module(self, spec: ModuleSpec):
         """
         Creates a new ReactiveModule instance for the given module specification.
-        
+
         Initializes the module's namespace with standard attributes and sets the `__path__`
         attribute for packages.
         """
@@ -221,7 +221,7 @@ class ReactiveModuleLoader(Loader):
     def exec_module(self, module: ModuleType):
         """
         Executes the code of a reactive module by invoking its load method.
-        
+
         Args:
             module: The ReactiveModule instance to execute.
         """
@@ -233,7 +233,7 @@ class ReactiveModuleFinder(MetaPathFinder):
     def __init__(self, includes: Iterable[str] = ".", excludes: Iterable[str] = ()):
         """
         Initializes the finder with include and exclude path lists.
-        
+
         Args:
             includes: Paths to include when searching for modules. Defaults to the current directory.
             excludes: Paths to exclude from module searching. Defaults to an empty tuple, plus site-packages directories.
@@ -245,7 +245,7 @@ class ReactiveModuleFinder(MetaPathFinder):
     def _accept(self, path: Path):
         """
         Determines if a file path should be accepted for reactive loading.
-        
+
         Returns True if the path is a file, is not excluded, and is within the included paths.
         """
         return path.is_file() and not is_relative_to_any(path, self.excludes) and is_relative_to_any(path, self.includes)
@@ -253,7 +253,7 @@ class ReactiveModuleFinder(MetaPathFinder):
     def find_spec(self, fullname: str, paths: Sequence[str] | None, _=None):
         """
         Finds a module specification for a given module name if it corresponds to an accepted Python file or package.
-        
+
         Returns a ModuleSpec with a ReactiveModuleLoader if the module file or package is found and accepted; otherwise, returns None.
         """
         if fullname in sys.modules:
@@ -275,11 +275,11 @@ class ReactiveModuleFinder(MetaPathFinder):
 def is_relative_to_any(path: Path, paths: Iterable[str | Path]):
     """
     Returns True if the given path is relative to any of the specified paths.
-    
+
     Args:
         path: The path to check.
         paths: An iterable of paths to compare against.
-    
+
     Returns:
         True if path is relative to at least one path in paths; otherwise, False.
     """
@@ -289,13 +289,13 @@ def is_relative_to_any(path: Path, paths: Iterable[str | Path]):
 def patch_module(name_or_module: str | ModuleType):
     """
     Replaces a loaded module in sys.modules with a ReactiveModule for hot reloading.
-    
+
     If given a module name or module object, wraps its file and namespace in a ReactiveModule,
     enabling reactive reloading on source changes. Returns the new ReactiveModule instance.
-    
+
     Args:
         name_or_module: The name of the module or the module object to patch.
-    
+
     Returns:
         The ReactiveModule instance replacing the original module.
     """
@@ -309,7 +309,7 @@ def patch_module(name_or_module: str | ModuleType):
 def patch_meta_path(includes: Iterable[str] = (".",), excludes: Iterable[str] = ()):
     """
     Inserts a ReactiveModuleFinder into sys.meta_path to enable reactive module loading.
-    
+
     Args:
         includes: Paths to include for reactive module loading.
         excludes: Paths to exclude from reactive module loading.
@@ -328,7 +328,7 @@ class ErrorFilter:
     def __init__(self, *exclude_filenames: str):
         """
         Initializes the ErrorFilter with a set of filenames to exclude from tracebacks.
-        
+
         Args:
             *exclude_filenames: Filenames to be excluded from error tracebacks.
         """
@@ -337,7 +337,7 @@ class ErrorFilter:
     def __call__(self, tb: TracebackType):
         """
         Returns the first traceback frame not excluded by filename.
-        
+
         Traverses the given traceback and returns the first frame whose filename is not in the exclusion list. If all frames are excluded, returns the original traceback.
         """
         current = tb
@@ -356,7 +356,7 @@ class ErrorFilter:
     def __exit__(self, exc_type: type[BaseException], exc_value: BaseException, traceback: TracebackType):
         """
         Handles exceptions by filtering the traceback and invoking the system exception hook.
-        
+
         If an exception occurs within the context, rewrites its traceback to exclude specified files
         and passes the filtered exception to `sys.excepthook`. Suppresses further propagation of the exception.
         """
@@ -372,7 +372,7 @@ class BaseReloader:
     def __init__(self, entry_file: str, includes: Iterable[str] = (".",), excludes: Iterable[str] = ()):
         """
         Initializes the base reloader with the entry file and path filters.
-        
+
         Args:
             entry_file: Path to the entry Python file to run and reload.
             includes: Iterable of paths to include for hot reloading.
@@ -388,7 +388,7 @@ class BaseReloader:
     def entry_module(self):
         """
         Creates and returns a ReactiveModule instance for the entry file as the main module.
-        
+
         The returned module uses the entry file path and a namespace with `__file__` and `__name__` set appropriately.
         """
         namespace = {"__file__": self.entry, "__name__": "__main__"}
@@ -397,7 +397,7 @@ class BaseReloader:
     def run_entry_file(self):
         """
         Executes the entry module's code within the error filter context.
-        
+
         Runs the entry module's reactive load method, ensuring that exceptions are filtered to exclude internal frames.
         """
         with self.error_filter:
@@ -407,7 +407,7 @@ class BaseReloader:
     def watch_filter(self):
         """
         Returns a Python file filter that ignores excluded paths.
-        
+
         The filter is used to determine which files should be monitored for changes, excluding any paths specified in the reloader's `excludes` attribute.
         """
         from watchfiles import PythonFilter
@@ -417,7 +417,7 @@ class BaseReloader:
     def on_events(self, events: Iterable[tuple[int, str]]):
         """
         Handles file change events by reloading affected reactive modules.
-        
+
         Identifies modules corresponding to changed files, invalidates their load signals, and reloads them within a reactive batch. Pre- and post-reload hooks are called before and after the reload process.
         """
         from watchfiles import Change
@@ -461,7 +461,7 @@ class _SimpleEvent:
     def is_set(self):
         """
         Checks whether the event flag is set.
-        
+
         Returns:
             True if the event has been set, otherwise False.
         """
@@ -485,7 +485,7 @@ class SyncReloader(BaseReloader):
     def start_watching(self):
         """
         Starts synchronous file watching and triggers reloads on detected changes.
-        
+
         Monitors the entry file and included paths for changes using a synchronous watcher. When file events are detected, calls `on_events` to handle reload logic. Stops watching when the stop event is set.
         """
         from watchfiles import watch
@@ -498,7 +498,7 @@ class SyncReloader(BaseReloader):
     def keep_watching_until_interrupt(self):
         """
         Runs the entry file with hot reloading enabled, watching for file changes until interrupted.
-        
+
         This method executes pre-reload hooks, runs the entry file reactively, executes post-reload hooks, and starts synchronous file watching. The process continues until a keyboard interrupt is received.
         """
         call_pre_reload_hooks()
@@ -526,7 +526,7 @@ class AsyncReloader(BaseReloader):
     async def start_watching(self):
         """
         Asynchronously watches for file changes and triggers reload events.
-        
+
         Monitors the entry file and included paths for changes using an asynchronous file watcher. When changes are detected, calls `on_events` with the set of file events. Stops watching when the stop event is set.
         """
         from watchfiles import awatch
@@ -539,7 +539,7 @@ class AsyncReloader(BaseReloader):
     async def keep_watching_until_interrupt(self):
         """
         Runs the entry file reactively and starts asynchronous file watching until interrupted.
-        
+
         This method executes pre-reload hooks, runs the entry file within a reactive context, executes post-reload hooks, and then begins asynchronously watching for file changes. The process continues until interrupted by a keyboard signal.
         """
         call_pre_reload_hooks()
@@ -551,7 +551,7 @@ class AsyncReloader(BaseReloader):
 def cli():
     """
     Runs the command-line interface for the hot module reloading system.
-    
+
     Validates the entry file argument, sets up the import path, initializes the synchronous reloader, replaces the `__main__` module, and starts watching for file changes until interrupted.
     """
     if len(sys.argv) < 2:

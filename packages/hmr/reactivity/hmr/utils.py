@@ -18,7 +18,7 @@ functions_last: set[str] = set()
 def swap():
     """
     Prepares function state for a module reload by saving current functions and clearing the active function registry.
-    
+
     Moves all current function entries to the previous cycle's set and resets the active functions dictionary.
     """
     functions_last.update(functions)
@@ -29,7 +29,7 @@ def swap():
 def clear_memos():
     """
     Removes memoized cache entries for functions that were present before reload but no longer exist.
-    
+
     This function cleans up the global memoization store by deleting cached results for functions that have been removed after a module reload cycle.
     """
     for func in functions_last:
@@ -40,7 +40,7 @@ def clear_memos():
 def cache_across_reloads[T](func: Callable[[], T]) -> Callable[[], T]:
     """
     Caches the result of a function across module reloads in a reactive environment.
-    
+
     If the function belongs to a reactive module, preserves its memoized result and state across hot reloads by recreating the function with the current reactive namespace and returning a memoized wrapper. If the function is not part of a reactive module, falls back to standard Python function caching.
     """
     file = getsourcefile(func)
@@ -78,7 +78,7 @@ class DictProxy(UserDict, dict):  # type: ignore
     def __init__(self, data):
         """
         Initializes the proxy dictionary with the provided data.
-        
+
         Args:
             data: The initial data to populate the proxy dictionary.
         """
@@ -88,7 +88,7 @@ class DictProxy(UserDict, dict):  # type: ignore
 def load(module: ReactiveModule):
     """
     Invokes the load method on a ReactiveModule instance.
-    
+
     Returns:
         The result of the module's load() method.
     """

@@ -7,12 +7,12 @@ class StringIOWrapper(UserString, IO[str]):
     def write(self, s):
         """
         Appends the given string to the internal buffer.
-        
+
         Args:
-        	s: The string to append.
-        
+                s: The string to append.
+
         Returns:
-        	The number of characters written.
+                The number of characters written.
         """
         self.data += s
         return len(s)
@@ -33,7 +33,7 @@ class StringIOWrapper(UserString, IO[str]):
 def capture_stdout():
     """
     Context manager that captures all output sent to standard output.
-    
+
     Yields:
         StringIOWrapper: An object containing the captured output as a string.
     """
