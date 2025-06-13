@@ -29,6 +29,8 @@ jobs:
         run: |
           basedpyright
   test:
+    permissions:
+      contents: read
     strategy:
       matrix:
         os: [ubuntu, windows, macos]
