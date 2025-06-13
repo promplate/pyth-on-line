@@ -17,6 +17,7 @@ class Getter[T](Protocol):
         Returns:
                 The current value stored in the signal.
         """
+        ...
 
 
 class Setter[T](Protocol):
@@ -30,6 +31,7 @@ class Setter[T](Protocol):
         Returns:
                 True if the value was updated and dependents were notified; False if the value was unchanged.
         """
+        ...
 
 
 def create_signal[T](initial_value: T = None, check_equality=True) -> tuple[Getter[T], Setter[T]]:
