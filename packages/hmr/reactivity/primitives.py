@@ -15,8 +15,8 @@ def _equal(a, b):
                 comparison_result = a == b
             if comparison_result:
                 return True
-        except ValueError as e:
-            if ".all()" in str(e) and hasattr(comparison_result, "all"):  # array-like instances
+        except (ValueError, RuntimeError) as e:
+            if "is ambiguous" in str(e) and hasattr(comparison_result, "all"):  # array-like instances
                 comparison_result = comparison_result.all()
             else:
                 return False
