@@ -42,8 +42,7 @@ jobs:
         uses: astral-sh/setup-uv@v6
         with:
           python-version: ${{ matrix.py }}
-          enable-cache: true
-          cache-dependency-glob: "**/pyproject.toml"
+          activate-environment: true
       - name: Install dependencies
         run: |
           uv pip install -r pyproject.toml --color always ${{ matrix.os == 'macos' && 'pytest-rerunfailures' || '' }}
@@ -64,8 +63,7 @@ jobs:
         uses: astral-sh/setup-uv@v6
         with:
           python-version: 3.13
-          enable-cache: true
-          cache-dependency-glob: packages/hmr/pyproject.toml
+          activate-environment: true
       - name: Build package
         run: uv build packages/hmr
       - name: Publish to PyPI
