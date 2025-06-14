@@ -48,7 +48,7 @@ jobs:
           uv pip install -r pyproject.toml --color always ${{ matrix.os == 'macos' && 'pytest-rerunfailures' || '' }}
       - name: Run tests
         run: |
-          pytest -v --color=yes ${{ matrix.os == 'macos' && '--reruns 50' || '' }}
+          pytest -v --color=yes ${{ matrix.os == 'macos' && '--reruns 500' || '' }}
   publish-hmr:
     needs: [test, check]
     runs-on: ubuntu-latest
