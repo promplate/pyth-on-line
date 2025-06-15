@@ -64,8 +64,7 @@
     </div>
   </Tooltip>
 
-  <!-- svelte-ignore a11y-mouse-events-have-key-events -->
-  <code on:mouseover={() => show = true} on:mouseout={() => [(show = false), stopWatching()]} bind:this={ref}>{inlineCode.value}</code>
+  <code on:mouseenter={() => show = true} on:mouseleave={() => [(show = false), stopWatching()]} bind:this={ref}>{inlineCode.value}</code>
 {:else}
   <code>{inlineCode.value}</code>
 {/if}
