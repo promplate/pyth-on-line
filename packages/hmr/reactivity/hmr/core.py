@@ -219,7 +219,7 @@ class BaseReloader:
         self.includes = includes
         self.excludes = excludes
         patch_meta_path(includes, excludes)
-        self.error_filter = ErrorFilter(*(str(i) for i in Path(__file__, "../..").resolve().glob("**/*.py")))
+        self.error_filter = ErrorFilter(*map(str, Path(__file__, "../..").resolve().glob("**/*.py")))
 
     @cached_property
     def entry_module(self):
