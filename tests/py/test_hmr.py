@@ -289,7 +289,6 @@ def test_cache_across_reloads():
             assert stdout.delta == "4\n"
 
 
-@pytest.mark.xfail(raises=NameError, strict=True)
 def test_cache_across_reloads_with_class():
     with environment() as stdout:
         Path("main.py").write_text("from reactivity.hmr import cache_across_reloads\n\n@cache_across_reloads\ndef f():\n    class _:\n        print(a)\n\nf()\n")

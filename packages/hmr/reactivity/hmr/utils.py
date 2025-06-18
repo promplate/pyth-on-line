@@ -1,3 +1,4 @@
+from ast import parse
 from collections import UserDict
 from collections.abc import Callable
 from functools import wraps
@@ -7,6 +8,7 @@ from types import FunctionType
 
 from ..helpers import Memoized
 from .core import HMR_CONTEXT, NamespaceProxy, ReactiveModule
+from .exec_hack import fix_class_name_resolution
 from .hooks import post_reload, pre_reload
 
 memos: dict[str, Callable] = {}
@@ -27,6 +29,9 @@ def clear_memos():
             del memos[func]
 
 
+_cache_decorator_phase = False
+
+
 def cache_across_reloads[T](func: Callable[[], T]) -> Callable[[], T]:
     file = getsourcefile(func)
     assert file is not None
@@ -40,6 +45,12 @@ def cache_across_reloads[T](func: Callable[[], T]) -> Callable[[], T]:
     source = getsource(func)
 
     proxy: NamespaceProxy = module._ReactiveModule__namespace_proxy  # type: ignore  # noqa: SLF001
+
+    global _cache_decorator_phase
+    _cache_decorator_phase = not _cache_decorator_phase
+    if _cache_decorator_phase:  # this function will be called twice: once transforming ast and once re-executing the patched source
+        exec(compile(fix_class_name_resolution(parse(source)), file, "exec"), DictProxy(proxy))
+        return proxy[func.__name__]
 
     func = FunctionType(func.__code__, DictProxy(proxy), func.__name__, func.__defaults__, func.__closure__)
 
