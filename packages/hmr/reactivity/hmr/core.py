@@ -13,8 +13,9 @@ from typing import Self
 from weakref import WeakValueDictionary
 
 from ..context import Context, new_context
-from ..helpers import DerivedMethod
+from ..helpers import DerivedMethod, DerivedProperty
 from ..primitives import BaseDerived, Derived, Signal
+from ._experimental import Dirty
 from .hooks import call_post_reload_hooks, call_pre_reload_hooks
 from .proxy import Proxy
 
@@ -143,6 +144,11 @@ class ReactiveModuleLoader(Loader):
         module.load()
 
 
+@Dirty
+def sys_path():  # TODO: Path(".") may change too
+    return sys.path
+
+
 class ReactiveModuleFinder(MetaPathFinder):
     def __init__(self, includes: Iterable[str] = ".", excludes: Iterable[str] = ()):
         super().__init__()
@@ -152,12 +158,18 @@ class ReactiveModuleFinder(MetaPathFinder):
     def _accept(self, path: Path):
         return path.is_file() and not is_relative_to_any(path, self.excludes) and is_relative_to_any(path, self.includes)
 
+    @DerivedProperty
+    def search_paths(self):
+        # FIXME: Handle case where `includes` contains file paths, not just directories
+        # Currently we assume `includes` never specify individual files
+        # And we assume `includes` and `excludes` never change
+        return [path for path in (Path(p).resolve() for p in sys_path()) if not is_relative_to_any(path, self.excludes) and is_relative_to_any(path, self.includes)]
+
     def find_spec(self, fullname: str, paths: Sequence[str] | None, _=None):
         if fullname in sys.modules:
             return None
 
-        for p in sys.path:
-            directory = Path(p).resolve()
+        for directory in self.search_paths:
             if directory.is_file():
                 continue
 
@@ -335,4 +347,4 @@ def cli():
     reloader.keep_watching_until_interrupt()
 
 
-__version__ = "0.6.2.2"
+__version__ = "0.6.3"
