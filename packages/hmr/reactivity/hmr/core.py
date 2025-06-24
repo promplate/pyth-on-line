@@ -114,7 +114,7 @@ class ReactiveModule(ModuleType):
 
     def __getattr__(self, name: str):
         try:
-            return self.__namespace_proxy[name]
+            return self.__namespace_proxy[name] if name != "__path__" else self.__namespace[name]
         except KeyError as e:
             if name != "__path__" and (getattr := self.__namespace_proxy.get("__getattr__")):
                 return getattr(name)
