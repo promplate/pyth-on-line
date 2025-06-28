@@ -146,7 +146,7 @@ class ReactiveModuleLoader(Loader):
 
 @Dirty
 def sys_path():  # TODO: Path(".") may change too
-    return sys.path
+    return [*sys.path]
 
 
 class ReactiveModuleFinder(MetaPathFinder):
