@@ -144,7 +144,7 @@ class ReactiveModuleLoader(Loader):
         module.load()
 
 
-@Dirty
+@partial(Dirty, context=HMR_CONTEXT)
 def sys_path():  # TODO: Path(".") may change too
     return [*sys.path]
 
@@ -158,7 +158,7 @@ class ReactiveModuleFinder(MetaPathFinder):
     def _accept(self, path: Path):
         return path.is_file() and not is_relative_to_any(path, self.excludes) and is_relative_to_any(path, self.includes)
 
-    @DerivedProperty
+    @partial(DerivedProperty, context=HMR_CONTEXT)
     def search_paths(self):
         # FIXME: Handle case where `includes` contains file paths, not just directories
         # Currently we assume `includes` never specify individual files
