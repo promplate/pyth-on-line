@@ -315,7 +315,6 @@ def test_cache_across_reloads_source():
         load(ReactiveModule(Path("main.py"), {}, "main"))
 
 
-@pytest.mark.xfail(strict=True)
 def test_cache_across_reloads_with_other_decorators():
     with environment() as stdout:
         Path("main.py").write_text(

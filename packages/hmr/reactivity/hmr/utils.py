@@ -49,22 +49,44 @@ def cache_across_reloads[T](func: Callable[[], T]) -> Callable[[], T]:
     global _cache_decorator_phase
     _cache_decorator_phase = not _cache_decorator_phase
     if _cache_decorator_phase:  # this function will be called twice: once transforming ast and once re-executing the patched source
-        exec(compile(fix_class_name_resolution(parse(source), func.__code__.co_firstlineno - 1), file, "exec"), DictProxy(proxy))
-        return proxy[func.__name__]
+        try:
+            exec(compile(fix_class_name_resolution(parse(source), func.__code__.co_firstlineno - 1), file, "exec"), DictProxy(proxy))
+        except _Return as e:
+            # If this function is used as a decorator, it will raise an `_Return` exception in the second phase.
+            return e.value
+        else:
+            # Otherwise, it is used as a function, and we need to do the second phase ourselves.
+            func = proxy[func.__name__]
 
     func = FunctionType(func.__code__, DictProxy(proxy), func.__name__, func.__defaults__, func.__closure__)
 
     functions[source] = func
 
     if source in memos and source in functions_last:
-        return memos[source]
+        return _return(memos[source])
 
     def wrapper() -> T:
         return functions[source]()
 
     memos[source] = memo = Memoized(wrapper, context=HMR_CONTEXT)
 
-    return wraps(func)(memo)
+    return _return(wraps(func)(memo))
+
+
+class _Return(Exception):  # noqa: N818
+    def __init__(self, value):
+        self.value = value
+        super().__init__()
+
+
+def _return[T](value: T) -> T:
+    global _cache_decorator_phase
+
+    if _cache_decorator_phase:
+        _cache_decorator_phase = not _cache_decorator_phase
+        return value
+
+    raise _Return(value)  # used as decorator, so we raise an exception to jump before outer decorators
 
 
 class DictProxy(UserDict, dict):  # type: ignore
