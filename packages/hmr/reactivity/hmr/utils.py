@@ -49,7 +49,7 @@ def cache_across_reloads[T](func: Callable[[], T]) -> Callable[[], T]:
     global _cache_decorator_phase
     _cache_decorator_phase = not _cache_decorator_phase
     if _cache_decorator_phase:  # this function will be called twice: once transforming ast and once re-executing the patched source
-        exec(compile(fix_class_name_resolution(parse(source)), file, "exec"), DictProxy(proxy))
+        exec(compile(fix_class_name_resolution(parse(source), func.__code__.co_firstlineno - 1), file, "exec"), DictProxy(proxy))
         return proxy[func.__name__]
 
     func = FunctionType(func.__code__, DictProxy(proxy), func.__name__, func.__defaults__, func.__closure__)

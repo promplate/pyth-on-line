@@ -296,7 +296,6 @@ def test_cache_across_reloads_with_class():
         assert stdout.delta == "1\n"
 
 
-@pytest.mark.xfail(strict=True)
 def test_cache_across_reloads_source():
     with environment():
         Path("main.py").write_text(
