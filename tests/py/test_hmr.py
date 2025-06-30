@@ -294,3 +294,23 @@ def test_cache_across_reloads_with_class():
         Path("main.py").write_text("from reactivity.hmr import cache_across_reloads\n\n@cache_across_reloads\ndef f():\n    class _:\n        print(a)\n\nf()\n")
         load(ReactiveModule(Path("main.py"), {"a": 1}, "main"))
         assert stdout.delta == "1\n"
+
+
+@pytest.mark.xfail(strict=True)
+def test_cache_across_reloads_source():
+    with environment():
+        Path("main.py").write_text(
+            dedent(
+                """
+
+                from inspect import getsource
+                from reactivity.hmr.utils import cache_across_reloads
+
+                def f(): pass
+
+                assert getsource(f) == getsource(cache_across_reloads(f))
+
+                """
+            )
+        )
+        load(ReactiveModule(Path("main.py"), {}, "main"))
