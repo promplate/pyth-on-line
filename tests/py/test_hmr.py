@@ -313,3 +313,25 @@ def test_cache_across_reloads_source():
             )
         )
         load(ReactiveModule(Path("main.py"), {}, "main"))
+
+
+@pytest.mark.xfail(strict=True)
+def test_cache_across_reloads_with_other_decorators():
+    with environment() as stdout:
+        Path("main.py").write_text(
+            dedent(
+                """
+
+                from reactivity.hmr.utils import cache_across_reloads
+
+                @lambda f: [print(1), f()][1]
+                @cache_across_reloads
+                @lambda f: print(3) or f
+                def two(): return 2
+
+                """
+            )
+        )
+        load(ReactiveModule(Path("main.py"), ns := {}, "main"))
+        assert stdout.delta == "3\n3\n1\n"  # inner function being called twice, while the outer one only once
+        assert ns["two"] == 2
