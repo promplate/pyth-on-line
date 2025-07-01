@@ -19,7 +19,7 @@
     "@ethercorps/sveltekit-og": "^3.0.0",
     "@fontsource-variable/fira-code": "^5.2.6",
     "@fontsource-variable/inter": "^5.2.6",
-    "@iconify/json": "^2.2.353",
+    "@iconify/json": "^2.2.354",
     "@neodrag/svelte": "^2.3.3",
     "@shikijs/monaco": "^3.7.0",
     "@shikijs/rehype": "^3.7.0",
@@ -60,7 +60,7 @@
   "devDependencies": {
     "@antfu/eslint-config": "^4.16.1",
     "@types/mdast": "^4.0.4",
-    "@types/node": "^24.0.7",
+    "@types/node": "^24.0.8",
     "@types/turndown": "^5.0.5",
     "@unocss/eslint-config": "^66.3.2",
     "eslint": "^9.30.0",
