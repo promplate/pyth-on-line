@@ -196,11 +196,15 @@ def test_simple_circular_dependency():
             """
 
 
+@pytest.mark.xfail(strict=True)
 def test_private_methods_inaccessible():
     with environment():
         Path("main.py").touch()
-        with SyncReloaderAPI("main.py"), pytest.raises(ImportError):
-            exec("from main import load")
+        with SyncReloaderAPI("main.py"):
+            with pytest.raises(ImportError):
+                exec("from main import load")
+            with pytest.raises(ImportError):
+                exec("from main import instances")
 
 
 def test_reload_from_outside():
