@@ -111,6 +111,8 @@ class ReactiveModule(ModuleType):
     def __getattribute__(self, name: str):
         if name == "__dict__" and self.__is_initialized:
             return self.__namespace
+        if name == "instances":  # class-level attribute
+            raise AttributeError(name)
         return super().__getattribute__(name)
 
     def __getattr__(self, name: str):
@@ -347,4 +349,4 @@ def cli():
     reloader.keep_watching_until_interrupt()
 
 
-__version__ = "0.6.3.1"
+__version__ = "0.6.3.2"
