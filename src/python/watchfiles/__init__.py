@@ -55,7 +55,7 @@ class BaseFilter:
         self._ignore_entity_regexes = tuple(re.compile(r) for r in self.ignore_entity_patterns)
         self._ignore_paths = tuple(map(str, self.ignore_paths))
 
-    def __call__(self, change: Change, path: str) -> bool:
+    def __call__(self, change: Change, path: str) -> bool:  # noqa: ARG002
         """
         Instances of `BaseFilter` subclasses can be used as callables.
         Args:
@@ -162,13 +162,13 @@ class PythonFilter(DefaultFilter):
 async def awatch(
     *paths: Path | str,
     watch_filter: Callable[[Change, str], bool] | None = DefaultFilter(),
-    debounce: int = 1_600,
-    step: int = 50,
+    debounce: int = 1_600,  # noqa: ARG001
+    step: int = 50,  # noqa: ARG001
     stop_event: Event | None = None,
-    yield_on_timeout: bool = False,
-    raise_interrupt: bool | None = None,
-    force_polling: bool | None = None,
-    recursive: bool = True,
+    yield_on_timeout: bool = False,  # noqa: ARG001
+    raise_interrupt: bool | None = None,  # noqa: ARG001
+    force_polling: bool | None = None,  # noqa: ARG001
+    recursive: bool = True,  # noqa: ARG001
 ) -> AsyncGenerator[set[FileChange]]:
     if stop_event is None:
         stop_event = Event()
