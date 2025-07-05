@@ -195,5 +195,5 @@ def handle_fs_event(change: Literal[1, 2, 3], path: str):
     for paths, queue in watchers:
         event = (Change(change), path)
         event_path = Path(path)
-        if any(event_path.is_relative_to(p) for p in paths):
+        if any(map(event_path.is_relative_to, paths)):
             queue.put_nowait(event)
