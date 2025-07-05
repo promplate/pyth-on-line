@@ -175,17 +175,18 @@ async def awatch(
 
     watchers.append(watcher := (tuple(Path(p).resolve() for p in paths), queue := Queue()))
 
-    while True:
-        await wait([ensure_future(stop_event.wait()), fut := ensure_future(queue.get())], return_when=FIRST_COMPLETED)
-        if stop_event.is_set():
-            break
-        assert fut.done(), "Expected the future to be done, but it was not."
-        changes = {fut.result()}
-        while not queue.empty():
-            changes.add(queue.get_nowait())
-        yield {i for i in changes if not watch_filter or watch_filter(*i)}
-
-    watchers.remove(watcher)
+    try:
+        while True:
+            await wait([ensure_future(stop_event.wait()), fut := ensure_future(queue.get())], return_when=FIRST_COMPLETED)
+            if stop_event.is_set():
+                break
+            assert fut.done(), "Expected the future to be done, but it was not."
+            changes = {fut.result()}
+            while not queue.empty():
+                changes.add(queue.get_nowait())
+            yield {i for i in changes if not watch_filter or watch_filter(*i)}
+    finally:
+        watchers.remove(watcher)
 
 
 watchers: list[tuple[tuple[Path, ...], Queue[FileChange]]] = []
