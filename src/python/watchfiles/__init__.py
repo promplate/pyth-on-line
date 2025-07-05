@@ -1,4 +1,3 @@
-import logging
 import re
 from asyncio import FIRST_COMPLETED, Event, Queue, ensure_future, wait
 from collections.abc import AsyncGenerator, Callable, Sequence
@@ -188,7 +187,7 @@ async def awatch(  # C901
         changes = {fut.result()}
         while not queue.empty():
             changes.add(queue.get_nowait())
-        yield {i for i in changes if not watch_filter or watch_filter(i[0], i[1])}
+        yield {i for i in changes if not watch_filter or watch_filter(*i)}
 
     watchers.remove(watcher)
 
