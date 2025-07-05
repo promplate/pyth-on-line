@@ -173,7 +173,7 @@ async def awatch(
     if stop_event is None:
         stop_event = Event()
 
-    watchers.append(watcher := (paths, queue := Queue()))
+    watchers.append(watcher := (tuple(Path(p).resolve() for p in paths), queue := Queue()))
 
     while True:
         await wait([ensure_future(stop_event.wait()), fut := ensure_future(queue.get())], return_when=FIRST_COMPLETED)
@@ -188,12 +188,12 @@ async def awatch(
     watchers.remove(watcher)
 
 
-watchers: list[tuple[tuple[Path | str, ...], Queue[FileChange]]] = []
+watchers: list[tuple[tuple[Path, ...], Queue[FileChange]]] = []
 
 
 def handle_fs_event(change: Literal[1, 2, 3], path: str):
     for paths, queue in watchers:
         event = (Change(change), path)
         event_path = Path(path)
-        if any(event_path.is_relative_to(Path(p).resolve()) for p in paths):
+        if any(event_path.is_relative_to(p) for p in paths):
             queue.put_nowait(event)
