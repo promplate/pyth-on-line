@@ -1,6 +1,8 @@
 import type { FS } from "./emscripten_fs";
 import type { PyodideInterface } from "pyodide";
 
+import { dev } from "$app/environment";
+
 export function setupWatcher(py: PyodideInterface) {
   //  onOpenFile: (path: string, trackingFlags: number) => unknown;
   //  onCloseFile: (path: string) => unknown;
@@ -36,23 +38,23 @@ export function setupWatcher(py: PyodideInterface) {
   };
 
   trackingDelegate.onMakeDirectory = (path: string) => {
-    console.warn("make-directory", path);
+    dev && console.warn("make-directory", path);
     handle(1, path); // added
   };
 
   trackingDelegate.onMakeSymlink = (oldpath: string, newpath: string) => {
-    console.warn("make-symlink", oldpath, newpath);
+    dev && console.warn("make-symlink", oldpath, newpath);
     handle(1, newpath); // added
   };
 
   trackingDelegate.onMovePath = (old_path: string, new_path: string) => {
-    console.warn("move-path", old_path, new_path);
+    dev && console.warn("move-path", old_path, new_path);
     handle(3, old_path); // deleted
     handle(1, new_path); // added
   };
 
   trackingDelegate.onDeletePath = (path: string) => {
-    console.warn("delete-path", path);
+    dev && console.warn("delete-path", path);
     handle(3, path); // deleted
   };
 };
