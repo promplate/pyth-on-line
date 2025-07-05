@@ -25,8 +25,7 @@ class Change(IntEnum):
 
 FileChange = tuple[Change, str]
 
-__all__ = "BaseFilter", "DefaultFilter", "PythonFilter"
-logger = logging.getLogger("watchfiles.watcher")
+__all__ = "BaseFilter", "Change", "DefaultFilter", "PythonFilter", "awatch"
 
 
 class BaseFilter:
