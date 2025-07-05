@@ -1,5 +1,4 @@
 import logging
-import os
 import re
 from asyncio import FIRST_COMPLETED, Event, Queue, ensure_future, wait
 from collections.abc import AsyncGenerator, Callable, Sequence
@@ -58,7 +57,7 @@ class BaseFilter:
         self._ignore_entity_regexes = tuple(re.compile(r) for r in self.ignore_entity_patterns)
         self._ignore_paths = tuple(map(str, self.ignore_paths))
 
-    def __call__(self, change: "Change", path: str) -> bool:
+    def __call__(self, change: Change, path: str) -> bool:
         """
         Instances of `BaseFilter` subclasses can be used as callables.
         Args:
@@ -68,15 +67,12 @@ class BaseFilter:
         Returns:
             True if the file should be included in changes, False if it should be ignored.
         """
-        parts = path.lstrip(os.sep).split(os.sep)
+        parts = Path(path).parts
         if any(p in self._ignore_dirs for p in parts):
             return False
 
         entity_name = parts[-1]
-        if any(r.search(entity_name) for r in self._ignore_entity_regexes) or (self._ignore_paths and path.startswith(self._ignore_paths)):
-            return False
-        else:
-            return True
+        return not (any(r.search(entity_name) for r in self._ignore_entity_regexes) or (self._ignore_paths and path.startswith(self._ignore_paths)))
 
     def __repr__(self) -> str:
         args = ", ".join(f"{k}={getattr(self, k, None)!r}" for k in self.__slots__)
@@ -158,10 +154,10 @@ class PythonFilter(DefaultFilter):
         `ignore_paths` and `extra_extensions` can be passed as arguments partly to support [CLI](../cli.md) usage where
         `--ignore-paths` and `--extensions` can be passed as arguments.
         """
-        self.extensions = (".py", ".pyx", ".pyd") + tuple(extra_extensions)
+        self.extensions = (".py", ".pyx", ".pyd", *tuple(extra_extensions))
         super().__init__(ignore_paths=ignore_paths)
 
-    def __call__(self, change: "Change", path: str) -> bool:
+    def __call__(self, change: Change, path: str) -> bool:
         return path.endswith(self.extensions) and super().__call__(change, path)
 
 
