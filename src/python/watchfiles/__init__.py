@@ -159,20 +159,16 @@ class PythonFilter(DefaultFilter):
         return path.endswith(self.extensions) and super().__call__(change, path)
 
 
-async def awatch(  # C901
+async def awatch(
     *paths: Path | str,
     watch_filter: Callable[[Change, str], bool] | None = DefaultFilter(),
     debounce: int = 1_600,
     step: int = 50,
     stop_event: Event | None = None,
-    rust_timeout: int | None = None,
     yield_on_timeout: bool = False,
-    debug: bool | None = None,
     raise_interrupt: bool | None = None,
     force_polling: bool | None = None,
-    poll_delay_ms: int = 300,
     recursive: bool = True,
-    ignore_permission_denied: bool | None = None,
 ) -> AsyncGenerator[set[FileChange]]:
     if stop_event is None:
         stop_event = Event()
