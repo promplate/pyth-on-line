@@ -65,11 +65,11 @@ class BaseFilter:
         Returns:
             True if the file should be included in changes, False if it should be ignored.
         """
-        parts = Path(path).parts
-        if any(p in self._ignore_dirs for p in parts):
+        p = Path(path)
+        if any(p in self._ignore_dirs for p in p.parts):
             return False
 
-        entity_name = parts[-1]
+        entity_name = p.name
         return not (any(r.search(entity_name) for r in self._ignore_entity_regexes) or (self._ignore_paths and path.startswith(self._ignore_paths)))
 
     def __repr__(self) -> str:
