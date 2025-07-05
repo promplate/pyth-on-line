@@ -4,27 +4,12 @@ import type { PyodideInterface } from "pyodide";
 import { dev } from "$app/environment";
 
 export function setupWatcher(py: PyodideInterface) {
-  //  onOpenFile: (path: string, trackingFlags: number) => unknown;
-  //  onCloseFile: (path: string) => unknown;
-  //  onSeekFile: (path: string, position: number, whence: number) => unknown;
-  //  onReadFile: (path: string, bytesRead: number) => unknown;
-  //  onWriteToFile: (path: string, bytesWritten: number) => unknown;
-  //  onMakeDirectory: (path: string, mode: number) => unknown;
-  //  onMakeSymlink: (oldpath: string, newpath: string) => unknown;
-  //  willMovePath: (old_path: string, new_path: string) => unknown;
-  //  onMovePath: (old_path: string, new_path: string) => unknown;
-  //  willDeletePath: (path: string) => unknown;
-  //  onDeletePath: (path: string) => unknown;
   const { trackingDelegate } = py.FS as unknown as FS;
 
-  // added = 1
-  // """A new file or directory was added."""
-  // modified = 2
-  // """A file or directory was modified, can be either a metadata or data change."""
-  // deleted = 3
-  // """A file or directory was deleted."""
   const _handle: (change: 1 | 2 | 3, path: string) => void = py.pyimport("watchfiles.handle_fs_event");
-
+  // 1. added: A new file or directory was added.
+  // 2. modified: A file or directory was modified, can be either a metadata or data change.
+  // 3. deleted: A file or directory was deleted.
   const handle = (change: 1 | 2 | 3, path: string) => {
     if (!path.startsWith("/dev")) {
       setTimeout(() => {
