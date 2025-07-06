@@ -133,16 +133,13 @@ class ReactiveModule(ModuleType):
 
 
 class ReactiveModuleLoader(Loader):
-    def __init__(self, file: Path):
-        super().__init__()
-        self._file = file
-
     def create_module(self, spec: ModuleSpec):
-        namespace = {"__file__": str(self._file), "__spec__": spec, "__loader__": self, "__name__": spec.name, "__package__": spec.parent}
+        assert spec.origin is not None, "This loader can only load file-backed modules"
+        path = Path(spec.origin)
+        namespace = {"__file__": spec.origin, "__spec__": spec, "__loader__": self, "__name__": spec.name, "__package__": spec.parent, "__cached__": None}
         if spec.submodule_search_locations is not None:
-            assert self._file.name == "__init__.py"
-            namespace["__path__"] = [str(self._file.parent)]
-        return ReactiveModule(self._file, namespace, spec.name)
+            namespace["__path__"] = spec.submodule_search_locations[:] = [str(path.parent)]
+        return ReactiveModule(path, namespace, spec.name)
 
     def exec_module(self, module: ModuleType):
         assert isinstance(module, ReactiveModule)
@@ -185,10 +182,10 @@ class ReactiveModuleFinder(MetaPathFinder):
 
             file = directory / f"{fullname.replace('.', '/')}.py"
             if self._accept(file) and (paths is None or is_relative_to_any(file, paths)):
-                return spec_from_loader(fullname, ReactiveModuleLoader(file), origin=str(file))
+                return spec_from_loader(fullname, ReactiveModuleLoader(), origin=str(file))
             file = directory / f"{fullname.replace('.', '/')}/__init__.py"
             if self._accept(file) and (paths is None or is_relative_to_any(file, paths)):
-                return spec_from_loader(fullname, ReactiveModuleLoader(file), origin=str(file), is_package=True)
+                return spec_from_loader(fullname, ReactiveModuleLoader(), origin=str(file), is_package=True)
 
 
 def is_relative_to_any(path: Path, paths: Iterable[str | Path]):
