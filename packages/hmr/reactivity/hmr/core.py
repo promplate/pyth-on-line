@@ -146,6 +146,9 @@ class ReactiveModuleLoader(Loader):
         module.load()
 
 
+_loader = ReactiveModuleLoader()  # This is a singleton loader instance used by the finder
+
+
 class ReactiveModuleFinder(MetaPathFinder):
     def __init__(self, includes: Iterable[str] = ".", excludes: Iterable[str] = ()):
         super().__init__()
@@ -182,10 +185,10 @@ class ReactiveModuleFinder(MetaPathFinder):
 
             file = directory / f"{fullname.replace('.', '/')}.py"
             if self._accept(file) and (paths is None or is_relative_to_any(file, paths)):
-                return spec_from_loader(fullname, ReactiveModuleLoader(), origin=str(file))
+                return spec_from_loader(fullname, _loader, origin=str(file))
             file = directory / f"{fullname.replace('.', '/')}/__init__.py"
             if self._accept(file) and (paths is None or is_relative_to_any(file, paths)):
-                return spec_from_loader(fullname, ReactiveModuleLoader(), origin=str(file), is_package=True)
+                return spec_from_loader(fullname, _loader, origin=str(file), is_package=True)
 
 
 def is_relative_to_any(path: Path, paths: Iterable[str | Path]):
