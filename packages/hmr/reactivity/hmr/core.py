@@ -134,7 +134,7 @@ class ReactiveModuleLoader(Loader):
         self._file = file
 
     def create_module(self, spec: ModuleSpec):
-        namespace = {"__file__": str(self._file), "__spec__": spec, "__loader__": self, "__name__": spec.name}
+        namespace = {"__file__": str(self._file), "__spec__": spec, "__loader__": self, "__name__": spec.name, "__package__": spec.parent}
         if spec.submodule_search_locations is not None:
             assert self._file.name == "__init__.py"
             namespace["__path__"] = [str(self._file.parent)]
