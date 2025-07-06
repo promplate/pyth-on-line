@@ -61,6 +61,9 @@ class NamespaceProxy(Proxy):
                 self.module.load.dependencies.remove(signal)
 
 
+STATIC_ATTRS = frozenset(("__path__", "__dict__", "__spec__", "__name__", "__file__", "__loader__", "__package__", "__cached__"))
+
+
 class ReactiveModule(ModuleType):
     instances: WeakValueDictionary[Path, Self] = WeakValueDictionary()
 
@@ -120,9 +123,9 @@ class ReactiveModule(ModuleType):
 
     def __getattr__(self, name: str):
         try:
-            return self.__namespace_proxy[name] if name != "__path__" else self.__namespace[name]
+            return self.__namespace_proxy[name] if name not in STATIC_ATTRS else self.__namespace[name]
         except KeyError as e:
-            if name != "__path__" and (getattr := self.__namespace_proxy.get("__getattr__")):
+            if name not in STATIC_ATTRS and (getattr := self.__namespace_proxy.get("__getattr__")):
                 return getattr(name)
             raise AttributeError(*e.args) from None
 
@@ -357,4 +360,4 @@ def cli():
     reloader.keep_watching_until_interrupt()
 
 
-__version__ = "0.6.3.2"
+__version__ = "0.6.4"
