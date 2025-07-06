@@ -1,4 +1,5 @@
 import sys
+from ast import get_docstring, parse
 from collections.abc import Iterable, MutableMapping, Sequence
 from contextlib import suppress
 from functools import cached_property, partial
@@ -84,10 +85,13 @@ class ReactiveModule(ModuleType):
     @partial(DerivedMethod, context=HMR_CONTEXT)
     def __load(self):
         try:
-            code = compile(self.__file.read_text("utf-8"), str(self.__file), "exec", dont_inherit=True)
+            file = self.__file
+            ast = parse(file.read_text("utf-8"), str(file))
+            code = compile(ast, str(file), "exec", dont_inherit=True)
         except SyntaxError as e:
             sys.excepthook(type(e), e, e.__traceback__)
         else:
+            self.__doc__ = get_docstring(ast)
             exec(code, self.__namespace, self.__namespace_proxy)  # https://github.com/python/cpython/issues/121306
         finally:
             load = self.__load
