@@ -10,6 +10,7 @@ from inspect import currentframe, ismethod
 from os import getenv
 from pathlib import Path
 from site import getsitepackages, getusersitepackages
+from sysconfig import get_paths
 from types import ModuleType, TracebackType
 from typing import Self
 from weakref import WeakValueDictionary
@@ -164,8 +165,9 @@ def _deduplicate(paths: Iterable[str | Path]):
 class ReactiveModuleFinder(MetaPathFinder):
     def __init__(self, includes: Iterable[str] = ".", excludes: Iterable[str] = ()):
         super().__init__()
+        builtins = map(get_paths().__getitem__, ("stdlib", "platstdlib", "platlib", "purelib"))
         self.includes = _deduplicate(includes)
-        self.excludes = _deduplicate((*([venv] if (venv := getenv("VIRTUAL_ENV")) else ()), *getsitepackages(), getusersitepackages(), *excludes))
+        self.excludes = _deduplicate((*([venv] if (venv := getenv("VIRTUAL_ENV")) else ()), *getsitepackages(), getusersitepackages(), *builtins, *excludes))
 
         self._last_sys_path: list[str] = []
         self._last_cwd: Path = Path()
