@@ -153,13 +153,19 @@ class ReactiveModuleLoader(Loader):
 _loader = ReactiveModuleLoader()  # This is a singleton loader instance used by the finder
 
 
+def _deduplicate(paths: Iterable[str | Path]):
+    paths = [*{Path(p).resolve() for p in paths}]
+    for i, p in enumerate(s := sorted(paths, reverse=True), start=1):
+        if is_relative_to_any(p, s[i:]):
+            paths.remove(p)
+    return paths
+
+
 class ReactiveModuleFinder(MetaPathFinder):
     def __init__(self, includes: Iterable[str] = ".", excludes: Iterable[str] = ()):
         super().__init__()
-        self.includes = [Path(i).resolve() for i in includes]
-        self.excludes = [Path(e).resolve() for e in (*getsitepackages(), *getusersitepackages(), *excludes)]
-        if venv := getenv("VIRTUAL_ENV"):
-            self.excludes.insert(0, Path(venv).resolve())
+        self.includes = _deduplicate(includes)
+        self.excludes = _deduplicate((*([venv] if (venv := getenv("VIRTUAL_ENV")) else ()), *getsitepackages(), getusersitepackages(), *excludes))
 
         self._last_sys_path: list[str] = []
         self._last_cwd: Path = Path()
@@ -363,4 +369,4 @@ def cli():
     reloader.keep_watching_until_interrupt()
 
 
-__version__ = "0.6.4.1"
+__version__ = "0.6.4.2"
