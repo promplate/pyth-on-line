@@ -9,7 +9,7 @@ from importlib.util import spec_from_loader
 from inspect import currentframe, ismethod
 from os import getenv
 from pathlib import Path
-from site import getsitepackages
+from site import getsitepackages, getusersitepackages
 from types import ModuleType, TracebackType
 from typing import Self
 from weakref import WeakValueDictionary
@@ -157,7 +157,7 @@ class ReactiveModuleFinder(MetaPathFinder):
     def __init__(self, includes: Iterable[str] = ".", excludes: Iterable[str] = ()):
         super().__init__()
         self.includes = [Path(i).resolve() for i in includes]
-        self.excludes = [Path(e).resolve() for e in (*getsitepackages(), *excludes)]
+        self.excludes = [Path(e).resolve() for e in (*getsitepackages(), *getusersitepackages(), *excludes)]
         if venv := getenv("VIRTUAL_ENV"):
             self.excludes.insert(0, Path(venv).resolve())
 
