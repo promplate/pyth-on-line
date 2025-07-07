@@ -154,8 +154,8 @@ class ReactiveModuleLoader(Loader):
 _loader = ReactiveModuleLoader()  # This is a singleton loader instance used by the finder
 
 
-def _deduplicate(paths: Iterable[str | Path]):
-    paths = [*{Path(p).resolve() for p in paths}]
+def _deduplicate(input_paths: Iterable[str | Path]):
+    paths = [*{Path(p).resolve(): None for p in input_paths}]  # dicts preserve insertion order
     for i, p in enumerate(s := sorted(paths, reverse=True), start=1):
         if is_relative_to_any(p, s[i:]):
             paths.remove(p)
@@ -371,4 +371,4 @@ def cli():
     reloader.keep_watching_until_interrupt()
 
 
-__version__ = "0.6.4.2"
+__version__ = "0.6.4.3"
