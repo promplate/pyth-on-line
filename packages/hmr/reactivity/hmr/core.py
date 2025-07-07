@@ -7,6 +7,7 @@ from importlib.abc import Loader, MetaPathFinder
 from importlib.machinery import ModuleSpec
 from importlib.util import spec_from_loader
 from inspect import currentframe, ismethod
+from os import getenv
 from pathlib import Path
 from site import getsitepackages
 from types import ModuleType, TracebackType
@@ -156,7 +157,9 @@ class ReactiveModuleFinder(MetaPathFinder):
     def __init__(self, includes: Iterable[str] = ".", excludes: Iterable[str] = ()):
         super().__init__()
         self.includes = [Path(i).resolve() for i in includes]
-        self.excludes = [Path(e).resolve() for e in (*excludes, *getsitepackages())]
+        self.excludes = [Path(e).resolve() for e in (*getsitepackages(), *excludes)]
+        if venv := getenv("VIRTUAL_ENV"):
+            self.excludes.insert(0, Path(venv).resolve())
 
         self._last_sys_path: list[str] = []
         self._last_cwd: Path = Path()
@@ -360,4 +363,4 @@ def cli():
     reloader.keep_watching_until_interrupt()
 
 
-__version__ = "0.6.4"
+__version__ = "0.6.4.1"
