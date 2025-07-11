@@ -48,16 +48,16 @@
       <div class="flex flex-row items-center gap-1.5 rounded bg-emerald-3/10 px-1.5 py-1 text-emerald-3/80">
         <div class="i-majesticons-lightbulb-shine text-base text-emerald-3" />
         <div class="text-xs capitalize sm:text-sm">
-          error explainer
+          报错解释与修复
         </div>
       </div>
       <div class="flex flex-row [&>button:active]:scale-90 [&>button]:(rounded p-1.5 text-white/80 transition-colors)">
-        <WithTooltip tips="Regenerate" let:builder>
+        <WithTooltip tips="重新生成" let:builder>
           <button class="hover:(bg-cyan-3/10 text-cyan-3/80)" on:click={invoke} {...builder} use:builder.action>
             <div class="i-mingcute-refresh-2-fill" />
           </button>
         </WithTooltip>
-        <WithTooltip tips="Close" let:builder>
+        <WithTooltip tips="关闭" let:builder>
           <button class="hover:(bg-red-3/10 text-red-3/80)" on:click={close} {...builder} use:builder.action>
             <div class="i-mingcute-close-fill" />
           </button>

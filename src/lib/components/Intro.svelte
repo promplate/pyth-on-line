@@ -6,7 +6,7 @@
 
 <div class="fixed inset-0 z--1 grid place-items-center">
   <div class="flex flex-col gap-10">
-    <h1 class="w-full gap-1 text-xl tracking-wide font-sans">
+    <h1 class="w-full gap-1 text-xl font-sans tracking-wide">
       {#each title.split(" ") as char, i}
         {#if i} <span> </span> {/if}
         {@const t = Math.random() * (i + 1)}

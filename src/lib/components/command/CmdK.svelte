@@ -20,12 +20,12 @@
 
   const navigations = {
     type: "group",
-    text: "Navigation",
+    text: "导航",
     children: [
-      { type: "link", href: "/", text: "Homepage" },
-      { type: "link", href: "/console", text: "Immersive Console" },
-      { type: "link", href: "/github", text: "Open a GitHub Repository" },
-      { type: "link", href: "/cpython", text: "CPython Docs" },
+      { type: "link", href: "/", text: "首页" },
+      { type: "link", href: "/console", text: "Python 控制台" },
+      { type: "link", href: "/github", text: "打开 GitHub 仓库" },
+      { type: "link", href: "/cpython", text: "CPython 官方文档" },
     ],
   } as Group;
 
@@ -52,7 +52,7 @@
       </div>
     {/if}
 
-    <Command.Input autofocus bind:value={$input} class="w-full ws-nowrap bg-transparent py-2 outline-none placeholder-(text-white/30)" placeholder={$placeholder || "Type a command or search..."} />
+    <Command.Input autofocus bind:value={$input} class="w-full ws-nowrap bg-transparent py-2 outline-none placeholder-(text-white/30)" placeholder={$placeholder || "输入或搜索……"} />
 
     <Command.Separator alwaysRender class="mt-1.5 b-1 b-white/10" />
 

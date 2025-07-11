@@ -104,7 +104,7 @@
   }
 
   const onPaste: ClipboardEventHandler<Document> = async (event) => {
-    if (!((event.target! as Node).contains(inputRef)))
+    if (!(event.target! as Node).contains(inputRef))
       return;
     event.preventDefault();
     const text = event.clipboardData?.getData("text") ?? "";
@@ -116,7 +116,7 @@
   };
 
   const onKeyDown: KeyboardEventHandler<Document | HTMLInputElement> = (event) => {
-    if (!((event.target! as Node).contains(inputRef)))
+    if (!(event.target! as Node).contains(inputRef))
       return;
     if (!event.ctrlKey && !event.metaKey && !event.altKey && event.key.length === 1)
       focusToInput();
@@ -156,8 +156,7 @@
           const endDistance = input.length - selectionEnd!;
           if (event.shiftKey)
             input = input.replace(/ {0,4}/, "");
-          else
-            input = `    ${input}`;
+          else input = `    ${input}`;
           const start = Math.max(0, input.length - startDistance);
           const end = Math.max(0, input.length - endDistance);
           focusToInput(start, end);
@@ -202,8 +201,7 @@
 <svelte:document on:keydown={onKeyDown} on:paste={onPaste} />
 
 <div class="w-full @container">
-  <div class="w-full flex flex-col gap-0.7 overflow-x-scroll whitespace-pre-wrap break-all text-neutral-3 font-mono [&>div:hover]:(rounded-sm bg-white/2) [&>div]:(px-1.7 py-0.6 -mx-1.7 -my-0.6) {extras}">
-
+  <div class="w-full flex flex-col gap-0.7 overflow-x-scroll whitespace-pre-wrap break-all text-neutral-3 font-normal font-mono [&>div:hover]:(rounded-sm bg-white/2) [&>div]:(px-1.7 py-0.6 -mx-1.7 -my-0.6) {extras}">
     <HeadlessConsole {container} bind:ready bind:log bind:push bind:complete bind:pyConsole bind:status let:loading>
       {#each log as { type, text }, index}
         {#if type === "out"}
@@ -222,12 +220,11 @@
         <input autofocus bind:this={inputRef} class="w-full bg-transparent outline-none" bind:value={input} type="text" autocapitalize="off" spellcheck="false" autocomplete="off" autocorrect="off" />
       </div>
     </HeadlessConsole>
-
   </div>
 </div>
 
 {#await import("./ErrorExplainer.svelte") then { default: ErrorExplainer }}
-  <Modal let:close show={!!focusedError} cleanup={() => focusedError = undefined}>
+  <Modal let:close show={!!focusedError} cleanup={() => (focusedError = undefined)}>
     <ErrorExplainer errorInfo={focusedError} {close} {pushBlock} {pyConsole} />
   </Modal>
 {/await}

@@ -2,7 +2,7 @@
   import "@unocss/reset/tailwind.css";
   import "uno.css";
   import "@fontsource-variable/fira-code";
-  import "@fontsource-variable/inter";
+  import "misans-vf";
 
   import { dev } from "$app/environment";
   import { page } from "$app/stores";

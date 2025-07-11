@@ -11,12 +11,12 @@
         <Hero />
       </div>
       <div class="flex flex-row flex-wrap gap-3 sm:(max-w-3xl self-center)">
-        <FeatureCard icon="i-lucide-folder-dot" href="/playground" title="Open a playground" description="Open an isolated workspace of this site's python sources" />
-        <FeatureCard icon="i-solar-command-bold-duotone" on:click={() => $showMenu = true} title="Try the shortcut menu" description="Press Ctrl/Cmd + K to open it" />
-        <FeatureCard icon="i-mdi-github-face" href="/github" title="Clone a GitHub repo" description="Open an isolated workspace from a specified GitHub repository" />
-        <FeatureCard icon="i-ph-terminal-window-duotone" href="/console" title="Start an immersive console" description="Run Python 3.12 in an interactive console directly in your browser without installation" />
-        <FeatureCard icon="i-hugeicons-hand-pointing-right-01" href="/about" title="Take a quick tour" description="Start a dedicated jupyter-like notebook to have a glance of our features" />
-        <FeatureCard icon="i-hugeicons-package-search" href="/pypi" title="Explore PyPI" description="Search packages on PyPI" />
+        <FeatureCard icon="i-ph-terminal-window-duotone" href="/console" title="Python 控制台" description="打开一个沉浸式控制台" />
+        <FeatureCard icon="i-hugeicons-hand-pointing-right-01" href="/about" title="自我介绍" description="功能简介" />
+        <FeatureCard icon="i-solar-command-bold-duotone" on:click={() => $showMenu = true} title="试试快捷菜单" description="按 Ctrl/Cmd + K 打开" />
+        <FeatureCard icon="i-hugeicons-package-search" href="/pypi" title="探索 PyPI" description="搜索 PyPI 上的包" />
+        <FeatureCard icon="i-mdi-github-face" href="/github" title="打开一个 GitHub 仓库" description="从指定的 GitHub 仓库打开一个工作区" />
+        <FeatureCard icon="i-lucide-folder-dot" href="/playground" title="看看本站源码" description="本站的 Python 代码" />
       </div>
     </div>
   </div>

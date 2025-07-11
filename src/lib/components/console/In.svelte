@@ -19,7 +19,7 @@
     <Highlight {text}></Highlight>
     <ButtonGroup>
       <Copy {text} />
-      <WithTooltip tips="Run" let:builder>
+      <WithTooltip tips="再次运行" let:builder>
         <button on:click class="i-mingcute-play-fill" {...builder} use:builder.action />
       </WithTooltip>
     </ButtonGroup>

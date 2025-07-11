@@ -18,7 +18,6 @@
   "dependencies": {
     "@ethercorps/sveltekit-og": "^3.0.0",
     "@fontsource-variable/fira-code": "^5.2.6",
-    "@fontsource-variable/inter": "^5.2.6",
     "@iconify/json": "^2.2.356",
     "@neodrag/svelte": "^2.3.3",
     "@shikijs/monaco": "^3.7.0",
@@ -33,6 +32,7 @@
     "cmdk-sv": "^0.0.19",
     "dayjs": "^1.11.13",
     "htmlparser2": "^10.0.0",
+    "misans-vf": "^1.0.0",
     "monaco-editor-core": "^0.52.2",
     "openai": "^5.8.3",
     "paneforge": "^0.0.6",

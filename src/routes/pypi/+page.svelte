@@ -59,16 +59,18 @@
 
 {#if $page.url.searchParams.get("q")}
   <h1 class="text-xl">
-    <span class="text-neutral-1">{data.total}</span>
-    <span class="text-neutral-5">Results for</span>
+    <span class="text-neutral-5">搜索</span>
     <span class="text-neutral-1">{data.query}</span>
+    <span class="text-neutral-5">得到</span>
+    <span class="text-neutral-1">{data.total ?? "10000+"}</span>
+    <span class="text-neutral-5">个结果</span>
   </h1>
 {:else}
   <div class="grid aspect-3/2 min-h-xs w-full place-items-center rounded bg-gradient-(from-neutral-8/50 via-neutral-8/25 to-neutral-8/0 to-b)">
     <div class="m-4 flex flex-col gap-2">
-      <h1 class="text-lg text-neutral-3 font-275 lg:text-xl">Welcome to the PyPI Explorer</h1>
+      <h1 class="text-lg text-neutral-3 font-275 lg:text-xl">在 PyPI 上搜索</h1>
       <!-- svelte-ignore a11y-autofocus -->
-      <input autofocus on:keydown={({ key }) => key === "Enter" && goto(`/pypi?q=${$query}`)} placeholder="search something ..." class="w-full b-b-(1 neutral-6) bg-transparent py-1 text-neutral-3 outline-none focus:b-b-neutral-5 lg:text-lg placeholder-neutral-6" bind:value={$query} type="text">
+      <input autofocus on:keydown={({ key }) => key === "Enter" && goto(`/pypi?q=${$query}`)} placeholder="包名 / 作者" class="w-full b-b-(1 neutral-6) bg-transparent py-1 text-neutral-3 outline-none focus:b-b-neutral-5 lg:text-lg placeholder-neutral-6" bind:value={$query} type="text">
     </div>
   </div>
 {/if}
