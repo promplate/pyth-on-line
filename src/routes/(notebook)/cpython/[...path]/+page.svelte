@@ -32,7 +32,7 @@
 {:else}
   <HeadlessNotebook let:pyNotebook>
     <WithMarkdown let:parse>
-      <Router node={parse(text)} {OverrideCode} codeProps={{ pyNotebook, heuristics: true }} inlineCodeProps={{ inspect: pyNotebook?.inspect }} />
+      <Router node={parse(text)} {OverrideCode} codeProps={{ pyNotebook, heuristics: true }} inlineCodeProps={{ watch: pyNotebook?.watch }} />
     </WithMarkdown>
   </HeadlessNotebook>
 {/if}

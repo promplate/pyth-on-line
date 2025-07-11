@@ -80,7 +80,9 @@
     <Button.Root class="flex flex-col gap-1 px-3 py-2 ring-(1.2 neutral-8) hover:ring-neutral-5" href="/pypi/{name}">
       <div class="flex flex-row items-center gap-1.5 ws-nowrap">
         <h2 class="text-lg text-neutral-1">{name}</h2>
-        <code class="rounded-sm bg-neutral-4/10 px-1 text-sm text-neutral-4">{version}</code>
+        {#if version}
+          <code class="rounded-sm bg-neutral-4/10 px-1 text-sm text-neutral-4">{version}</code>
+        {/if}
         <div class="w-full text-right text-neutral-4 text-neutral-7 <sm:text-sm">{updated}</div>
       </div>
       <h3 class="text-xs text-neutral-5 sm:text-sm">{description}</h3>

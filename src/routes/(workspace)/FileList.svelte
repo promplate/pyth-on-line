@@ -1,6 +1,8 @@
 <script lang="ts">
+  import type { Folder } from "$lib/utils/list2tree";
+
   import Tree from "./Tree.svelte";
-  import { type Folder, unflatten } from "$lib/utils/list2tree";
+  import { unflatten } from "$lib/utils/list2tree";
 
   export let files: string[] = [];
 

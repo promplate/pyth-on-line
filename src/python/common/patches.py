@@ -13,11 +13,12 @@ from .toast import loading
 
 @cache
 def patch_install():
-    from micropip import install
-    from micropip.package_index import INDEX_URLS
+    from micropip import _package_manager_singleton, install
+    from micropip.package_index import DEFAULT_INDEX_URLS
 
     if index_url := getenv("PYPI_INDEX_URL"):
-        INDEX_URLS.insert(0, index_url)
+        DEFAULT_INDEX_URLS.insert(0, index_url)
+        _package_manager_singleton.index_urls.insert(0, index_url)
 
     @wraps(install)
     async def install_with_toast(*args, **kwargs):

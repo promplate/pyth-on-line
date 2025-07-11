@@ -36,5 +36,7 @@ jobs:
         run: echo "updated=true" >> $GITHUB_OUTPUT
   lint:
     needs: update
+    permissions:
+      contents: read
     uses: ./.github/workflows/js.yml
     if: needs.update.outputs.updated == 'true'

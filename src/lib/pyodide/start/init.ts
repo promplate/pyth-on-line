@@ -1,7 +1,9 @@
 import type { PyProxy } from "pyodide/ffi";
 
 import common from "../../../python/common";
+import watchfiles from "../../../python/watchfiles";
 import { indexURL, preloadPackages } from "../common";
+import { setupWatcher } from "./fs";
 import loader from "./loader.py?raw";
 import { dev } from "$app/environment";
 import { cacheSingleton } from "$lib/utils/cache";
@@ -30,6 +32,8 @@ export async function setupModule(sources: Record<string, string>, moduleName: s
 export const getPyodide = cacheSingleton(async () => {
   const py = await getMinimalPyodide();
   await setupModule(common, "common");
+  await setupModule(watchfiles, "watchfiles");
   py.pyimport("common.patches");
+  setupWatcher(py);
   return py;
 });

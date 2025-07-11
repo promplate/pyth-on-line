@@ -1,6 +1,7 @@
 import type { RequestHandler } from "./$types";
+import type { GistResponse } from "./common";
 
-import { type GistResponse, transformFiles } from "./common";
+import { transformFiles } from "./common";
 import { json } from "@sveltejs/kit";
 import { env } from "$env/dynamic/private";
 import { forwardResponseHeaders } from "$lib/utils/headers";

@@ -4,7 +4,7 @@ import type { PyAwaitable, PyProxy } from "pyodide/ffi";
 export class Result<T> {
   status: "complete" | "incomplete" | "syntax-error";
   future: PyAwaitable & {
-    add_done_callback: (callback: (future: Promise<T>) => any) => void ;
+    add_done_callback: (callback: (future: Promise<T>) => any) => void;
   };
 }
 

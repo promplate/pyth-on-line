@@ -2,23 +2,22 @@ name: python checks
 
 on: [push, pull_request, workflow_dispatch]
 
+permissions:
+  contents: read
+
 jobs:
   check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Set up python
-        uses: actions/setup-python@v5
+        uses: astral-sh/setup-uv@v6
         with:
           python-version: 3.13
+          activate-environment: true
       - name: Install dependencies
-        env:
-          UV_SYSTEM_PYTHON: true
         run: |
-          pip install uv --disable-pip-version-check
-          uv pip install pdm isort black --compile-bytecode
-          pdm export --pyproject | uv pip install -r -
-          yarn global add pyright
+          uv pip install -r pyproject.toml basedpyright isort black --color always
       - name: Run isort check
         run: |
           python -m isort . --check --diff
@@ -31,4 +30,46 @@ jobs:
           ruff format --check --diff
       - name: Run pyright check
         run: |
-          pyright
+          basedpyright
+  test:
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu, windows, macos]
+        py: [3.13]
+    runs-on: ${{ matrix.os }}-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up python ${{ matrix.py }}
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: ${{ matrix.py }}
+          activate-environment: true
+      - name: Install dependencies
+        run: |
+          uv pip install -r pyproject.toml --color always ${{ matrix.os == 'macos' && 'pytest-rerunfailures' || '' }}
+      - name: Run tests
+        run: |
+          pytest -v --color=yes ${{ matrix.os == 'macos' && '--reruns 500' || '' }}
+  publish-hmr:
+    needs: [test, check]
+    runs-on: ubuntu-latest
+    if: github.ref_type == 'tag'
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: packages/hmr
+      - name: Set up python
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: 3.13
+          activate-environment: true
+      - name: Build package
+        run: uv build packages/hmr
+      - name: Publish to PyPI
+        continue-on-error: true
+        run: uv publish

@@ -1,0 +1,28 @@
+[project]
+name = "hmr"
+readme = "README.md"
+dynamic = ["version"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed",
+]
+keywords = ["reactive-programming", "reload", "signals", "hmr"]
+requires-python = ">=3.12"
+description = "Hot Module Reload for Python"
+dependencies = ["watchfiles>=0.21,<2 ; sys_platform != 'emscripten'"]
+
+[project.scripts]
+hmr = "reactivity.hmr:cli"
+
+[project.urls]
+repository = "https://github.com/promplate/pyth-on-line/tree/main/packages/hmr"
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+[tool.pdm]
+version = { source = "file", path = "reactivity/hmr/core.py" }

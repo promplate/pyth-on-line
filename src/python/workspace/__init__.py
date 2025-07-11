@@ -76,6 +76,6 @@ def unload(name: str):
     for module in [*sys.modules]:
         if module.startswith(f"{name}.") or module == name:
             del sys.modules[module]
-            console.log(f"Unloaded %c{module.removeprefix(name) or "."}", "color: light-dark(peru,wheat)")
+            console.log(f"Unloaded %c{module.removeprefix(name) or '.'}", "color: light-dark(peru,wheat)")
 
     console.groupEnd()
