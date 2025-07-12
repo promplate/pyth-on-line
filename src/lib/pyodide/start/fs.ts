@@ -19,6 +19,7 @@ export function setupWatcher(py: PyodideInterface) {
   };
 
   trackingDelegate.onWriteToFile = (path: string) => {
+    dev && console.warn("write-to-file", path);
     handle(2, path); // modified
   };
 
