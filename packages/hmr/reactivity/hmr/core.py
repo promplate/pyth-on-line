@@ -178,13 +178,14 @@ class ReactiveModuleFinder(MetaPathFinder):
 
     @property
     def search_paths(self):
-        # FIXME: Handle case where `includes` contains file paths, not just directories
-        # Currently we assume `includes` never specify individual files
-        # And we assume `includes` and `excludes` never change
+        # Currently we assume `includes` and `excludes` never change
 
         if sys.path == self._last_sys_path and self._last_cwd.exists() and Path.cwd().samefile(self._last_cwd):
             return self._cached_search_paths
-        self._cached_search_paths = res = [path for path in (Path(p).resolve() for p in sys.path) if not is_relative_to_any(path, self.excludes) and is_relative_to_any(path, self.includes)]
+
+        res = [path for path in (Path(p).resolve() for p in sys.path) if not is_relative_to_any(path, self.excludes) and any(i.is_relative_to(path) or path.is_relative_to(i) for i in self.includes)]
+
+        self._cached_search_paths = res
         self._last_cwd = Path.cwd()
         self._last_sys_path = [*sys.path]
         return res
@@ -371,4 +372,4 @@ def cli():
     reloader.keep_watching_until_interrupt()
 
 
-__version__ = "0.6.4.3"
+__version__ = "0.6.4.4"
