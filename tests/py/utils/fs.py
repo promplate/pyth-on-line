@@ -9,6 +9,7 @@ fs["filename"].touch()
 """
 
 from functools import partial
+from linecache import cache
 from pathlib import Path
 from textwrap import dedent
 from typing import final
@@ -17,10 +18,12 @@ from typing import final
 class FsUtils:
     def write(self, filepath: str, content: str):
         Path(filepath).write_text(content)
+        cache.pop(filepath, None)
 
     def replace(self, filepath: str, old: str, new: str):
         path = Path(filepath)
         path.write_text(path.read_text().replace(old, new))
+        cache.pop(filepath, None)
 
     def touch(self, filepath: str):
         path = Path(filepath)
