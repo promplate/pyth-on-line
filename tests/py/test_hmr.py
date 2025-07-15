@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager, contextmanager
 from inspect import getsource
 from pathlib import Path
+from textwrap import dedent
 
 import pytest
 from reactivity.hmr.api import AsyncReloaderAPI, SyncReloaderAPI
@@ -89,7 +90,7 @@ def test_module_getattr():
         env["main.py"] = "import foo\nprint(foo.bar)"
         with env.hmr("main.py"):
             assert env.stdout_delta == "bar\nNone\n"
-            env["foo.py"] = "def __getattr__(name): return name"
+            env["foo.py"].replace("print(name)", "return name")
             assert env.stdout_delta == "bar\n"
 
 
@@ -99,7 +100,7 @@ def test_simple_triggering():
         env["bar.py"] = "def baz(): return 1"
         with env.hmr("foo.py"):
             assert env.stdout_delta == "1\n"
-            env["bar.py"] = "def baz(): return 2"
+            env["bar.py"].replace("1", "2")
             assert env.stdout_delta == "2\n"
 
 
@@ -215,7 +216,7 @@ def test_using_reactivity_under_hmr():
 
         simple_test()
 
-        source = f"{getsource(simple_test)}\n\n{simple_test.__name__}()"
+        source = f"{dedent(getsource(simple_test))}\n\n{simple_test.__name__}()"
 
         env["main.py"].touch()
 
