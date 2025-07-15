@@ -1,8 +1,6 @@
-import sys
-from contextlib import asynccontextmanager, chdir, contextmanager
+from contextlib import asynccontextmanager, contextmanager
 from inspect import getsource
 from pathlib import Path
-from tempfile import TemporaryDirectory
 from textwrap import dedent
 
 import pytest
@@ -10,19 +8,7 @@ from reactivity.hmr.api import AsyncReloaderAPI, SyncReloaderAPI
 from reactivity.hmr.core import ReactiveModule
 from reactivity.hmr.hooks import use_post_reload
 from reactivity.hmr.utils import load
-from utils import capture_stdout
-
-
-@contextmanager
-def environment():
-    with TemporaryDirectory() as tmpdir, chdir(tmpdir), capture_stdout() as stdout:
-        sys.path.append(tmpdir)
-        modules = sys.modules.copy()
-        try:
-            yield stdout
-        finally:
-            sys.path.remove(tmpdir)
-            sys.modules = modules
+from utils import environment
 
 
 @contextmanager
