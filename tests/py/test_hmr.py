@@ -1,7 +1,6 @@
 from contextlib import asynccontextmanager, contextmanager
 from inspect import getsource
 from pathlib import Path
-from textwrap import dedent
 
 import pytest
 from reactivity.hmr.api import AsyncReloaderAPI, SyncReloaderAPI
@@ -39,7 +38,7 @@ async def await_for_tick(timeout=1):
 
 async def test_reusing():
     with environment() as env:
-        Path("main.py").write_text("print(1)")
+        env["main.py"] = "print(1)"
         api = SyncReloaderAPI("main.py")
         with SyncReloaderAPI("main.py"):
             assert env.stdout_delta == "1\n"
@@ -49,30 +48,30 @@ async def test_reusing():
         with api:
             assert env.stdout_delta == "1\n"
             with wait_for_tick():
-                Path("main.py").write_text("print(1)")
+                env["main.py"].touch()
             assert env.stdout_delta == "1\n"
             async with await_for_tick():
-                Path("main.py").write_text("print(1)")
+                env["main.py"].touch()
             assert env.stdout_delta == "1\n"
         async with api:
             assert env.stdout_delta == "1\n"
             with wait_for_tick():
-                Path("main.py").write_text("print(1)")
+                env["main.py"].touch()
             assert env.stdout_delta == "1\n"
             async with await_for_tick():
-                Path("main.py").write_text("print(1)")
+                env["main.py"].touch()
             assert env.stdout_delta == "1\n"
 
     with environment() as env:
-        Path("main.py").write_text("print(2)")
+        env["main.py"] = "print(2)"
         api = AsyncReloaderAPI("main.py")
         with api:
             assert env.stdout_delta == "2\n"
             with wait_for_tick():
-                Path("main.py").write_text("print(2)")
+                env["main.py"].touch()
             assert env.stdout_delta == "2\n"
             async with await_for_tick():
-                Path("main.py").write_text("print(2)")
+                env["main.py"].touch()
             assert env.stdout_delta == "2\n"
         async with api:
             assert env.stdout_delta == "2\n"
@@ -80,94 +79,78 @@ async def test_reusing():
             # even more weird
             # but this time repeating this block won't work
             async with await_for_tick():
-                Path("main.py").write_text("print(2)")
+                env["main.py"].touch()
             assert env.stdout_delta == "2\n"
 
 
 def test_module_getattr():
     with environment() as env:
-        Path("foo.py").write_text("def __getattr__(name): print(name)")
-        Path("main.py").write_text("import foo\nprint(foo.bar)")
-        with SyncReloaderAPI("main.py"):
+        env["foo.py"] = "def __getattr__(name): print(name)"
+        env["main.py"] = "import foo\nprint(foo.bar)"
+        with env.hmr("main.py"):
             assert env.stdout_delta == "bar\nNone\n"
-            with wait_for_tick():
-                Path("foo.py").write_text("def __getattr__(name): return name")
+            env["foo.py"] = "def __getattr__(name): return name"
             assert env.stdout_delta == "bar\n"
 
 
-async def test_simple_triggering():
+def test_simple_triggering():
     with environment() as env:
-        foo = Path("foo.py")
-        bar = Path("bar.py")
-        foo.write_text("from bar import baz\nprint(baz())")
-        bar.write_text("def baz(): return 1")
-        async with AsyncReloaderAPI("foo.py"):
+        env["foo.py"] = "from bar import baz\nprint(baz())"
+        env["bar.py"] = "def baz(): return 1"
+        with env.hmr("foo.py"):
             assert env.stdout_delta == "1\n"
-            async with await_for_tick():
-                bar.write_text("def baz(): return 2")
+            env["bar.py"] = "def baz(): return 2"
             assert env.stdout_delta == "2\n"
 
 
-async def test_getattr_no_redundant_trigger():
+def test_getattr_no_redundant_trigger():
     with environment() as env:
-        foo = Path("foo.py")
-        main = Path("main.py")
-        foo.write_text("a = 123\ndef __getattr__(name): return name")
-        main.write_text("from foo import a\nprint(a)")
-        async with AsyncReloaderAPI("main.py"):
+        env["foo.py"] = "a = 123\ndef __getattr__(name): return name"
+        env["main.py"] = "from foo import a\nprint(a)"
+        with env.hmr("main.py"):
             assert env.stdout_delta == "123\n"
 
-            async with await_for_tick():
-                foo.write_text("a = 123\ndef __getattr__(name): return name * 2")
+            env["foo.py"].replace("return name", "return name * 2")
             assert env.stdout_delta == ""
 
-            async with await_for_tick():
-                foo.write_text("a = 234")
+            env["foo.py"] = "a = 234"
             assert env.stdout_delta == "234\n"
 
-            async with await_for_tick():
-                main.write_text("from foo import b\nprint(b)")
+            env["main.py"].replace("a", "b")
             assert env.stdout_delta == "bb\n"
 
-            async with await_for_tick():
-                foo.write_text("def __getattr__(name): return name * 4")
+            env["foo.py"] = "def __getattr__(name): return name * 4"
             assert env.stdout_delta == "bbbb\n"
 
 
 @pytest.mark.xfail(raises=AssertionError, strict=True)
-async def test_switch_to_getattr():
+def test_switch_to_getattr():
     with environment() as env:
-        foo = Path("foo.py")
-        main = Path("main.py")
-        foo.write_text("a = 123\ndef __getattr__(name): return name")
-        main.write_text("from foo import a\nprint(a)")
-        async with AsyncReloaderAPI("main.py"):
+        env["foo.py"] = "a = 123\ndef __getattr__(name): return name"
+        env["main.py"] = "from foo import a\nprint(a)"
+        with env.hmr("main.py"):
             assert env.stdout_delta == "123\n"
 
-            async with await_for_tick():
-                foo.write_text("def __getattr__(name): return name")
+            env["foo.py"].replace("a = 123", "")
             assert env.stdout_delta == "a\n"
 
 
 def test_simple_circular_dependency():
     with environment() as env:
-        Path("a.py").write_text("print('a')\n\none = 1\n\nfrom b import two\n\nthree = two + 1\n")
-        Path("b.py").write_text("print('b')\n\nfrom a import one\n\ntwo = one + 1\n")
-        Path("c.py").write_text("print('c')\n\nfrom a import three\n\nprint(three)\n")
+        env["a.py"] = "print('a')\n\none = 1\n\nfrom b import two\n\nthree = two + 1\n"
+        env["b.py"] = "print('b')\n\nfrom a import one\n\ntwo = one + 1\n"
+        env["c.py"] = "print('c')\n\nfrom a import three\n\nprint(three)\n"
 
-        with SyncReloaderAPI("c.py"):
+        with env.hmr("c.py"):
             assert env.stdout_delta == "c\na\nb\n3\n"  # c -> a -> b
 
-            with wait_for_tick():
-                Path("a.py").write_text("print('a')\n\none = 1\n\nfrom b import two\n\nthree = two + 2\n")
+            env["a.py"].replace("three = two + 1", "three = two + 2")
             assert env.stdout_delta == "a\nc\n4\n"  # a <- c
 
-            with wait_for_tick():
-                Path("b.py").write_text("print('b')\n\nfrom a import one\n\ntwo = one + 2\n")
+            env["b.py"].replace("two = one + 1", "two = one + 2")
             assert env.stdout_delta == "b\na\nc\n5\n"  # b <- a <- c
 
-            with wait_for_tick():
-                Path("a.py").write_text("print('a')\n\none = 2\n\nfrom b import two\n\nthree = two + 2\n")
+            env["a.py"].replace("one = 1", "one = 2")
             assert env.stdout_delta == "a\nb\na\nc\n6\n"  # a <- b, b <- a <- c
 
             """
@@ -183,9 +166,9 @@ def test_simple_circular_dependency():
 
 
 def test_private_methods_inaccessible():
-    with environment():
-        Path("main.py").touch()
-        with SyncReloaderAPI("main.py"):
+    with environment() as env:
+        env["main.py"].touch()
+        with env.hmr("main.py"):
             with pytest.raises(ImportError):
                 exec("from main import load")
             with pytest.raises(ImportError):
@@ -194,8 +177,8 @@ def test_private_methods_inaccessible():
 
 def test_reload_from_outside():
     with environment() as env:
+        env["main.py"] = "print(123)"
         file = Path("main.py")
-        file.write_text("print(123)")
         module = ReactiveModule(file, {}, "main")
         assert env.stdout_delta == ""
 
@@ -211,8 +194,8 @@ def test_reload_from_outside():
 
 def test_getsourcefile():
     with environment() as env:
-        Path("main.py").write_text("from inspect import getsourcefile\n\nclass Foo: ...\n\nprint(getsourcefile(Foo))")
-        with SyncReloaderAPI("main.py"):
+        env["main.py"] = "from inspect import getsourcefile\n\nclass Foo: ...\n\nprint(getsourcefile(Foo))"
+        with env.hmr("main.py"):
             assert env.stdout_delta == "main.py\n"
 
 
@@ -232,23 +215,19 @@ def test_using_reactivity_under_hmr():
 
         simple_test()
 
-        source = f"{dedent(getsource(simple_test))}\n\n{simple_test.__name__}()"
+        source = f"{getsource(simple_test)}\n\n{simple_test.__name__}()"
 
-        Path("main.py").touch()
+        env["main.py"].touch()
 
-        with SyncReloaderAPI("main.py"), wait_for_tick():
-            Path("main.py").write_text(source)
+        with env.hmr("main.py"):
+            env["main.py"] = source
 
         assert env.stdout_delta == ""
 
 
 def test_cache_across_reloads():
     with environment() as env:
-        file = Path("main.py")
-        file.write_text(
-            source := dedent(
-                """
-
+        env["main.py"] = """
         from reactivity.hmr import cache_across_reloads
 
         a = 1
@@ -258,68 +237,48 @@ def test_cache_across_reloads():
             print(a + 1)
 
         f()
+        """
 
-            """
-            )
-        )
-
-        Path("main.py").write_text(source)
-
-        with SyncReloaderAPI("main.py"):
+        with env.hmr("main.py"):
             assert env.stdout_delta == "2\n"
-            with wait_for_tick():
-                Path("main.py").write_text(source)
+            env["main.py"].touch()
             assert env.stdout_delta == ""
-            with wait_for_tick():
-                Path("main.py").write_text(source := source.replace("a = 1", "a = 2"))
+            env["main.py"].replace("a = 1", "a = 2")
             assert env.stdout_delta == "3\n"
-            with wait_for_tick():
-                Path("main.py").write_text(source := source.replace("a + 1", "a + 2"))
+            env["main.py"].replace("a + 1", "a + 2")
             assert env.stdout_delta == "4\n"
 
 
 def test_cache_across_reloads_with_class():
     with environment() as env:
-        Path("main.py").write_text("from reactivity.hmr import cache_across_reloads\n\n@cache_across_reloads\ndef f():\n    class _:\n        print(a)\n\nf()\n")
+        env["main.py"] = "from reactivity.hmr import cache_across_reloads\n\n@cache_across_reloads\ndef f():\n    class _:\n        print(a)\n\nf()\n"
         load(ReactiveModule(Path("main.py"), {"a": 1}, "main"))
         assert env.stdout_delta == "1\n"
 
 
 def test_cache_across_reloads_source():
-    with environment():
-        Path("main.py").write_text(
-            dedent(
-                """
-
+    with environment() as env:
+        env["main.py"] = """
                 from inspect import getsource
                 from reactivity.hmr.utils import cache_across_reloads
 
                 def f(): pass
 
                 assert getsource(f) == getsource(cache_across_reloads(f))
-
-                """
-            )
-        )
+            """
         load(ReactiveModule(Path("main.py"), {}, "main"))
 
 
 def test_cache_across_reloads_with_other_decorators():
     with environment() as env:
-        Path("main.py").write_text(
-            dedent(
-                """
-
+        env["main.py"] = """
                 from reactivity.hmr.utils import cache_across_reloads
 
                 @lambda f: [print(1), f()][1]
                 @cache_across_reloads
                 @lambda f: print(3) or f
                 def two(): return 2
-
-                """
-            )
-        )
+            """
         load(ReactiveModule(Path("main.py"), ns := {}, "main"))
         assert env.stdout_delta == "3\n3\n1\n"  # inner function being called twice, while the outer one only once
         assert ns["two"] == 2

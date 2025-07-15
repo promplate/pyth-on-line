@@ -23,7 +23,7 @@ jobs:
           python -m isort . --check --diff
       - name: Run black check
         run: |
-          python -m black . --check --diff
+          python -m black . --check --diff --extend-exclude tests
       - name: Run Ruff check
         run: |
           ruff check --output-format github
