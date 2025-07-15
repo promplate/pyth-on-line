@@ -31,6 +31,9 @@ class Environment(FsUtils):
 
         return compose(MockReloader, lambda reloader: use(reloader).hmr())
 
+    def __repr__(self):
+        return f"Environment(stdout={self._stdout!r})"
+
 
 @contextmanager
 def environment():
