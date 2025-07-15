@@ -17,12 +17,13 @@ from utils import capture_stdout
 def environment():
     with TemporaryDirectory() as tmpdir, chdir(tmpdir), capture_stdout() as stdout:
         sys.path.append(tmpdir)
-        modules = sys.modules.copy()
+        names = {*sys.modules}
         try:
             yield stdout
         finally:
             sys.path.remove(tmpdir)
-            sys.modules = modules
+            for name in {*sys.modules} - names:
+                del sys.modules[name]
 
 
 @contextmanager
