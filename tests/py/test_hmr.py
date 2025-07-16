@@ -197,3 +197,22 @@ def test_cache_across_reloads_with_other_decorators():
         load(ReactiveModule(Path("main.py"), ns := {}, "main"))
         assert env.stdout_delta == "3\n3\n1\n"  # inner function being called twice, while the outer one only once
         assert ns["two"] == 2
+
+
+def test_fs_signals():
+    with environment() as env:
+        env["main.py"] = "print(open('a').read())"
+        env["a"] = "1"
+
+        with env.hmr("main.py"):
+            assert env.stdout_delta == "1\n"
+            env["a"] = "2"
+            assert env.stdout_delta == "2\n"
+            with pytest.raises(FileNotFoundError):
+                env["main.py"].replace("'a'", "'b'")
+            env["a"] = "3"
+            assert env.stdout_delta == ""
+            env["b"] = "4"
+            assert env.stdout_delta == "4\n"
+            env["b"].touch()
+            assert env.stdout_delta == "4\n"
