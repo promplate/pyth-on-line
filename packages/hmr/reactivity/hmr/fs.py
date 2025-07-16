@@ -1,7 +1,6 @@
 import sys
 from collections import defaultdict
 from functools import cache
-from os import O_RDONLY, O_RDWR
 from pathlib import Path
 
 from ..primitives import Signal
@@ -15,8 +14,6 @@ def fs_signals():
 
 @cache
 def setup_fs_audithook():
-    READ = O_RDONLY | O_RDWR  # noqa: N806
-
     current_computations = HMR_CONTEXT.current_computations
 
     @sys.addaudithook
@@ -24,7 +21,7 @@ def setup_fs_audithook():
         if event == "open":
             file, _, flags = args
 
-            if flags & READ and current_computations:
+            if (flags % 2 == 0) and current_computations:
                 track(file)
 
 
