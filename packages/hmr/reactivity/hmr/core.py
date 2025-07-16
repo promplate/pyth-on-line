@@ -18,6 +18,7 @@ from weakref import WeakValueDictionary
 from ..context import Context, new_context
 from ..helpers import DerivedMethod
 from ..primitives import BaseDerived, Derived, Signal
+from .fs import notify, setup_fs_audithook
 from .hooks import call_post_reload_hooks, call_pre_reload_hooks
 from .proxy import Proxy
 
@@ -257,6 +258,7 @@ class BaseReloader:
         self.excludes = excludes
         patch_meta_path(includes, excludes)
         self.error_filter = ErrorFilter(*map(str, Path(__file__, "../..").resolve().glob("**/*.py")))
+        setup_fs_audithook()
 
     @cached_property
     def entry_module(self):
@@ -290,6 +292,8 @@ class BaseReloader:
                     path = Path(file).resolve()
                     if module := path2module.get(path):
                         staled_modules.add(module)
+                    else:
+                        notify(path)
 
             for module in staled_modules:
                 with self.error_filter:
@@ -321,7 +325,7 @@ class SyncReloader(BaseReloader):
     def start_watching(self):
         from watchfiles import watch
 
-        for events in watch(self.entry, *self.includes, watch_filter=self.watch_filter, stop_event=self._stop_event):
+        for events in watch(self.entry, *self.includes, stop_event=self._stop_event):
             self.on_events(events)
 
         del self._stop_event
@@ -346,7 +350,7 @@ class AsyncReloader(BaseReloader):
     async def start_watching(self):
         from watchfiles import awatch
 
-        async for events in awatch(self.entry, *self.includes, watch_filter=self.watch_filter, stop_event=self._stop_event):
+        async for events in awatch(self.entry, *self.includes, stop_event=self._stop_event):
             self.on_events(events)
 
         del self._stop_event
