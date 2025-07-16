@@ -5,12 +5,11 @@ from os import O_RDONLY, O_RDWR
 from pathlib import Path
 
 from ..primitives import Signal
+from ._common import HMR_CONTEXT
 
 
 @defaultdict
 def fs_signals():
-    from .core import HMR_CONTEXT
-
     return Signal(context=HMR_CONTEXT)
 
 

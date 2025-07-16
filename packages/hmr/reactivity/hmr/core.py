@@ -15,9 +15,10 @@ from types import ModuleType, TracebackType
 from typing import Self
 from weakref import WeakValueDictionary
 
-from ..context import Context, new_context
+from ..context import Context
 from ..helpers import DerivedMethod
 from ..primitives import BaseDerived, Derived, Signal
+from ._common import HMR_CONTEXT
 from .fs import notify, setup_fs_audithook
 from .hooks import call_post_reload_hooks, call_pre_reload_hooks
 from .proxy import Proxy
@@ -38,9 +39,6 @@ def is_called_internally(*, extra_depth=0) -> bool:
 
 class Name(Signal, BaseDerived):
     pass
-
-
-HMR_CONTEXT = new_context()
 
 
 class NamespaceProxy(Proxy):
