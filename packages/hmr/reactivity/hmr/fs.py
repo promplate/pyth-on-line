@@ -17,12 +17,14 @@ def fs_signals():
 def setup_fs_audithook():
     READ = O_RDONLY | O_RDWR  # noqa: N806
 
+    current_computations = HMR_CONTEXT.current_computations
+
     @sys.addaudithook
     def _(event: str, args: tuple):
         if event == "open":
             file, _, flags = args
 
-            if flags & READ:
+            if flags & READ and current_computations:
                 track(file)
 
 
