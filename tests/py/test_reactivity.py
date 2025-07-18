@@ -515,10 +515,12 @@ def test_error_handling():
 
 def test_context_enter_dependency_restore():
     s = Signal(0)
+    always = Signal(0)
 
     condition = True
 
     def f():
+        always.get()
         if condition:
             print(s.get())
         else:
