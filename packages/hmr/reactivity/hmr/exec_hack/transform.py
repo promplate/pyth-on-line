@@ -43,6 +43,7 @@ def build_name_lookup(name: str) -> ast.Call:
 name_lookup_source = """
 
 def __name_lookup(name):
+    from builtins import KeyError, NameError
     from collections import ChainMap
     from inspect import currentframe
     f = currentframe().f_back
@@ -51,10 +52,10 @@ def __name_lookup(name):
     while f is not None and f.f_code.co_name != "<module>":
         c.maps.insert(1, f.f_locals)
         f = f.f_back
-    m = object()
-    if (v := c.get(name, m)) is not m:
-        return v
-    raise NameError(name)
+    try:
+        return c[name]
+    except KeyError as e:
+        raise NameError(*e.args) from None
 
 """
 
