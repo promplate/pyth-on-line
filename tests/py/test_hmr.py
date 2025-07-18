@@ -1,3 +1,4 @@
+from importlib import import_module
 from inspect import getsource
 from pathlib import Path
 from textwrap import dedent
@@ -184,6 +185,23 @@ def test_cache_across_reloads_source():
         load(ReactiveModule(Path("main.py"), {}, "main"))
 
 
+def test_module_metadata():
+    with environment() as env:
+        env["main.py"] = "'abc'; print(__doc__)"
+        with env.hmr("main.py"):
+            assert env.stdout_delta == "abc\n"
+
+            Path("a/b/c").mkdir(parents=True)
+            env["a/b/__init__.py"].touch()
+            env["a/b/c/d.py"].touch()
+            env["a/b/e.py"].touch()
+
+            assert import_module("a.b.c.d").__package__ == "a.b.c"
+            assert import_module("a.b.c").__package__ == "a.b.c"
+            assert import_module("a.b.e").__package__ == "a.b"
+            assert import_module("a.b").__package__ == "a.b"
+
+
 def test_search_paths_caching(monkeypatch: pytest.MonkeyPatch):
     with environment() as env:
         env["main.py"] = ""
@@ -195,7 +213,7 @@ def test_search_paths_caching(monkeypatch: pytest.MonkeyPatch):
             monkeypatch.syspath_prepend("foo")
             env["main.py"].touch()
             assert env.stdout_delta == "\n"
-            assert isinstance(__import__("bar"), ReactiveModule)
+            assert isinstance(import_module("bar"), ReactiveModule)
 
 
 def test_cache_across_reloads_with_other_decorators():
