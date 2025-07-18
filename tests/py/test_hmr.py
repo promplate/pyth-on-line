@@ -190,6 +190,7 @@ def test_module_metadata():
         env["main.py"] = "'abc'; print(__doc__)"
         with env.hmr("main.py"):
             assert env.stdout_delta == "abc\n"
+            assert import_module("main").__builtins__ is __builtins__
 
             Path("a/b/c").mkdir(parents=True)
             env["a/b/__init__.py"].touch()
@@ -248,3 +249,10 @@ def test_fs_signals():
             assert env.stdout_delta == "4\n"
             env["b"].touch()
             assert env.stdout_delta == "4\n"
+
+
+def test_module_global_writeback():
+    with environment() as env:
+        env["main.py"] = "def f():\n    global x\n    x = 123\n\nf()"
+        with env.hmr("main.py"):
+            assert import_module("main").x == 123

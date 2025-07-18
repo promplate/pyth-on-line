@@ -97,6 +97,7 @@ class ReactiveModule(ModuleType):
         else:
             self.__doc__ = get_docstring(ast)
             exec(code, self.__namespace, self.__namespace_proxy)  # https://github.com/python/cpython/issues/121306
+            self.__namespace_proxy.update(self.__namespace)
         finally:
             load = self.__load
             assert ismethod(load.fn)  # for type narrowing
