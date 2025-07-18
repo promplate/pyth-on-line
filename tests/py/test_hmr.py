@@ -184,6 +184,20 @@ def test_cache_across_reloads_source():
         load(ReactiveModule(Path("main.py"), {}, "main"))
 
 
+def test_search_paths_caching(monkeypatch: pytest.MonkeyPatch):
+    with environment() as env:
+        env["main.py"] = ""
+        Path("foo").mkdir()
+        env["foo/bar.py"] = "print()"
+        with env.hmr("main.py"):
+            with pytest.raises(ModuleNotFoundError):
+                env["main.py"] = "import bar"
+            monkeypatch.syspath_prepend("foo")
+            env["main.py"].touch()
+            assert env.stdout_delta == "\n"
+            assert isinstance(__import__("bar"), ReactiveModule)
+
+
 def test_cache_across_reloads_with_other_decorators():
     with environment() as env:
         env["main.py"] = """
