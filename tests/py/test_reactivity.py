@@ -3,7 +3,7 @@ from typing import assert_type
 
 from pytest import raises
 from reactivity import Reactive, State, batch, create_effect, create_memo, create_signal, memoized_method, memoized_property
-from reactivity.context import new_context
+from reactivity.context import default_context, new_context
 from reactivity.helpers import MemoizedMethod, MemoizedProperty
 from reactivity.hmr.proxy import Proxy
 from reactivity.primitives import Derived, Effect, Signal
@@ -510,9 +510,33 @@ def test_error_handling():
     with raises(ValueError, match="1"):
         set_s(1)
 
-    from reactivity.context import default_context
-
     assert default_context.current_computations == []
+
+
+def test_context_enter_dependency_restore():
+    s = Signal(0)
+
+    condition = True
+
+    def f():
+        if condition:
+            print(s.get())
+        else:
+            raise RuntimeError
+
+    with capture_stdout() as stdout, create_effect(f):
+        assert stdout.delta == "0\n"
+        s.set(1)
+        assert stdout.delta == "1\n"
+        condition = False
+        with raises(RuntimeError):
+            f()
+        with raises(RuntimeError):
+            s.set(2)
+        condition = True
+        assert stdout.delta == ""
+        s.set(3)
+        assert stdout.delta == "3\n"
 
 
 def test_exec_inside_reactive_namespace():

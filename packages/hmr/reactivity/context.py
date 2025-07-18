@@ -18,10 +18,19 @@ class Context(NamedTuple):
 
     @contextmanager
     def enter(self, computation: BaseComputation):
+        old_dependencies = (*computation.dependencies,)
         computation.dispose()
         self.current_computations.append(computation)
         try:
             yield
+        except BaseException:
+            # For backward compatibility, we restore old dependencies only if all dependencies are lost after an exception.
+            # This behavior may be configurable in the future.
+            if old_dependencies and not computation.dependencies:
+                for dep in old_dependencies:
+                    dep.subscribers.add(computation)
+                computation.dependencies.update(old_dependencies)
+            raise
         finally:
             last = self.current_computations.pop()
             assert last is computation  # sanity check
