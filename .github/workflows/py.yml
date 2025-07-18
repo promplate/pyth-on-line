@@ -68,6 +68,9 @@ jobs:
         with:
           python-version: 3.13
           activate-environment: true
+      - name: Remove all noqa comments
+        run: |
+          uvx ruff check --select RUF100 --show-fixes --fix packages/hmr
       - name: Build package
         run: uv build packages/hmr
       - name: Publish to PyPI
