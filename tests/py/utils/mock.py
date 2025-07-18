@@ -32,3 +32,16 @@ class MockReloader(LifecycleMixin, FsUtils):
         finally:
             self.clean_up()
             del self.started
+
+    # don't shadow errors
+
+    @property
+    def error_filter(self):
+        @contextmanager
+        def pass_through():
+            yield
+
+        return pass_through()
+
+    @error_filter.setter
+    def error_filter(self, _): ...
