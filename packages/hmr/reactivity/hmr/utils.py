@@ -9,25 +9,10 @@ from types import FunctionType
 from ..helpers import Memoized
 from .core import HMR_CONTEXT, NamespaceProxy, ReactiveModule
 from .exec_hack import fix_class_name_resolution
-from .hooks import post_reload, pre_reload
+from .hooks import on_dispose
 
 memos: dict[str, Callable] = {}
 functions: dict[str, Callable] = {}
-functions_last: set[str] = set()
-
-
-@pre_reload
-def swap():
-    functions_last.update(functions)
-    functions.clear()
-
-
-@post_reload
-def clear_memos():
-    for func in functions_last:
-        if func not in functions and func in memos:
-            del memos[func]
-
 
 _cache_decorator_phase = False
 
@@ -49,6 +34,7 @@ def cache_across_reloads[T](func: Callable[[], T]) -> Callable[[], T]:
     global _cache_decorator_phase
     _cache_decorator_phase = not _cache_decorator_phase
     if _cache_decorator_phase:  # this function will be called twice: once transforming ast and once re-executing the patched source
+        on_dispose(lambda: functions.pop(source), file)
         try:
             exec(compile(fix_class_name_resolution(parse(source), func.__code__.co_firstlineno - 1), file, "exec"), DictProxy(proxy))
         except _Return as e:
@@ -62,7 +48,7 @@ def cache_across_reloads[T](func: Callable[[], T]) -> Callable[[], T]:
 
     functions[source] = func
 
-    if source in memos and source in functions_last:
+    if source in memos:
         return _return(memos[source])
 
     def wrapper() -> T:
