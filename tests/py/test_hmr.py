@@ -219,7 +219,7 @@ def test_cache_across_reloads_cache_lifespan():
             assert env.stdout_delta == "1\n"
 
 
-def test_cache_across_reloads_among_multiple_modules():
+def test_cache_across_reloads_same_sources():
     with environment() as env:
         env["a.py"] = env["b.py"] = """
             from reactivity.hmr import cache_across_reloads
@@ -240,6 +240,41 @@ def test_cache_across_reloads_among_multiple_modules():
             assert env.stdout_delta == "2\n"
             env["b.py"].replace("value = 1", "value = 3")
             assert env.stdout_delta == "3\n"
+
+
+def test_cache_across_reloads_chaining():
+    with environment() as env:
+        env["foo.py"] = """
+            from reactivity.hmr import cache_across_reloads
+
+            @cache_across_reloads
+            def f():
+                print(1)
+        """
+        env["main.py"] = """
+            from reactivity.hmr import cache_across_reloads
+
+            from foo import f
+
+            value = 123
+
+            @cache_across_reloads
+            def g():
+                f()
+                print(value)
+
+            g()
+        """
+
+        with env.hmr("main.py"):
+            assert env.stdout_delta == "1\n123\n"
+            env["foo.py"].replace("1", "2")
+            assert env.stdout_delta == "2\n123\n"
+            env["main.py"].replace("123", "234")
+            assert env.stdout_delta == "234\n"
+            env["foo.py"].touch()
+            env["main.py"].touch()
+            assert env.stdout_delta == ""
 
 
 def test_module_metadata():

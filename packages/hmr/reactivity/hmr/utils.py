@@ -11,8 +11,8 @@ from .core import HMR_CONTEXT, NamespaceProxy, ReactiveModule
 from .exec_hack import fix_class_name_resolution
 from .hooks import on_dispose, post_reload
 
-memos: dict[tuple[Path, str], Callable] = {}
-functions: dict[tuple[Path, str], Callable] = {}
+memos: dict[tuple[Path, str], tuple[Callable, str]] = {}  # (path, __qualname__) -> (memo, source)
+functions: dict[tuple[Path, str], Callable] = {}  # (path, __qualname__) -> function
 
 
 @post_reload
@@ -36,7 +36,7 @@ def cache_across_reloads[T](func: Callable[[], T]) -> Callable[[], T]:
 
     source = getsource(func)
 
-    key = (path, source)
+    key = (path, func.__qualname__)
 
     proxy: NamespaceProxy = module._ReactiveModule__namespace_proxy  # type: ignore  # noqa: SLF001
 
@@ -57,13 +57,18 @@ def cache_across_reloads[T](func: Callable[[], T]) -> Callable[[], T]:
 
     functions[key] = func
 
-    if key in memos:
-        return _return(memos[key])
+    if result := memos.get(key):
+        memo, last_source = result
+        if source != last_source:
+            Memoized.invalidate(memo)  # type: ignore
+            memos[key] = memo, source
+        return _return(memo)
 
     def wrapper() -> T:
         return functions[key]()
 
-    memos[key] = memo = Memoized(wrapper, context=HMR_CONTEXT)
+    memo = Memoized(wrapper, context=HMR_CONTEXT)
+    memos[key] = memo, source
 
     return _return(wraps(func)(memo))
 
