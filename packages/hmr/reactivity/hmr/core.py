@@ -1,6 +1,6 @@
 import sys
 from ast import get_docstring, parse
-from collections.abc import Iterable, MutableMapping, Sequence
+from collections.abc import Callable, Iterable, MutableMapping, Sequence
 from contextlib import suppress
 from functools import cached_property, partial
 from importlib.abc import Loader, MetaPathFinder
@@ -12,7 +12,7 @@ from pathlib import Path
 from site import getsitepackages, getusersitepackages
 from sysconfig import get_paths
 from types import ModuleType, TracebackType
-from typing import Self
+from typing import Any, Self
 from weakref import WeakValueDictionary
 
 from ..context import Context
@@ -76,6 +76,7 @@ class ReactiveModule(ModuleType):
 
         self.__namespace = namespace
         self.__namespace_proxy = NamespaceProxy(namespace, self, context=HMR_CONTEXT)
+        self.__hooks: list[Callable[[], Any]] = []
         self.__file = file
 
         __class__.instances[file.resolve()] = self
@@ -86,6 +87,12 @@ class ReactiveModule(ModuleType):
             return self.__file
         raise AttributeError("file")
 
+    @property
+    def register_dispose_callback(self):
+        if is_called_internally(extra_depth=1):  # + 1 for `__getattribute__`
+            return self.__hooks.append
+        raise AttributeError("register_dispose_callback")
+
     @partial(DerivedMethod, context=HMR_CONTEXT)
     def __load(self):
         try:
@@ -95,6 +102,10 @@ class ReactiveModule(ModuleType):
         except SyntaxError as e:
             sys.excepthook(type(e), e, e.__traceback__)
         else:
+            for dispose in self.__hooks:
+                with suppress(Exception):
+                    dispose()
+            self.__hooks.clear()
             self.__doc__ = get_docstring(ast)
             exec(code, self.__namespace, self.__namespace_proxy)  # https://github.com/python/cpython/issues/121306
             self.__namespace_proxy.update(self.__namespace)

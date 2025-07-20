@@ -1,5 +1,7 @@
 from collections.abc import Callable
 from contextlib import contextmanager
+from inspect import currentframe
+from pathlib import Path
 from typing import Any
 
 pre_reload_hooks: dict[str, Callable[[], Any]] = {}
@@ -42,3 +44,12 @@ def call_pre_reload_hooks():
 def call_post_reload_hooks():
     for func in post_reload_hooks.values():
         func()
+
+
+def on_dispose(func: Callable[[], Any], __file__: str | None = None):
+    path = Path(currentframe().f_back.f_globals["__file__"] if __file__ is None else __file__).resolve()  # type: ignore
+
+    from .core import ReactiveModule
+
+    module = ReactiveModule.instances[path]
+    module.register_dispose_callback(func)
