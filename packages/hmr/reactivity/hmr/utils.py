@@ -11,8 +11,8 @@ from .core import HMR_CONTEXT, NamespaceProxy, ReactiveModule
 from .exec_hack import fix_class_name_resolution
 from .hooks import on_dispose, post_reload
 
-memos: dict[str, Callable] = {}
-functions: dict[str, Callable] = {}
+memos: dict[tuple[Path, str], Callable] = {}
+functions: dict[tuple[Path, str], Callable] = {}
 
 
 @post_reload
@@ -27,7 +27,7 @@ _cache_decorator_phase = False
 def cache_across_reloads[T](func: Callable[[], T]) -> Callable[[], T]:
     file = getsourcefile(func)
     assert file is not None
-    module = ReactiveModule.instances.get(Path(file).resolve())
+    module = ReactiveModule.instances.get(path := Path(file).resolve())
 
     if module is None:
         from functools import cache
@@ -36,12 +36,14 @@ def cache_across_reloads[T](func: Callable[[], T]) -> Callable[[], T]:
 
     source = getsource(func)
 
+    key = (path, source)
+
     proxy: NamespaceProxy = module._ReactiveModule__namespace_proxy  # type: ignore  # noqa: SLF001
 
     global _cache_decorator_phase
     _cache_decorator_phase = not _cache_decorator_phase
     if _cache_decorator_phase:  # this function will be called twice: once transforming ast and once re-executing the patched source
-        on_dispose(lambda: functions.pop(source), file)
+        on_dispose(lambda: functions.pop(key), file)
         try:
             exec(compile(fix_class_name_resolution(parse(source), func.__code__.co_firstlineno - 1), file, "exec"), DictProxy(proxy))
         except _Return as e:
@@ -53,15 +55,15 @@ def cache_across_reloads[T](func: Callable[[], T]) -> Callable[[], T]:
 
     func = FunctionType(func.__code__, DictProxy(proxy), func.__name__, func.__defaults__, func.__closure__)
 
-    functions[source] = func
+    functions[key] = func
 
-    if source in memos:
-        return _return(memos[source])
+    if key in memos:
+        return _return(memos[key])
 
     def wrapper() -> T:
-        return functions[source]()
+        return functions[key]()
 
-    memos[source] = memo = Memoized(wrapper, context=HMR_CONTEXT)
+    memos[key] = memo = Memoized(wrapper, context=HMR_CONTEXT)
 
     return _return(wraps(func)(memo))
 

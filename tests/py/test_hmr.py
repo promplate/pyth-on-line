@@ -219,6 +219,29 @@ def test_cache_across_reloads_cache_lifespan():
             assert env.stdout_delta == "1\n"
 
 
+def test_cache_across_reloads_among_multiple_modules():
+    with environment() as env:
+        env["a.py"] = env["b.py"] = """
+            from reactivity.hmr import cache_across_reloads
+
+            value = 1
+
+            @cache_across_reloads
+            def f():
+                print(value)
+
+            f()
+
+        """
+        env["main.py"] = "import a, b; a.f(); b.f()"
+        with env.hmr("main.py"):
+            assert env.stdout_delta == "1\n1\n"
+            env["a.py"].replace("value = 1", "value = 2")
+            assert env.stdout_delta == "2\n"
+            env["b.py"].replace("value = 1", "value = 3")
+            assert env.stdout_delta == "3\n"
+
+
 def test_module_metadata():
     with environment() as env:
         env["main.py"] = "'abc'; print(__doc__)"
