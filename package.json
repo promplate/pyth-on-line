@@ -61,7 +61,7 @@
     "@antfu/eslint-config": "^4.17.0",
     "@types/emscripten": "^1.40.1",
     "@types/mdast": "^4.0.4",
-    "@types/node": "^24.0.14",
+    "@types/node": "^24.0.15",
     "@types/turndown": "^5.0.5",
     "@unocss/eslint-config": "^66.3.3",
     "eslint": "^9.31.0",
