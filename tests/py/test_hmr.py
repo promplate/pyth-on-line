@@ -185,6 +185,21 @@ def test_cache_across_reloads_source():
         load(ReactiveModule(Path("main.py"), {}, "main"))
 
 
+def test_cache_across_reloads_with_other_decorators():
+    with environment() as env:
+        env["main.py"] = """
+                from reactivity.hmr.utils import cache_across_reloads
+
+                @lambda f: [print(1), f()][1]
+                @cache_across_reloads
+                @lambda f: print(3) or f
+                def two(): return 2
+            """
+        load(ReactiveModule(Path("main.py"), ns := {}, "main"))
+        assert env.stdout_delta == "3\n3\n1\n"  # inner function being called twice, while the outer one only once
+        assert ns["two"] == 2
+
+
 def test_module_metadata():
     with environment() as env:
         env["main.py"] = "'abc'; print(__doc__)"
@@ -215,21 +230,6 @@ def test_search_paths_caching(monkeypatch: pytest.MonkeyPatch):
             env["main.py"].touch()
             assert env.stdout_delta == "\n"
             assert isinstance(import_module("bar"), ReactiveModule)
-
-
-def test_cache_across_reloads_with_other_decorators():
-    with environment() as env:
-        env["main.py"] = """
-                from reactivity.hmr.utils import cache_across_reloads
-
-                @lambda f: [print(1), f()][1]
-                @cache_across_reloads
-                @lambda f: print(3) or f
-                def two(): return 2
-            """
-        load(ReactiveModule(Path("main.py"), ns := {}, "main"))
-        assert env.stdout_delta == "3\n3\n1\n"  # inner function being called twice, while the outer one only once
-        assert ns["two"] == 2
 
 
 def test_fs_signals():
