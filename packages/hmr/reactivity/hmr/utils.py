@@ -9,10 +9,17 @@ from types import FunctionType
 from ..helpers import Memoized
 from .core import HMR_CONTEXT, NamespaceProxy, ReactiveModule
 from .exec_hack import fix_class_name_resolution
-from .hooks import on_dispose
+from .hooks import on_dispose, post_reload
 
 memos: dict[str, Callable] = {}
 functions: dict[str, Callable] = {}
+
+
+@post_reload
+def gc_memos():
+    for key in {*memos} - {*functions}:
+        del memos[key]
+
 
 _cache_decorator_phase = False
 

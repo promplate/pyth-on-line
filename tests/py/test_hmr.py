@@ -200,6 +200,25 @@ def test_cache_across_reloads_with_other_decorators():
         assert ns["two"] == 2
 
 
+def test_cache_across_reloads_cache_lifespan():
+    with environment() as env:
+        env["main.py"] = """
+            from reactivity.hmr import cache_across_reloads
+
+            @cache_across_reloads
+            def f():
+                print(1)
+
+            f()
+        """
+        with env.hmr("main.py"):
+            assert env.stdout_delta == "1\n"
+            env["main.py"].replace("1", "2")
+            assert env.stdout_delta == "2\n"
+            env["main.py"].replace("2", "1")
+            assert env.stdout_delta == "1\n"
+
+
 def test_module_metadata():
     with environment() as env:
         env["main.py"] = "'abc'; print(__doc__)"
