@@ -250,6 +250,7 @@ def test_cache_across_reloads_chaining():
             @cache_across_reloads
             def f():
                 print(1)
+                return 1
         """
         env["main.py"] = """
             from reactivity.hmr import cache_across_reloads
@@ -275,6 +276,8 @@ def test_cache_across_reloads_chaining():
             env["foo.py"].touch()
             env["main.py"].touch()
             assert env.stdout_delta == ""
+            env["foo.py"].replace("print(2)", "print(3)")
+            assert env.stdout_delta == "3\n"  # return value don't change, so no need to re-run `g()`
 
 
 def test_module_metadata():

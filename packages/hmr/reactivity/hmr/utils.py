@@ -6,7 +6,7 @@ from inspect import getsource, getsourcefile
 from pathlib import Path
 from types import FunctionType
 
-from ..helpers import Memoized
+from ..helpers import Derived
 from .core import HMR_CONTEXT, NamespaceProxy, ReactiveModule
 from .exec_hack import fix_class_name_resolution
 from .hooks import on_dispose, post_reload
@@ -60,14 +60,15 @@ def cache_across_reloads[T](func: Callable[[], T]) -> Callable[[], T]:
     if result := memos.get(key):
         memo, last_source = result
         if source != last_source:
-            Memoized.invalidate(memo)  # type: ignore
+            Derived.invalidate(memo)  # type: ignore
             memos[key] = memo, source
         return _return(memo)
 
+    @wraps(func)
     def wrapper() -> T:
         return functions[key]()
 
-    memo = Memoized(wrapper, context=HMR_CONTEXT)
+    memo = Derived(wrapper, context=HMR_CONTEXT)
     memos[key] = memo, source
 
     return _return(wraps(func)(memo))
