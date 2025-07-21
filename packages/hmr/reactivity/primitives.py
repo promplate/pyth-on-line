@@ -173,7 +173,7 @@ class BaseDerived[T](Subscribable, BaseComputation[T]):
 
     def _sync_dirty_deps(self):
         for dep in self.dependencies:
-            if isinstance(dep, BaseDerived) and dep.dirty:
+            if isinstance(dep, BaseDerived) and dep.dirty and dep not in self.context.current_computations:
                 dep()
 
 
@@ -216,13 +216,15 @@ class Derived[T](BaseDerived[T]):
         self.trigger()
 
 
-def _pulled(sub: Subscribable):
+def _pulled(sub: Subscribable, show=False):
     visited = set()
     to_visit: set[Subscribable] = {sub}
     while to_visit:
         visited.add(current := to_visit.pop())
         for s in current.subscribers:
             if not isinstance(s, BaseDerived):
+                if show:
+                    print(s)
                 return True
             if s not in visited:
                 to_visit.add(s)

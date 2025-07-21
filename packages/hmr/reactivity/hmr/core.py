@@ -38,12 +38,17 @@ def is_called_internally(*, extra_depth=0) -> bool:
 
 
 class Name(Signal, BaseDerived):
-    pass
+    def get(self, track=True):
+        self._sync_dirty_deps()
+        return super().get(track)
 
 
 class NamespaceProxy(Proxy):
     def __init__(self, initial: MutableMapping, module: "ReactiveModule", check_equality=True, *, context: Context | None = None):
         super().__init__(initial, check_equality, context=context)
+        for key, signal in self._signals.items():
+            if not isinstance(signal, Name):  # initial will be
+                self._signals[key] = Name(signal._value, signal._check_equality, context=context)  # noqa: SLF001
         self.module = module
 
     def _null(self):
@@ -308,7 +313,6 @@ class BaseReloader:
             for module in staled_modules:
                 with self.error_filter:
                     module.load.invalidate()
-                    module.load()  # because `module.load` is not pulled by anyone
 
         call_post_reload_hooks()
 
