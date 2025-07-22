@@ -47,7 +47,7 @@ class NamespaceProxy(Proxy):
     def __init__(self, initial: MutableMapping, module: "ReactiveModule", check_equality=True, *, context: Context | None = None):
         super().__init__(initial, check_equality, context=context)
         for key, signal in self._signals.items():
-            if not isinstance(signal, Name):  # initial will be
+            if not isinstance(signal, Name):  # plain signals are replaced with `Name`
                 self._signals[key] = Name(signal._value, signal._check_equality, context=context)  # noqa: SLF001
         self.module = module
 

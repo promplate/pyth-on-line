@@ -336,3 +336,19 @@ def test_module_global_writeback():
         env["main.py"] = "def f():\n    global x\n    x = 123\n\nf()"
         with env.hmr("main.py"):
             assert import_module("main").x == 123
+
+
+def test_laziness():
+    with environment() as env:
+        env["foo.py"] = "bar = 1; print(bar)"
+        env["main.py"] = "from foo import bar"
+        with env.hmr("main.py"):
+            env["foo.py"].replace("1", "2")
+            assert env.stdout_delta == "1\n2\n"
+            env["main.py"] = ""
+            env["foo.py"].replace("2", "3")
+            assert env.stdout_delta == ""
+            env["main.py"] = "from foo import bar"
+            assert env.stdout_delta == "3\n"
+            env["foo.py"].touch()
+            assert env.stdout_delta == "3\n"
