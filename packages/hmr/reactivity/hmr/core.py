@@ -296,23 +296,20 @@ class BaseReloader:
         if not events:
             return
 
+        self.on_changes({Path(file).resolve() for type, file in events if type is not Change.deleted})
+
+    def on_changes(self, files: set[Path]):
         path2module = get_path_module_map()
-        staled_modules: set[ReactiveModule] = set()
 
         call_pre_reload_hooks()
 
         with HMR_CONTEXT.batch():
-            for type, file in events:
-                if type is not Change.deleted:
-                    path = Path(file).resolve()
+            for path in files:
+                with self.error_filter:
                     if module := path2module.get(path):
-                        staled_modules.add(module)
+                        module.load.invalidate()
                     else:
                         notify(path)
-
-            for module in staled_modules:
-                with self.error_filter:
-                    module.load.invalidate()
 
         call_post_reload_hooks()
 
