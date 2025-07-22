@@ -62,7 +62,7 @@ def cache_across_reloads[T](func: Callable[[], T]) -> Callable[[], T]:
         if source != last_source:
             Derived.invalidate(memo)  # type: ignore
             memos[key] = memo, source
-        return _return(memo)
+        return _return(wraps(func)(memo))
 
     @wraps(func)
     def wrapper() -> T:
