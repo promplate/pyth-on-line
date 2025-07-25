@@ -21,7 +21,7 @@ def setup_fs_audithook():
         if event == "open":
             file, _, flags = args
 
-            if (flags % 2 == 0) and current_computations:
+            if (flags % 2 == 0) and current_computations and isinstance(file, str):
                 track(file)
 
 
