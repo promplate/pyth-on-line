@@ -19,7 +19,7 @@
     "@ethercorps/sveltekit-og": "^3.0.0",
     "@fontsource-variable/fira-code": "^5.2.6",
     "@fontsource-variable/inter": "^5.2.6",
-    "@iconify/json": "^2.2.362",
+    "@iconify/json": "^2.2.363",
     "@neodrag/svelte": "^2.3.3",
     "@shikijs/monaco": "^3.8.1",
     "@shikijs/rehype": "^3.8.1",
