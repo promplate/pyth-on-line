@@ -60,7 +60,7 @@
     let promise: Promise<any> | null = null;
     for (const line of lines) {
       if (hidden) {
-        promise = pyConsole.push(line).future;
+        promise = pyConsole.push(line, true).future;
       }
       else {
         promise && (input = line);
