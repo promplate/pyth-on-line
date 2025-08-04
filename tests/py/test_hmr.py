@@ -128,7 +128,7 @@ def test_module_order_tracker():
 
         with env.hmr("third.py"):
             # Check that modules were tracked in the correct order
-            orders = [(module.__file__, order) for module, order in MODULE_ORDER_TRACKER._module_order.items()]
+            orders = [(module.__file__, order) for module, order in MODULE_ORDER_TRACKER.module_order.items()]
             orders.sort(key=lambda x: x[1])  # Sort by order
 
             # Verify the loading order matches expected sequence: third -> second -> first

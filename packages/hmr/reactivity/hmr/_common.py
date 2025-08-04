@@ -8,22 +8,22 @@ from ..primitives import Batch
 class ModuleOrderTracker:
     def __init__(self):
         self._order_counter = 0
-        self._module_order = {}  # Maps ReactiveModule instances to their load order
+        self.module_order = {}  # Maps ReactiveModule instances to their load order
 
     def register_module_load(self, module):
         """Register when a module is loaded for the first time to track order."""
-        if module not in self._module_order:
-            self._module_order[module] = self._order_counter
+        if module not in self.module_order:
+            self.module_order[module] = self._order_counter
             self._order_counter += 1
 
     def get_order(self, module):
         """Get the loading order of a module. Returns float('inf') if not registered."""
-        return self._module_order.get(module, float("inf"))
+        return self.module_order.get(module, float("inf"))
 
     def clear(self):
         """Clear the order tracker (for testing purposes)."""
         self._order_counter = 0
-        self._module_order.clear()
+        self.module_order.clear()
 
 
 MODULE_ORDER_TRACKER = ModuleOrderTracker()
