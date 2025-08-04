@@ -37,10 +37,11 @@
   }
 
   $: valid = isPython(pyNotebook, (node as Code).value);
+  $: isPythonCode = (node as Code).lang === "python" || valid;
 </script>
 
 <WithCodeActions {node} {run} runnable={valid} let:code>
-  {#if (code.lang ?? valid ? "python" : "text") === "python" && pyNotebook}
+  {#if isPythonCode && pyNotebook}
     <InteractiveCodeBlock lang="python" code={code.value} {items} {pyNotebook} />
   {:else}
     <CodeBlock lang={code.lang ?? valid ? "python" : "text"} code={code.value} {items} />
