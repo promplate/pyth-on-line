@@ -82,11 +82,12 @@ def test_cyclic_dependency_ordering_consistency():
     with environment() as env:
         # Clear any previous order tracking for this test
         from reactivity.hmr._common import MODULE_ORDER_TRACKER
+
         MODULE_ORDER_TRACKER.clear()
-        
+
         # Create a more complex cyclic dependency scenario
         env["x.py"] = "print('x')\nval_x = 10\nfrom y import val_y\nresult_x = val_x + val_y\n"
-        env["y.py"] = "print('y')\nval_y = 20\nfrom z import val_z\nresult_y = val_y + val_z\n" 
+        env["y.py"] = "print('y')\nval_y = 20\nfrom z import val_z\nresult_y = val_y + val_z\n"
         env["z.py"] = "print('z')\nval_z = 30\nfrom x import val_x\nresult_z = val_z + val_x\n"
         env["main.py"] = "print('main')\nfrom x import result_x\nfrom y import result_y\nfrom z import result_z\nprint(f'Results: {result_x}, {result_y}, {result_z}')\n"
 
@@ -94,18 +95,18 @@ def test_cyclic_dependency_ordering_consistency():
             initial_output = env.stdout_delta
             # Verify initial loading works
             assert "main\nx\ny\nz\nResults:" in initial_output
-            
+
             # Change x.val_x to trigger cascading updates
-            # With consistent ordering, x should always execute before y and z 
+            # With consistent ordering, x should always execute before y and z
             # regardless of which gets scheduled first
             env["x.py"].replace("val_x = 10", "val_x = 15")
             after_change = env.stdout_delta
-            
+
             # The key test: x should execute first due to its loading order
             # This ensures deterministic behavior
-            lines = after_change.strip().split('\n')
-            module_execution_order = [line for line in lines if line in ['x', 'y', 'z', 'main']]
-            
+            lines = after_change.strip().split("\n")
+            module_execution_order = [line for line in lines if line in ["x", "y", "z", "main"]]
+
             # x should appear first in any batch where multiple modules are updated
             # Due to the cyclic dependencies, we expect some specific ordering
             # The exact pattern may vary, but x should consistently appear before y and z
@@ -117,18 +118,19 @@ def test_module_order_tracker():
     """Test that the module order tracker correctly tracks loading order."""
     with environment() as env:
         from reactivity.hmr._common import MODULE_ORDER_TRACKER
+
         MODULE_ORDER_TRACKER.clear()
-        
+
         # Create modules and load them in a specific order
         env["first.py"] = "print('first module')\nvalue = 1\n"
         env["second.py"] = "print('second module')\nfrom first import value\nresult = value + 1\n"
         env["third.py"] = "print('third module')\nfrom second import result\nfinal = result + 1\n"
-        
+
         with env.hmr("third.py"):
             # Check that modules were tracked in the correct order
             orders = [(module.__file__, order) for module, order in MODULE_ORDER_TRACKER._module_order.items()]
             orders.sort(key=lambda x: x[1])  # Sort by order
-            
+
             # Verify the loading order matches expected sequence: third -> second -> first
             assert len(orders) == 3, f"Expected 3 modules, got {len(orders)}: {orders}"
             assert "third.py" in orders[0][0], f"Third module should be first, got: {orders}"

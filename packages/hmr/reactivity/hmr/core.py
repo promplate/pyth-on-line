@@ -102,7 +102,7 @@ class ReactiveModule(ModuleType):
     def __load(self):
         # Register this module's loading order for consistent cyclic dependency handling
         MODULE_ORDER_TRACKER.register_module_load(self)
-        
+
         try:
             file = self.__file
             ast = parse(file.read_text("utf-8"), str(file))
