@@ -29,7 +29,7 @@
     const spans = codeContainer.querySelectorAll("code span span");
     spans.forEach((span) => {
       const text = span.textContent?.trim();
-      if (text && /^[a-z_]\w*(\.[a-z_]\w*)*$/i.test(text)) {
+      if (text && /^[a-z_]\w*(?:\.[a-z_]\w*)*$/i.test(text)) {
         // Skip keywords and special tokens
         const skipTokens = ["import", "from", "def", "class", "if", "else", "elif", "for", "while", "return", "await", "async", "and", "or", "not", "in", "is", "True", "False", "None", "with", "as", "try", "except", "finally", "raise", "break", "continue", "pass", "lambda", "global", "nonlocal", "yield", "assert", "del"];
 
@@ -67,7 +67,7 @@
     }
   }
 
-  function handleTokenLeave(event: MouseEvent) {
+  function handleTokenLeave() {
     showTooltip = false;
     tooltipTarget = null;
     inspectionResult = null;
