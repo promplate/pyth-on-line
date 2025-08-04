@@ -157,18 +157,21 @@ class ConsoleAPI:
 
         self.sync()
 
-    def push(self, line: str):
+    def push(self, line: str, hidden: bool = False):
         source = "\n".join((*self.console.buffer, line)) if self.incomplete else line  # must run before pushing because after that buffer will be empty
         res = Result(future := self.console.push(line))
         self.incomplete = future.syntax_check == "incomplete"
         self.sync()
 
         if res.status != "incomplete":
-            self.items.append(input_item := {"type": "in", "text": source})
+            if not hidden:
+                self.items.append(last := {"type": "in", "text": source})
+            else:
+                last = self.items[-1] if self.items else None  # For hidden input, place outputs behind the last item in the logs
 
             if res.status == "syntax-error":
                 assert res.formatted_error
-                self.push_item({"type": "err", "text": res.formatted_error, "is_traceback": True}, behind=input_item)
+                self.push_item({"type": "err", "text": res.formatted_error, "is_traceback": True}, behind=last)
             elif res.status == "complete":
                 self.sync()
 
@@ -177,10 +180,10 @@ class ConsoleAPI:
                 async def _():
                     try:
                         if text := await res.get_repr():
-                            self.push_item({"type": "repr", "text": text}, behind=input_item)
+                            self.push_item({"type": "repr", "text": text}, behind=last)
                     except Exception as e:
                         stderr = res.formatted_error or self.console.formattraceback(e)
-                        self.push_item({"type": "err", "text": stderr, "is_traceback": True}, behind=input_item)
+                        self.push_item({"type": "err", "text": stderr, "is_traceback": True}, behind=last)
 
         return res
 

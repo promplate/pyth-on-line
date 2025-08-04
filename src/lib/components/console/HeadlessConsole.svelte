@@ -54,8 +54,8 @@
     autoscroll && scrollToBottom(container ?? document.documentElement);
   });
 
-  export async function push(source: string) {
-    const res = pyConsole.push(source);
+  export async function push(source: string, hidden = false) {
+    const res = pyConsole.push(source, hidden);
     if (res.status === "complete") {
       loading++;
       res.future.add_done_callback(() => loading--);

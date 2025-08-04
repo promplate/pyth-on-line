@@ -18,7 +18,7 @@ export class ConsoleAPI extends PyProxy {
   complete(source: string): [string[], number];
   get_items(): Item[];
   incomplete: boolean;
-  push(line: string): Result<any>;
+  push(line: string, hidden = false): Result<any>;
   pop(): string;
   inspect(name: string): Inspection;
   close(): void;
