@@ -8,7 +8,8 @@
   export let code: string;
   export let lang = "text";
   export let items: Item[] = [];
-  export let pyNotebook: NotebookAPI | undefined;
+  // eslint-disable-next-line no-undef-init
+  export let pyNotebook: NotebookAPI | undefined = undefined;
   export let enableInspection = false;
 
   let codeContainer: HTMLElement;
