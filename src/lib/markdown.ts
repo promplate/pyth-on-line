@@ -22,7 +22,8 @@ export async function renderMarkdown(text: string, langs: BuiltinLanguage[] = []
     mdastExtensions: [gfmFromMarkdown()],
   });
 
-  const { value } = await processor.run(mdast);
+  const transformedAst = await processor.run(mdast);
+  const value = processor.stringify(transformedAst);
   return String(value);
 };
 
