@@ -20,6 +20,7 @@
     "@fontsource-variable/fira-code": "^5.2.6",
     "@fontsource-variable/inter": "^5.2.6",
     "@iconify/json": "^2.2.365",
+    "@joplin/turndown-plugin-gfm": "^1.0.62",
     "@neodrag/svelte": "^2.3.3",
     "@shikijs/monaco": "^3.9.1",
     "@sveltejs/adapter-netlify": "^5.1.0",
@@ -49,7 +50,6 @@
     "svelte-portal": "^2.2.1",
     "svelte-sonner": "0.3.28",
     "turndown": "^7.2.0",
-    "turndown-plugin-gfm": "^1.0.2",
     "unocss": "^66.4.0",
     "unzipit": "^1.4.3",
     "vite": "^5.4.19"

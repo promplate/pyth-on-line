@@ -1,9 +1,9 @@
+// @ts-expect-error missing types
+import { gfm } from "@joplin/turndown-plugin-gfm";
 import { fromHtml } from "hast-util-from-html";
 import { toMdast } from "hast-util-to-mdast";
 import { toMarkdown } from "mdast-util-to-markdown";
 import TurndownService from "turndown";
-// @ts-expect-error missing types
-import { gfm, strikethrough, tables } from "turndown-plugin-gfm";
 
 export function html2markdown(html: string) {
   try {
@@ -12,7 +12,7 @@ export function html2markdown(html: string) {
     return toMarkdown(tree);
   }
   catch {
-    const markdown = new TurndownService({ codeBlockStyle: "fenced" }).use(gfm).use(tables).use(strikethrough);
+    const markdown = new TurndownService({ codeBlockStyle: "fenced" }).use(gfm);
     return markdown.turndown(html);
   }
 }
