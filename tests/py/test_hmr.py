@@ -72,7 +72,7 @@ def test_simple_circular_dependency():
             """
               Solution 1 implemented: Maximize consistency
               Modules are now executed in consistent order based on their initial loading order.
-              This eliminates the previous non-deterministic behavior where a and b could 
+              This eliminates the previous non-deterministic behavior where a and b could
               execute in different orders during cyclic dependency resolution.
             """
 
