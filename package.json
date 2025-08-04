@@ -12,7 +12,9 @@
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
     "test": "vitest",
     "test:ui": "vitest --ui",
-    "test:run": "vitest run"
+    "test:run": "vitest run",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
   },
   "stackblitz": {
     "installDependencies": false,
@@ -62,8 +64,10 @@
   },
   "devDependencies": {
     "@antfu/eslint-config": "^5.1.0",
+    "@playwright/test": "^1.54.2",
     "@testing-library/jest-dom": "^6.6.4",
     "@testing-library/svelte": "^5.2.8",
+    "@testing-library/user-event": "^14.6.1",
     "@types/emscripten": "^1.40.1",
     "@types/mdast": "^4.0.4",
     "@types/node": "^24.1.0",
