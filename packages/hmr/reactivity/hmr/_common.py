@@ -45,7 +45,10 @@ class OrderedBatch(Batch):
                 # Check if this is a ReactiveModule's load method
                 if hasattr(computation, "fn") and ismethod(computation.fn):
                     module = computation.fn.__self__
+
                     # Check if this is a ReactiveModule instance
+                    from .core import ReactiveModule
+
                     if isinstance(module, ReactiveModule):
                         order = MODULE_ORDER_TRACKER.get_order(module)
                         return order
@@ -71,5 +74,3 @@ class HMRContext(Context):
 
 
 HMR_CONTEXT = HMRContext([], [])
-
-from .core import ReactiveModule
