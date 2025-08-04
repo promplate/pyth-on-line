@@ -5,21 +5,9 @@ from weakref import WeakKeyDictionary, WeakSet
 from .context import Context, default_context
 
 
-def _is_mutable_container(obj):
-    """Check if an object is a mutable container that could be modified after assignment."""
-    return isinstance(obj, (list, dict, set, bytearray))
-
-
 def _equal(a, b):
     if a is b:
         return True
-    
-    # For mutable containers, use identity comparison to detect reassignment
-    # This prevents the "double buffering" issue where a = [] followed by a.append(x)
-    # would not trigger on the next a = [] assignment
-    if _is_mutable_container(a) or _is_mutable_container(b):
-        return False  # Force notification for mutable containers
-    
     comparison_result: Any = False
     for i in range(3):  # pandas DataFrame's .all() returns a Series, which is still incompatible :(
         try:

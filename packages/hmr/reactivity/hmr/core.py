@@ -17,7 +17,8 @@ from weakref import WeakValueDictionary
 
 from ..context import Context
 from ..helpers import DerivedMethod
-from ..primitives import BaseDerived, Derived, Signal
+from ..primitives import BaseDerived, Derived, Signal, Batch, _equal
+from ..helpers import Reactive
 from ._common import HMR_CONTEXT
 from .fs import notify, setup_fs_audithook
 from .hooks import call_post_reload_hooks, call_pre_reload_hooks
@@ -50,6 +51,8 @@ class NamespaceProxy(Proxy):
             if not isinstance(signal, Name):  # plain signals are replaced with `Name`
                 self._signals[key] = Name(signal._value, signal._check_equality, context=context)  # noqa: SLF001
         self.module = module
+        self._loading = False
+        self._deferred_assignments = {}
 
     def _null(self):
         self.module.load.subscribers.add(signal := Name(self.UNSET, self._check_equality, context=self.context))
@@ -65,6 +68,48 @@ class NamespaceProxy(Proxy):
                 # a module's loader shouldn't subscribe its variables
                 signal.subscribers.remove(self.module.load)
                 self.module.load.dependencies.remove(signal)
+
+    def __setitem__(self, key, value):
+        # Store the assignment in raw namespace immediately
+        self.raw[key] = value
+        
+        if self._loading:
+            # During module loading, capture the old value before updating
+            signal = self._signals[key]
+            old_value = signal._value
+            self._deferred_assignments[key] = (old_value, value)  # Store for later notification
+            signal._value = value  # Update value immediately so module execution sees it
+        else:
+            # Normal reactive assignment
+            super().__setitem__(key, value)
+
+    def _start_loading(self):
+        """Start module loading mode - defer reactive assignments."""
+        self._loading = True
+        self._deferred_assignments.clear()
+
+    def _finish_loading(self):
+        """Finish module loading and process all deferred assignments."""
+        if not self._loading:
+            return
+            
+        self._loading = False
+        
+        # Process all deferred assignments with proper equality checking and notifications
+        with Batch(force_flush=False, context=self.context):
+            for key, (old_value, new_value) in self._deferred_assignments.items():
+                signal = self._signals[key]
+                # Use the signal's equality checking and notification logic
+                if not signal._check_equality:
+                    print(f"DEBUG: Notifying {key} (equality disabled)")
+                    signal.notify()
+                elif not _equal(old_value, new_value):
+                    print(f"DEBUG: Notifying {key} ({old_value} != {new_value})")
+                    signal.notify()
+                else:
+                    print(f"DEBUG: Skipping {key} ({old_value} == {new_value})")
+        
+        self._deferred_assignments.clear()
 
 
 STATIC_ATTRS = frozenset(("__path__", "__dict__", "__spec__", "__name__", "__file__", "__loader__", "__package__", "__cached__"))
@@ -100,28 +145,39 @@ class ReactiveModule(ModuleType):
 
     @partial(DerivedMethod, context=HMR_CONTEXT)
     def __load(self):
+        # Start double buffering mode at the very beginning
+        self.__namespace_proxy._start_loading()
         try:
-            file = self.__file
-            ast = parse(file.read_text("utf-8"), str(file))
-            code = compile(ast, str(file), "exec", dont_inherit=True)
-        except SyntaxError as e:
-            sys.excepthook(type(e), e, e.__traceback__)
-        else:
-            for dispose in self.__hooks:
-                with suppress(Exception):
-                    dispose()
-            self.__hooks.clear()
-            self.__doc__ = get_docstring(ast)
-            exec(code, self.__namespace, self.__namespace_proxy)  # https://github.com/python/cpython/issues/121306
-            self.__namespace_proxy.update(self.__namespace)
+            try:
+                file = self.__file
+                ast = parse(file.read_text("utf-8"), str(file))
+                code = compile(ast, str(file), "exec", dont_inherit=True)
+            except SyntaxError as e:
+                sys.excepthook(type(e), e, e.__traceback__)
+            else:
+                for dispose in self.__hooks:
+                    with suppress(Exception):
+                        dispose()
+                self.__hooks.clear()
+                self.__doc__ = get_docstring(ast)
+                
+                exec(code, self.__namespace, self.__namespace_proxy)  # https://github.com/python/cpython/issues/121306
+                self.__namespace_proxy.update(self.__namespace)
         finally:
-            load = self.__load
-            assert ismethod(load.fn)  # for type narrowing
-            for dep in list(load.dependencies):
-                if isinstance(dep, Derived) and ismethod(dep.fn) and isinstance(dep.fn.__self__, ReactiveModule) and dep.fn.__func__ is load.fn.__func__:
-                    # unsubscribe it because we want invalidation to be fine-grained
-                    dep.subscribers.remove(load)
-                    load.dependencies.remove(dep)
+            # Always finish double buffering, even if there are exceptions
+            try:
+                self.__namespace_proxy._finish_loading()
+            except Exception:
+                pass  # Don't let finish_loading exceptions mask original exceptions
+            finally:
+                # Clean up dependencies
+                load = self.__load
+                assert ismethod(load.fn)  # for type narrowing
+                for dep in list(load.dependencies):
+                    if isinstance(dep, Derived) and ismethod(dep.fn) and isinstance(dep.fn.__self__, ReactiveModule) and dep.fn.__func__ is load.fn.__func__:
+                        # unsubscribe it because we want invalidation to be fine-grained
+                        dep.subscribers.remove(load)
+                        load.dependencies.remove(dep)
 
     @property
     def load(self):
