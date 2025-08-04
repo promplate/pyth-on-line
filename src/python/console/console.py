@@ -168,7 +168,8 @@ class ConsoleAPI:
             if not hidden:
                 self.items.append(input_item := {"type": "in", "text": source})
             else:
-                input_item = None
+                # For hidden input, place output behind the last item in the logs
+                input_item = self.items[-1] if self.items else None
 
             if res.status == "syntax-error":
                 assert res.formatted_error
