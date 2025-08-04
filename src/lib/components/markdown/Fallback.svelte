@@ -1,9 +1,11 @@
-<script context="module">
-  import rehypeStringify from "rehype-stringify";
-  import remarkRehype from "remark-rehype";
-  import { unified } from "unified";
+<script context="module" lang="ts">
+  import { toHtml } from "hast-util-to-html";
+  import { toHast } from "mdast-util-to-hast";
 
-  const processor = unified().use(remarkRehype).use(rehypeStringify);
+  function stringify(root: any) {
+    const hast = toHast(root);
+    return toHtml(hast);
+  }
 </script>
 
 <script lang="ts">
@@ -14,4 +16,4 @@
   $: root = node as Root;
 </script>
 
-{@html String(processor.stringify(processor.runSync(root)))}
+{@html stringify(root)}
