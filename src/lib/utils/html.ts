@@ -7,14 +7,9 @@ import { gfm, strikethrough, tables } from "turndown-plugin-gfm";
 
 export function html2markdown(html: string) {
   try {
-    // Parse HTML to hast
     const hast = fromHtml(html);
-
-    // Convert hast to mdast
-    const mdast = toMdast(hast);
-
-    // Convert mdast to markdown string
-    return toMarkdown(mdast);
+    const tree = toMdast(hast);
+    return toMarkdown(tree);
   }
   catch {
     const markdown = new TurndownService({ codeBlockStyle: "fenced" }).use(gfm).use(tables).use(strikethrough);
