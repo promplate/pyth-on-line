@@ -42,6 +42,23 @@
       <GitHubTokenManager />
     </div>
   {/if}
+
+  {#if !$hasUserToken && gists.some(g => !g.isPublic)}
+    <div class="border border-yellow-600/30 rounded bg-yellow-600/20 p-3 text-sm text-yellow-100">
+      <h3 class="mb-1 font-medium">Private Gists Detected</h3>
+      <p>
+        Some of your gists are private. You may need to
+        <button
+          on:click={() => showTokenManager = true}
+          class="text-yellow-200 underline hover:text-yellow-100"
+        >
+          set up a GitHub token
+        </button>
+        to access them from this application.
+      </p>
+    </div>
+  {/if}
+
   <ul class="flex flex-row flex-wrap gap-3 text-sm">
     {#each gists as { name, description, updatedAt, isPublic, stargazerCount, viewerHasStarred }}
       <li class="contents">

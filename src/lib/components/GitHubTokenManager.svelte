@@ -33,6 +33,10 @@
       if (result.valid) {
         userGitHubToken.set(tokenInput);
         toast.success(`Token validated and saved! Connected as @${result.user?.login}`);
+        // Suggest page refresh to load gists with new token
+        setTimeout(() => {
+          toast.info("Refresh the page to see gists accessible with your token");
+        }, 2000);
       }
       else {
         toast.error(result.error || "Token validation failed");
