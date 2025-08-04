@@ -69,9 +69,6 @@ sw.addEventListener("activate", (event) => {
 });
 
 async function fetchWithProxy(request: Request) {
-  // Clone the request before first attempt to avoid "Body is already used" error
-  const clonedRequest = request.clone();
-
   try {
     return await fetch(request);
   }
@@ -79,8 +76,7 @@ async function fetchWithProxy(request: Request) {
     const url = new URL(request.url);
     if ([location.hostname, "localhost", "127.0.0.1", "::1"].includes(url.hostname))
       throw e;
-
-    return await fetch(`/proxy?url=${encodeURIComponent(request.url)}`, clonedRequest);
+    return await fetch(`/proxy?url=${encodeURIComponent(request.url)}`, request);
   }
 }
 
@@ -108,7 +104,7 @@ sw.addEventListener("fetch", (event) => {
     // for everything else, try the network first, but
     // fall back to the cache if we're offline
     try {
-      const response = await fetchWithProxy(event.request);
+      const response = await fetchWithProxy(event.request.clone()); // Clone the request before first attempt to avoid "Body is already used" error
 
       // if we're offline, fetch can return a value that is not a Response
       // instead of throwing - and we can't pass this non-Response to respondWith
