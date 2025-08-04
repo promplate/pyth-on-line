@@ -1,6 +1,6 @@
 <script lang="ts">
-  import type { Item, NotebookAPI } from "$py/notebook/notebook";
   import type { Inspection } from "$py/console/console";
+  import type { Item, NotebookAPI } from "$py/notebook/notebook";
 
   import { highlight } from "../highlight";
   import Tooltip from "./Tooltip.svelte";
@@ -20,17 +20,17 @@
 
   function handleMouseEnter(event: MouseEvent) {
     const target = event.target as HTMLElement;
-    
+
     if (target.dataset.inspectable && target.dataset.variable && pyNotebook) {
       hoveredElement = target;
       const varName = target.dataset.variable;
-      
+
       // Get inspection data
       inspectionData = pyNotebook.inspect(varName);
-      
+
       if (inspectionData) {
         showTooltip = true;
-        
+
         // Set up reactive watcher for this variable
         if (disposeWatcher) {
           disposeWatcher();
@@ -48,7 +48,7 @@
     showTooltip = false;
     hoveredElement = null;
     inspectionData = null;
-    
+
     if (disposeWatcher) {
       disposeWatcher();
       disposeWatcher = null;
@@ -56,17 +56,18 @@
   }
 
   function formatInspectionValue(inspection: Inspection): string {
-    if (!inspection) return "";
-    
+    if (!inspection)
+      return "";
+
     const lines = [
       `Type: ${inspection.class}`,
-      `Value: ${inspection.value}`
+      `Value: ${inspection.value}`,
     ];
-    
+
     if (inspection.type) {
       lines.splice(1, 0, `Kind: ${inspection.type}`);
     }
-    
+
     return lines.join("\n");
   }
 </script>
@@ -76,7 +77,7 @@
     {#await highlight(lang, code, pyNotebook !== null)}
       <pre class="text-white/70">{code}</pre>
     {:then highlightedCode}
-      <div 
+      <div
         bind:this={preElement}
         role="presentation"
         on:mouseenter={handleMouseEnter}
@@ -103,13 +104,13 @@
 </section>
 
 {#if showTooltip && hoveredElement && inspectionData}
-  <Tooltip 
-    target={hoveredElement} 
-    show={showTooltip} 
+  <Tooltip
+    target={hoveredElement}
+    show={showTooltip}
     onHide={() => { showTooltip = false; }}
   >
-    <div class="rounded bg-neutral-8/95 px-2 py-1.5 text-xs text-white backdrop-blur-sm border border-neutral-6/30 shadow-lg max-w-sm">
-      <div class="font-mono whitespace-pre-line">
+    <div class="max-w-sm border border-neutral-6/30 rounded bg-neutral-8/95 px-2 py-1.5 text-xs text-white shadow-lg backdrop-blur-sm">
+      <div class="whitespace-pre-line font-mono">
         {formatInspectionValue(inspectionData)}
       </div>
     </div>

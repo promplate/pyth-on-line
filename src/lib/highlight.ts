@@ -27,16 +27,16 @@ const interactiveTransformers: ShikiTransformer[] = [
       if (hast?.options?.lang === "python") {
         // Check if this is likely a variable name
         const text = node.children?.[0]?.type === "text" ? node.children[0].value : "";
-        
-        if (text && typeof text === "string" && /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(text)) {
+
+        if (text && typeof text === "string" && /^[a-z_]\w*$/i.test(text)) {
           // Add data attributes for inspection
           node.properties = node.properties || {};
           node.properties["data-variable"] = text;
           node.properties["data-inspectable"] = "true";
         }
       }
-    }
-  }
+    },
+  },
 ];
 
 export async function highlight(lang = "text", code: string, interactive = false) {
