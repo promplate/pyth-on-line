@@ -13,7 +13,7 @@
 
   // eslint-disable-next-line no-undef-init
   export let container: HTMLElement | undefined = undefined;
-  export let disableAutofocus = false;
+  export let disableAutofocus = true;
 
   let log: Item[] = [];
 
