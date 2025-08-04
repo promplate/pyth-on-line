@@ -1,12 +1,16 @@
-<script context="module">
+<script context="module" lang="ts">
   import "../../md.css";
 
-  import remarkGfm from "remark-gfm";
-  import remarkParse from "remark-parse";
-  import { unified } from "unified";
+  import { fromMarkdown } from "mdast-util-from-markdown";
+  import { gfmFromMarkdown } from "mdast-util-gfm";
+  import { gfm } from "micromark-extension-gfm";
 
-  const processor = unified().use(remarkParse).use(remarkGfm);
-  const parse = processor.parse.bind(processor);
+  function parse(text: string) {
+    return fromMarkdown(text, {
+      extensions: [gfm()],
+      mdastExtensions: [gfmFromMarkdown()],
+    });
+  }
 </script>
 
 <article class="max-w-full text-sm text-neutral-2 font-sans prose [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
