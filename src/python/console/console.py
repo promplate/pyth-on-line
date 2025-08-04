@@ -172,11 +172,7 @@ class ConsoleAPI:
 
             if res.status == "syntax-error":
                 assert res.formatted_error
-                if input_item is not None:
-                    self.push_item({"type": "err", "text": res.formatted_error, "is_traceback": True}, behind=input_item)
-                else:
-                    # If hidden, still show errors but without the input context
-                    self.push_item({"type": "err", "text": res.formatted_error, "is_traceback": True})
+                self.push_item({"type": "err", "text": res.formatted_error, "is_traceback": True}, behind=input_item)
             elif res.status == "complete":
                 self.sync()
 
@@ -185,18 +181,10 @@ class ConsoleAPI:
                 async def _():
                     try:
                         if text := await res.get_repr():
-                            if input_item is not None:
-                                self.push_item({"type": "repr", "text": text}, behind=input_item)
-                            else:
-                                # If hidden input, still show output but without the input context
-                                self.push_item({"type": "repr", "text": text})
+                            self.push_item({"type": "repr", "text": text}, behind=input_item)
                     except Exception as e:
                         stderr = res.formatted_error or self.console.formattraceback(e)
-                        if input_item is not None:
-                            self.push_item({"type": "err", "text": stderr, "is_traceback": True}, behind=input_item)
-                        else:
-                            # If hidden input, still show errors but without the input context
-                            self.push_item({"type": "err", "text": stderr, "is_traceback": True})
+                        self.push_item({"type": "err", "text": stderr, "is_traceback": True}, behind=input_item)
 
         return res
 
