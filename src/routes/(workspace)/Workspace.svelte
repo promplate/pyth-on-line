@@ -1,6 +1,7 @@
 <script lang="ts">
   import FileContent from "./FileContent.svelte";
   import FileList from "./FileList.svelte";
+  import { browser } from "$app/environment";
   import { registerCommandGroup } from "$lib/components/command/helper";
   import Console from "$lib/components/Console.svelte";
   import SetupWorkspace from "$lib/components/reusable/WorkspaceLifecycle.svelte";
@@ -8,6 +9,9 @@
   import { Pane, PaneGroup, PaneResizer } from "paneforge";
 
   export let sources: Record<string, string> = {};
+
+  // Detect if we're in an iframe to disable autofocus
+  $: isInIframe = browser && window.self !== window.top;
 
   function getDefaultFile() {
     return Object.keys(sources).find(name => name.toUpperCase().startsWith("README")) ?? Object.keys(sources)[0];
@@ -46,7 +50,7 @@
           </PaneResizer>
           <Pane defaultSize={30} minSize={10}>
             <div class="h-full w-full overflow-y-scroll" bind:this={container}>
-              <Console class="p-2 text-xs [&>div:hover]:rounded-r-none @2xl:(text-13px line-height-18px) @7xl:text-sm" {container} />
+              <Console class="p-2 text-xs [&>div:hover]:rounded-r-none @2xl:(text-13px line-height-18px) @7xl:text-sm" {container} disableAutofocus={isInIframe} />
             </div>
           </Pane>
         </SetupWorkspace>

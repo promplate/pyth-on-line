@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Same-Origin Iframe Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        iframe {
+            width: 100%;
+            height: 600px;
+            border: 2px solid #ccc;
+            margin: 20px 0;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #eee;
+            background: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <h1>Same-Origin Iframe Autofocus Test</h1>
+    
+    <div class="test-section">
+        <h2>Test 1: Playground in same-origin iframe (should NOT autofocus due to our fix)</h2>
+        <p>The console input in the playground below should NOT automatically focus when loaded in an iframe.</p>
+        <iframe src="/playground" title="Playground in iframe"></iframe>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 2: Console in same-origin iframe (should autofocus - standalone console)</h2>
+        <p>The console input below should automatically focus even when loaded in an iframe.</p>
+        <iframe src="/console" title="Console in iframe"></iframe>
+    </div>
+    
+    <div class="test-section">
+        <h2>Instructions:</h2>
+        <p>This test uses same-origin iframes, so browser security won't block autofocus.</p>
+        <p>1. Playground iframe: Should NOT autofocus (our fix working)</p>
+        <p>2. Console iframe: Should autofocus (standalone console unaffected)</p>
+    </div>
+</body>
+</html>
