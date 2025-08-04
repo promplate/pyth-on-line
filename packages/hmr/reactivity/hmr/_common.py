@@ -46,7 +46,7 @@ class OrderedBatch(Batch):
                 if hasattr(computation, "fn") and ismethod(computation.fn):
                     module = computation.fn.__self__
                     # Check if this is a ReactiveModule instance
-                    if hasattr(module, "_ReactiveModule__file"):  # Private attribute access
+                    if isinstance(module, ReactiveModule):
                         order = MODULE_ORDER_TRACKER.get_order(module)
                         return order
                 return float("inf")  # Non-module computations go last
@@ -71,3 +71,5 @@ class HMRContext(Context):
 
 
 HMR_CONTEXT = HMRContext([], [])
+
+from .core import ReactiveModule
