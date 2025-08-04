@@ -6,6 +6,7 @@ from functools import cached_property, partial
 from importlib.abc import Loader, MetaPathFinder
 from importlib.machinery import ModuleSpec
 from importlib.util import spec_from_loader
+from importlib.machinery import NamespaceLoader
 from inspect import currentframe, ismethod
 from os import getenv
 from pathlib import Path
@@ -210,16 +211,37 @@ class ReactiveModuleFinder(MetaPathFinder):
         if fullname in sys.modules:
             return None
 
+        # Track namespace package candidate directories
+        namespace_dirs = []
+
         for directory in self.search_paths:
             if directory.is_file():
                 continue
 
+            # Check for regular module file
             file = directory / f"{fullname.replace('.', '/')}.py"
             if self._accept(file) and (paths is None or is_relative_to_any(file, paths)):
                 return spec_from_loader(fullname, _loader, origin=str(file))
-            file = directory / f"{fullname.replace('.', '/')}/__init__.py"
-            if self._accept(file) and (paths is None or is_relative_to_any(file, paths)):
-                return spec_from_loader(fullname, _loader, origin=str(file), is_package=True)
+            
+            # Check for regular package (with __init__.py)
+            package_dir = directory / f"{fullname.replace('.', '/')}"
+            init_file = package_dir / "__init__.py"
+            if self._accept(init_file) and (paths is None or is_relative_to_any(init_file, paths)):
+                return spec_from_loader(fullname, _loader, origin=str(init_file), is_package=True)
+            
+            # Check for namespace package (directory without __init__.py but with content)
+            if package_dir.is_dir() and (paths is None or is_relative_to_any(package_dir, paths)):
+                # Only consider it a namespace package if it has Python files or subdirectories
+                if any(package_dir.iterdir()):  # Has content
+                    namespace_dirs.append(str(package_dir))
+
+        # If we found namespace package directories, create a namespace package spec
+        if namespace_dirs:
+            # Create a ModuleSpec for namespace package using Python's NamespaceLoader
+            # Namespace packages don't need our custom ReactiveModuleLoader
+            spec = ModuleSpec(fullname, NamespaceLoader(fullname, namespace_dirs, []), is_package=True)
+            spec.submodule_search_locations = namespace_dirs
+            return spec
 
 
 def is_relative_to_any(path: Path, paths: Iterable[str | Path]):

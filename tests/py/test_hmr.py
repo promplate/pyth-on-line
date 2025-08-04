@@ -352,3 +352,46 @@ def test_laziness():
             assert env.stdout_delta == "3\n"
             env["foo.py"].touch()
             assert env.stdout_delta == "3\n"
+
+
+def test_namespace_package_support():
+    with environment() as env:
+        # Create a namespace package by creating a directory without __init__.py
+        Path("nspkg").mkdir(exist_ok=True)
+        env["nspkg/module.py"] = "value = 42\nprint(f'namespace: {value}')"
+        env["main.py"] = "import nspkg.module"
+        
+        with env.hmr("main.py"):
+            assert env.stdout_delta == "namespace: 42\n"
+            
+            # Modify the namespace package module using replace (like other tests)
+            env["nspkg/module.py"].replace("42", "84")
+            assert env.stdout_delta == "namespace: 84\n"
+
+
+def test_mixed_regular_and_namespace_packages():
+    with environment() as env:
+        # Regular package with __init__.py
+        Path("regpkg").mkdir(exist_ok=True)
+        env["regpkg/__init__.py"] = "print('regular package')"
+        env["regpkg/mod.py"] = "print('regular module')"
+        
+        # Namespace package without __init__.py
+        Path("nspkg").mkdir(exist_ok=True)
+        env["nspkg/mod.py"] = "print('namespace module')"
+        
+        env["main.py"] = "import regpkg.mod\nimport nspkg.mod"
+        
+        with env.hmr("main.py"):
+            output = env.stdout_delta
+            assert "regular package" in output
+            assert "regular module" in output
+            assert "namespace module" in output
+            
+            # Modify both types
+            env["regpkg/mod.py"] = "print('modified regular module')"
+            env["nspkg/mod.py"] = "print('modified namespace module')"
+            
+            output = env.stdout_delta  
+            assert "modified regular module" in output
+            assert "modified namespace module" in output
