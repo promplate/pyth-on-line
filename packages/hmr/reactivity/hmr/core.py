@@ -53,6 +53,7 @@ class NamespaceProxy(Proxy):
         self.module = module
         self._loading = False
         self._deferred_assignments = {}
+        self._pre_loading_values = {}
 
     def _null(self):
         self.module.load.subscribers.add(signal := Name(self.UNSET, self._check_equality, context=self.context))
@@ -74,19 +75,35 @@ class NamespaceProxy(Proxy):
         self.raw[key] = value
         
         if self._loading:
-            # During module loading, capture the old value before updating
+            # During module loading, store the value for immediate access
+            # but defer the reactive assignment
+            self._deferred_assignments[key] = value
+            # Update the signal value immediately so __getitem__ returns the right value
+            # but don't trigger notifications yet
             signal = self._signals[key]
-            old_value = signal._value
-            self._deferred_assignments[key] = (old_value, value)  # Store for later notification
-            signal._value = value  # Update value immediately so module execution sees it
+            signal._value = value
         else:
             # Normal reactive assignment
             super().__setitem__(key, value)
 
     def _start_loading(self):
-        """Start module loading mode - defer reactive assignments."""
-        self._loading = True
+        """Start module loading mode - defer reactive assignments if this is a reload."""
+        # Only apply double buffering if this is a reload (some variables already exist)
+        # For first-time loads, use normal behavior
+        has_existing_variables = any(
+            signal._value is not self.UNSET 
+            for key, signal in self._signals.items() 
+            if key not in STATIC_ATTRS
+        )
+        
+        self._loading = has_existing_variables
         self._deferred_assignments.clear()
+        self._pre_loading_values.clear()
+        
+        if self._loading:
+            # Take a snapshot of current signal values before loading starts
+            for key, signal in self._signals.items():
+                self._pre_loading_values[key] = signal._value
 
     def _finish_loading(self):
         """Finish module loading and process all deferred assignments."""
@@ -95,21 +112,25 @@ class NamespaceProxy(Proxy):
             
         self._loading = False
         
-        # Process all deferred assignments with proper equality checking and notifications
+        # Process all deferred assignments through normal reactive mechanism
+        # This compares final values with pre-loading values
         with Batch(force_flush=False, context=self.context):
-            for key, (old_value, new_value) in self._deferred_assignments.items():
+            for key, final_value in self._deferred_assignments.items():
+                # Skip system attributes that shouldn't trigger dependent module reloads
+                if key in STATIC_ATTRS:
+                    continue
+                    
+                pre_loading_value = self._pre_loading_values.get(key, self.UNSET)
                 signal = self._signals[key]
+                
                 # Use the signal's equality checking and notification logic
                 if not signal._check_equality:
-                    print(f"DEBUG: Notifying {key} (equality disabled)")
                     signal.notify()
-                elif not _equal(old_value, new_value):
-                    print(f"DEBUG: Notifying {key} ({old_value} != {new_value})")
+                elif not _equal(pre_loading_value, final_value):
                     signal.notify()
-                else:
-                    print(f"DEBUG: Skipping {key} ({old_value} == {new_value})")
         
         self._deferred_assignments.clear()
+        self._pre_loading_values.clear()
 
 
 STATIC_ATTRS = frozenset(("__path__", "__dict__", "__spec__", "__name__", "__file__", "__loader__", "__package__", "__cached__"))
