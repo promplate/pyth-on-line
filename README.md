@@ -79,3 +79,20 @@ await gather(*(f(".") for _ in range(10)))
 - This project is heavily inspired by [StackBlitz](https://stackblitz.com/), [CodePen](https://codepen.io/) and [Marimo](https://github.com/marimo-team/marimo)
 - Developers from [pyodide](https://github.com/pyodide) helped me a lot
 - There are some other similar projects like [futurecoder](https://futurecoder.io/), [JupyterLite](https://jupyterlite.github.io/demo) and [PyScript](https://pyscript.com/)
+
+## Development
+
+### Running Tests
+
+This project includes comprehensive frontend testing:
+
+```bash
+# Unit tests
+npm test          # Watch mode
+npm run test:run  # Run once
+
+# E2E tests  
+npm run test:e2e
+```
+
+See [docs/TESTING.md](docs/TESTING.md) for detailed testing documentation.

@@ -9,7 +9,12 @@
     "build": "vite build --sourcemap",
     "preview": "vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
-    "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
+    "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:run": "vitest run",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
   },
   "stackblitz": {
     "installDependencies": false,
@@ -56,6 +61,10 @@
   },
   "devDependencies": {
     "@antfu/eslint-config": "^5.1.0",
+    "@playwright/test": "^1.54.2",
+    "@testing-library/jest-dom": "^6.6.4",
+    "@testing-library/svelte": "^5.2.8",
+    "@testing-library/user-event": "^14.6.1",
     "@types/emscripten": "^1.40.1",
     "@types/mdast": "^4.0.4",
     "@types/node": "^24.1.0",
@@ -64,7 +73,9 @@
     "eslint": "^9.32.0",
     "eslint-plugin-format": "^1.0.1",
     "eslint-plugin-svelte": "^3.11.0",
+    "jsdom": "^26.1.0",
     "libraries.io": "^3.3.4",
-    "svelte-check": "^4.3.1"
+    "svelte-check": "^4.3.1",
+    "vitest": "^3.2.4"
   }
 }
