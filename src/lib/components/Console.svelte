@@ -13,7 +13,8 @@
 
   // eslint-disable-next-line no-undef-init
   export let container: HTMLElement | undefined = undefined;
-  export let disableAutofocus = true;
+
+  let autofocus = false;
 
   let log: Item[] = [];
 
@@ -45,9 +46,12 @@
 
   let push: (source: string) => Promise<any>;
 
-  onMount(async () => {
+  onMount(() => {
     history.unshift(...(JSON.parse(localStorage.getItem("console-history") || "[]") as string[]));
-    focusToInput();
+    if (window.self !== window.top) {
+      autofocus = true;
+      focusToInput();
+    }
   });
 
   $: if ($pyodideReady && pyConsole) {
@@ -220,7 +224,7 @@
       <div class="group flex flex-row" class:animate-pulse={loading || !ready}>
         <ConsolePrompt prompt={status === "incomplete" ? "..." : ">>>"} />
         <!-- svelte-ignore a11y-autofocus -->
-        <input autofocus={!disableAutofocus} bind:this={inputRef} class="w-full bg-transparent outline-none" bind:value={input} type="text" autocapitalize="off" spellcheck="false" autocomplete="off" autocorrect="off" />
+        <input {autofocus} bind:this={inputRef} class="w-full bg-transparent outline-none" bind:value={input} type="text" autocapitalize="off" spellcheck="false" autocomplete="off" autocorrect="off" />
       </div>
     </HeadlessConsole>
 
