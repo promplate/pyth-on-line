@@ -104,7 +104,7 @@ sw.addEventListener("fetch", (event) => {
     // for everything else, try the network first, but
     // fall back to the cache if we're offline
     try {
-      const response = await fetchWithProxy(event.request);
+      const response = await fetchWithProxy(event.request.clone()); // Clone the request before first attempt to avoid "Body is already used" error
 
       // if we're offline, fetch can return a value that is not a Response
       // instead of throwing - and we can't pass this non-Response to respondWith
