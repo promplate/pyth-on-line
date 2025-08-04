@@ -66,7 +66,7 @@ class HMRContext(Context):
     """Custom context for HMR with ordered batch processing."""
 
     @property
-    def batch(self):
+    def batch(self) -> partial[Batch]:
         return partial(OrderedBatch, context=self)
 
 
