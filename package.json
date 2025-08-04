@@ -22,7 +22,6 @@
     "@iconify/json": "^2.2.365",
     "@neodrag/svelte": "^2.3.3",
     "@shikijs/monaco": "^3.9.1",
-    "@shikijs/rehype": "^3.9.1",
     "@sveltejs/adapter-netlify": "^5.1.0",
     "@sveltejs/kit": "^2.27.0",
     "@sveltejs/vite-plugin-svelte": "^3.1.2",
