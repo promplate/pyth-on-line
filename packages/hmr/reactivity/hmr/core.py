@@ -4,9 +4,8 @@ from collections.abc import Callable, Iterable, MutableMapping, Sequence
 from contextlib import suppress
 from functools import cached_property, partial
 from importlib.abc import Loader, MetaPathFinder
-from importlib.machinery import ModuleSpec
+from importlib.machinery import ModuleSpec, NamespaceLoader
 from importlib.util import spec_from_loader
-from importlib.machinery import NamespaceLoader
 from inspect import currentframe, ismethod
 from os import getenv
 from pathlib import Path
@@ -222,15 +221,15 @@ class ReactiveModuleFinder(MetaPathFinder):
             file = directory / f"{fullname.replace('.', '/')}.py"
             if self._accept(file) and (paths is None or is_relative_to_any(file, paths)):
                 return spec_from_loader(fullname, _loader, origin=str(file))
-            
+
             # Check for regular package (with __init__.py)
             package_dir = directory / f"{fullname.replace('.', '/')}"
             init_file = package_dir / "__init__.py"
             if self._accept(init_file) and (paths is None or is_relative_to_any(init_file, paths)):
                 return spec_from_loader(fullname, _loader, origin=str(init_file), is_package=True)
-            
+
             # Check for namespace package (directory without __init__.py but with content)
-            if package_dir.is_dir() and (paths is None or is_relative_to_any(package_dir, paths)):
+            if package_dir.is_dir() and (paths is None or is_relative_to_any(package_dir, paths)):  # noqa: SIM102
                 # Only consider it a namespace package if it has Python files or subdirectories
                 if any(package_dir.iterdir()):  # Has content
                     namespace_dirs.append(str(package_dir))
