@@ -1,6 +1,5 @@
 <script lang="ts">
-  import type { Item } from "$py/notebook/notebook";
-  import type { NotebookAPI } from "$py/notebook/notebook";
+  import type { Item, NotebookAPI } from "$py/notebook/notebook";
 
   import { highlight } from "../highlight";
   import Tooltip from "./Tooltip.svelte";
@@ -9,7 +8,7 @@
   export let code: string;
   export let lang = "text";
   export let items: Item[] = [];
-  export let pyNotebook: NotebookAPI | undefined = undefined;
+  export let pyNotebook: NotebookAPI | undefined;
   export let enableInspection = false;
 
   let codeContainer: HTMLElement;
@@ -23,20 +22,21 @@
   $: actuallyEnableInspection = enableInspection && lang === "python" && pyNotebook;
 
   function makeTokensInspectable() {
-    if (!codeContainer || !actuallyEnableInspection) return;
-    
+    if (!codeContainer || !actuallyEnableInspection)
+      return;
+
     // Find all spans that contain Python identifiers
-    const spans = codeContainer.querySelectorAll('code span span');
-    spans.forEach(span => {
+    const spans = codeContainer.querySelectorAll("code span span");
+    spans.forEach((span) => {
       const text = span.textContent?.trim();
-      if (text && /^[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)*$/.test(text)) {
+      if (text && /^[a-z_]\w*(\.[a-z_]\w*)*$/i.test(text)) {
         // Skip keywords and special tokens
-        const skipTokens = ['import', 'from', 'def', 'class', 'if', 'else', 'elif', 'for', 'while', 'return', 'await', 'async', 'and', 'or', 'not', 'in', 'is', 'True', 'False', 'None', 'with', 'as', 'try', 'except', 'finally', 'raise', 'break', 'continue', 'pass', 'lambda', 'global', 'nonlocal', 'yield', 'assert', 'del'];
-        
+        const skipTokens = ["import", "from", "def", "class", "if", "else", "elif", "for", "while", "return", "await", "async", "and", "or", "not", "in", "is", "True", "False", "None", "with", "as", "try", "except", "finally", "raise", "break", "continue", "pass", "lambda", "global", "nonlocal", "yield", "assert", "del"];
+
         if (!skipTokens.includes(text)) {
-          span.setAttribute('data-inspectable', 'true');
-          span.setAttribute('data-token', text);
-          span.classList.add('inspectable-token');
+          span.setAttribute("data-inspectable", "true");
+          span.setAttribute("data-token", text);
+          span.classList.add("inspectable-token");
         }
       }
     });
@@ -44,22 +44,22 @@
 
   function handleTokenHover(event: MouseEvent) {
     const target = event.target as HTMLElement;
-    
-    if (target.hasAttribute('data-inspectable') && pyNotebook) {
-      const token = target.getAttribute('data-token');
+
+    if (target.hasAttribute("data-inspectable") && pyNotebook) {
+      const token = target.getAttribute("data-token");
       if (token) {
         tooltipTarget = target;
         showTooltip = true;
-        
+
         // Get inspection result
         try {
           inspectionResult = pyNotebook.inspect(token);
           if (!inspectionResult) {
             showTooltip = false;
-            return;
           }
-        } catch (e) {
-          console.warn('Inspection failed for token:', token, e);
+        }
+        catch (e) {
+          console.warn("Inspection failed for token:", token, e);
           inspectionResult = null;
           showTooltip = false;
         }
@@ -76,12 +76,12 @@
   onMount(() => {
     if (actuallyEnableInspection) {
       // Set up hover listeners
-      codeContainer.addEventListener('mouseover', handleTokenHover);
-      codeContainer.addEventListener('mouseleave', handleTokenLeave);
-      
+      codeContainer.addEventListener("mouseover", handleTokenHover);
+      codeContainer.addEventListener("mouseleave", handleTokenLeave);
+
       return () => {
-        codeContainer.removeEventListener('mouseover', handleTokenHover);
-        codeContainer.removeEventListener('mouseleave', handleTokenLeave);
+        codeContainer.removeEventListener("mouseover", handleTokenHover);
+        codeContainer.removeEventListener("mouseleave", handleTokenLeave);
       };
     }
   });
@@ -120,11 +120,11 @@
 
 {#if showTooltip && tooltipTarget && inspectionResult}
   <Tooltip target={tooltipTarget} show={showTooltip} onHide={() => showTooltip = false}>
-    <div class="bg-neutral-800/95 text-white px-3 py-2 rounded shadow-lg border border-neutral-600 max-w-xs">
-      <div class="text-xs text-neutral-300 mb-1">{inspectionResult.class}</div>
-      <div class="font-mono text-sm break-words">{inspectionResult.value}</div>
+    <div class="max-w-xs border border-neutral-600 rounded bg-neutral-800/95 px-3 py-2 text-white shadow-lg">
+      <div class="mb-1 text-xs text-neutral-300">{inspectionResult.class}</div>
+      <div class="break-words text-sm font-mono">{inspectionResult.value}</div>
       {#if inspectionResult.type}
-        <div class="text-xs text-blue-300 mt-1">{inspectionResult.type}</div>
+        <div class="mt-1 text-xs text-blue-300">{inspectionResult.type}</div>
       {/if}
     </div>
   </Tooltip>

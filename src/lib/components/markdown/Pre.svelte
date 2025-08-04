@@ -5,14 +5,14 @@
   import CodeBlock from "$lib/components/CodeBlock.svelte";
 
   export let node: Node;
-  export let pyNotebook: any = undefined;
+  export let pyNotebook: any;
 </script>
 
 <WithCodeActions {node} let:code>
-  <CodeBlock 
-    lang={code.lang ?? "text"} 
-    code={code.value} 
-    {pyNotebook} 
-    enableInspection={code.lang === "python" && !!pyNotebook} 
+  <CodeBlock
+    lang={code.lang ?? "text"}
+    code={code.value}
+    {pyNotebook}
+    enableInspection={code.lang === "python" && !!pyNotebook}
   />
 </WithCodeActions>
