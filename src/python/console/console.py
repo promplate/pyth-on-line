@@ -164,16 +164,14 @@ class ConsoleAPI:
         self.sync()
 
         if res.status != "incomplete":
-            # Only add input item to visible log if not hidden
             if not hidden:
-                self.items.append(input_item := {"type": "in", "text": source})
+                self.items.append(last := {"type": "in", "text": source})
             else:
-                # For hidden input, place output behind the last item in the logs
-                input_item = self.items[-1] if self.items else None
+                last = self.items[-1] if self.items else None  # For hidden input, place outputs behind the last item in the logs
 
             if res.status == "syntax-error":
                 assert res.formatted_error
-                self.push_item({"type": "err", "text": res.formatted_error, "is_traceback": True}, behind=input_item)
+                self.push_item({"type": "err", "text": res.formatted_error, "is_traceback": True}, behind=last)
             elif res.status == "complete":
                 self.sync()
 
@@ -182,10 +180,10 @@ class ConsoleAPI:
                 async def _():
                     try:
                         if text := await res.get_repr():
-                            self.push_item({"type": "repr", "text": text}, behind=input_item)
+                            self.push_item({"type": "repr", "text": text}, behind=last)
                     except Exception as e:
                         stderr = res.formatted_error or self.console.formattraceback(e)
-                        self.push_item({"type": "err", "text": stderr, "is_traceback": True}, behind=input_item)
+                        self.push_item({"type": "err", "text": stderr, "is_traceback": True}, behind=last)
 
         return res
 
