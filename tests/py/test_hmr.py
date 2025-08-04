@@ -355,43 +355,73 @@ def test_laziness():
 
 
 def test_namespace_package_support():
+    """Test that namespace packages work with HMR."""
     with environment() as env:
-        # Create a namespace package by creating a directory without __init__.py
         Path("nspkg").mkdir(exist_ok=True)
-        env["nspkg/module.py"] = "value = 42\nprint(f'namespace: {value}')"
-        env["main.py"] = "import nspkg.module"
-        
+        env["nspkg/helper.py"] = "def get_value(): return 1"
+        env["main.py"] = "from nspkg.helper import get_value\nprint(get_value())"
         with env.hmr("main.py"):
-            assert env.stdout_delta == "namespace: 42\n"
-            
-            # Modify the namespace package module using replace (like other tests)
-            env["nspkg/module.py"].replace("42", "84")
-            assert env.stdout_delta == "namespace: 84\n"
+            assert env.stdout_delta == "1\n"
+            env["nspkg/helper.py"].replace("1", "2")
+            assert env.stdout_delta == "2\n"
 
 
 def test_mixed_regular_and_namespace_packages():
+    """Test that regular and namespace packages can coexist and both support HMR."""
     with environment() as env:
         # Regular package with __init__.py
         Path("regpkg").mkdir(exist_ok=True)
-        env["regpkg/__init__.py"] = "print('regular package')"
-        env["regpkg/mod.py"] = "print('regular module')"
+        env["regpkg/__init__.py"] = "def get_regular(): return 10"
         
         # Namespace package without __init__.py
         Path("nspkg").mkdir(exist_ok=True)
-        env["nspkg/mod.py"] = "print('namespace module')"
+        env["nspkg/helper.py"] = "def get_namespace(): return 20"
         
-        env["main.py"] = "import regpkg.mod\nimport nspkg.mod"
+        env["main.py"] = """
+from regpkg import get_regular
+from nspkg.helper import get_namespace
+print(get_regular() + get_namespace())
+"""
         
         with env.hmr("main.py"):
-            output = env.stdout_delta
-            assert "regular package" in output
-            assert "regular module" in output
-            assert "namespace module" in output
+            assert env.stdout_delta == "30\n"
             
-            # Modify both types
-            env["regpkg/mod.py"] = "print('modified regular module')"
-            env["nspkg/mod.py"] = "print('modified namespace module')"
+            # Modify regular package
+            env["regpkg/__init__.py"].replace("10", "15")
+            assert env.stdout_delta == "35\n"
             
-            output = env.stdout_delta  
-            assert "modified regular module" in output
-            assert "modified namespace module" in output
+            # Modify namespace package
+            env["nspkg/helper.py"].replace("20", "25")
+            assert env.stdout_delta == "40\n"
+
+
+def test_refactoring_between_namespace_and_regular_packages():
+    """Test the core issue: refactoring between namespace and regular packages."""
+    with environment() as env:
+        # Start with a regular package
+        Path("testpkg").mkdir(exist_ok=True)
+        env["testpkg/__init__.py"] = "def get_value(): return 'regular'"
+        env["main.py"] = "from testpkg import get_value\nprint(get_value())"
+        
+        with env.hmr("main.py"):
+            # Should work as regular package
+            assert env.stdout_delta == "regular\n"
+            
+            # Modify the regular package
+            env["testpkg/__init__.py"].replace("'regular'", "'modified-regular'")
+            assert env.stdout_delta == "modified-regular\n"
+            
+            # Now simulate refactoring to namespace package:
+            # Remove __init__.py and create a module with the same function
+            Path("testpkg/__init__.py").unlink()
+            env["testpkg/module.py"] = "def get_value(): return 'namespace'"
+            env["main.py"] = "from testpkg.module import get_value\nprint(get_value())"
+            
+            # Should now work as namespace package  
+            assert env.stdout_delta == "namespace\n"
+            
+            # Modify the namespace package module
+            env["testpkg/module.py"].replace("'namespace'", "'modified-namespace'")
+            assert env.stdout_delta == "modified-namespace\n"
+
+
