@@ -352,3 +352,14 @@ def test_laziness():
             assert env.stdout_delta == "3\n"
             env["foo.py"].touch()
             assert env.stdout_delta == "3\n"
+
+
+@pytest.mark.xfail(raises=TypeError, strict=True)
+def test_usersitepackages_none(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setattr("site.USER_SITE", None)
+    monkeypatch.setattr("site.getuserbase", lambda: None)
+
+    with environment() as env:
+        env["main.py"] = "print('hello')"
+        with env.hmr("main.py"):
+            assert env.stdout_delta == "hello\n"
