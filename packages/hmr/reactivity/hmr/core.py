@@ -154,8 +154,8 @@ class ReactiveModuleLoader(Loader):
 _loader = ReactiveModuleLoader()  # This is a singleton loader instance used by the finder
 
 
-def _deduplicate(input_paths: Iterable[str | Path]):
-    paths = [*{Path(p).resolve(): None for p in input_paths}]  # dicts preserve insertion order
+def _deduplicate(input_paths: Iterable[str | Path | None]):
+    paths = [*{Path(p).resolve(): None for p in input_paths if p is not None}]  # dicts preserve insertion order
     for i, p in enumerate(s := sorted(paths, reverse=True), start=1):
         if is_relative_to_any(p, s[i:]):
             paths.remove(p)
@@ -167,7 +167,7 @@ class ReactiveModuleFinder(MetaPathFinder):
         super().__init__()
         builtins = map(get_paths().__getitem__, ("stdlib", "platstdlib", "platlib", "purelib"))
         self.includes = _deduplicate(includes)
-        self.excludes = _deduplicate((*([venv] if (venv := getenv("VIRTUAL_ENV")) else ()), *getsitepackages(), getusersitepackages(), *builtins, *excludes))
+        self.excludes = _deduplicate((getenv("VIRTUAL_ENV"), *getsitepackages(), getusersitepackages(), *builtins, *excludes))
 
         self._last_sys_path: list[str] = []
         self._last_cwd: Path = Path()
