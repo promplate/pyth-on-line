@@ -210,9 +210,12 @@ class ReactiveModuleFinder(MetaPathFinder):
         self._last_sys_path = [*sys.path]
         return res
 
-    def find_spec(self, fullname: str, paths: Sequence[str] | None, _=None):
+    def find_spec(self, fullname: str, paths: Sequence[str | Path] | None, _=None):
         if fullname in sys.modules:
             return None
+
+        if paths is not None:
+            paths = [path.resolve() for path in (Path(p) for p in paths) if path.is_dir()]
 
         for directory in self.search_paths:
             file = directory / f"{fullname.replace('.', '/')}.py"
