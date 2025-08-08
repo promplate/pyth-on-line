@@ -359,3 +359,14 @@ def test_usersitepackages_none(monkeypatch: pytest.MonkeyPatch):
         env["main.py"] = "print('hello')"
         with env.hmr("main.py"):
             assert env.stdout_delta == "hello\n"
+
+
+@pytest.mark.xfail(raises=AssertionError, strict=True)
+def test_deep_imports():
+    with environment() as env:
+        env["main.py"] = "from foo.bar import baz"
+        env["foo/bar.py"] = "print(baz := 123)"
+        with env.hmr("main.py"):
+            assert env.stdout_delta == "123\n"
+            env["foo/bar.py"].replace("123", "234")
+            assert env.stdout_delta == "234\n"
