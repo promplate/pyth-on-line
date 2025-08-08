@@ -216,15 +216,13 @@ class Derived[T](BaseDerived[T]):
         self.trigger()
 
 
-def _pulled(sub: Subscribable, show=False):
+def _pulled(sub: Subscribable):
     visited = set()
     to_visit: set[Subscribable] = {sub}
     while to_visit:
         visited.add(current := to_visit.pop())
         for s in current.subscribers:
             if not isinstance(s, BaseDerived):
-                if show:
-                    print(s)
                 return True
             if s not in visited:
                 to_visit.add(s)
