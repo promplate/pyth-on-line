@@ -361,7 +361,6 @@ def test_usersitepackages_none(monkeypatch: pytest.MonkeyPatch):
             assert env.stdout_delta == "hello\n"
 
 
-@pytest.mark.xfail(raises=AssertionError, strict=True)
 def test_deep_imports():
     with environment() as env:
         env["main.py"] = "from foo.bar import baz"
