@@ -17,7 +17,9 @@ from typing import final
 
 class FsUtils:
     def write(self, filepath: str, content: str):
-        Path(filepath).write_text(content)
+        path = Path(filepath)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(content)
         cache.pop(filepath, None)
 
     def replace(self, filepath: str, old: str, new: str):

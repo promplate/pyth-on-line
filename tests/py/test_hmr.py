@@ -287,7 +287,6 @@ def test_module_metadata():
             assert env.stdout_delta == "abc\n"
             assert import_module("main").__builtins__ is __builtins__
 
-            Path("a/b/c").mkdir(parents=True)
             env["a/b/__init__.py"].touch()
             env["a/b/c/d.py"].touch()
             env["a/b/e.py"].touch()
@@ -301,7 +300,6 @@ def test_module_metadata():
 def test_search_paths_caching(monkeypatch: pytest.MonkeyPatch):
     with environment() as env:
         env["main.py"] = ""
-        Path("foo").mkdir()
         env["foo/bar.py"] = "print()"
         with env.hmr("main.py"):
             with pytest.raises(ModuleNotFoundError):
