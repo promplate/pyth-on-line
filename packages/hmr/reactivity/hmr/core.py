@@ -183,7 +183,11 @@ class ReactiveModuleFinder(MetaPathFinder):
         if sys.path == self._last_sys_path and self._last_cwd.exists() and Path.cwd().samefile(self._last_cwd):
             return self._cached_search_paths
 
-        res = [path for path in (Path(p).resolve() for p in sys.path) if not is_relative_to_any(path, self.excludes) and any(i.is_relative_to(path) or path.is_relative_to(i) for i in self.includes)]
+        res = [
+            path
+            for path in (Path(p).resolve() for p in sys.path)
+            if not path.is_file() and not is_relative_to_any(path, self.excludes) and any(i.is_relative_to(path) or path.is_relative_to(i) for i in self.includes)
+        ]
 
         self._cached_search_paths = res
         self._last_cwd = Path.cwd()
@@ -195,9 +199,6 @@ class ReactiveModuleFinder(MetaPathFinder):
             return None
 
         for directory in self.search_paths:
-            if directory.is_file():
-                continue
-
             file = directory / f"{fullname.replace('.', '/')}.py"
             if self._accept(file) and (paths is None or is_relative_to_any(file, paths)):
                 return spec_from_loader(fullname, _loader, origin=str(file))
