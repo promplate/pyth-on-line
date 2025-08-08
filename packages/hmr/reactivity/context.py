@@ -3,24 +3,50 @@ from __future__ import annotations
 from collections.abc import Iterable
 from contextlib import contextmanager
 from functools import partial
-from typing import TYPE_CHECKING, NamedTuple
+from inspect import currentframe
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from .primitives import BaseComputation
+    from .primitives import BaseComputation, Batch
 
 
-class Context(NamedTuple):
-    current_computations: list[BaseComputation]
-    batches: list[Batch]
+class Context:
+    def __init__(self):
+        self.batches: list[Batch] = []
+        self._untracked = False
+
+    @property
+    def current_computations(self) -> list[BaseComputation]:
+        if self._untracked:
+            return []
+
+        from .primitives import BaseComputation
+
+        computations = []
+        # Start from frame 1 to skip the current property's own frame
+        frame = currentframe()
+        while frame:
+            # Check if the frame is from a BaseComputation instance method
+            # that belongs to this context.
+            if frame.f_code.co_name in ("trigger", "recompute") and "self" in frame.f_locals and isinstance(frame.f_locals["self"], BaseComputation) and frame.f_locals["self"].context is self:
+                computations.append(frame.f_locals["self"])
+            frame = frame.f_back
+
+        # The frames are walked from innermost to outermost, so we reverse
+        # to get the natural order of [outer, inner].
+        computations.reverse()
+        return computations
 
     def schedule_callbacks(self, callbacks: Iterable[BaseComputation]):
-        self.batches[-1].callbacks.update(callbacks)
+        if self.batches:
+            self.batches[-1].callbacks.update(callbacks)
 
     @contextmanager
     def enter(self, computation: BaseComputation):
         old_dependencies = {*computation.dependencies}
         computation.dispose()
-        self.current_computations.append(computation)
+        # Note: We are no longer manually managing current_computations stack here
+        # The stack is now dynamically inferred from the call frames.
         try:
             yield
         except BaseException:
@@ -31,9 +57,6 @@ class Context(NamedTuple):
                     dep.subscribers.add(computation)
                 computation.dependencies.update(old_dependencies)
             raise
-        finally:
-            last = self.current_computations.pop()
-            assert last is computation  # sanity check
 
     @property
     def batch(self):
@@ -49,16 +72,16 @@ class Context(NamedTuple):
 
     @contextmanager
     def untrack(self):
-        computations = self.current_computations[:]
-        self.current_computations.clear()
+        old_untracked = self._untracked
+        self._untracked = True
         try:
             yield
         finally:
-            self.current_computations[:] = computations
+            self._untracked = old_untracked
 
 
 def new_context():
-    return Context([], [])
+    return Context()
 
 
 default_context = new_context()
