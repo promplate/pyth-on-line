@@ -6,7 +6,7 @@ from functools import cached_property, partial
 from importlib.abc import Loader, MetaPathFinder
 from importlib.machinery import ModuleSpec
 from importlib.util import spec_from_loader
-from inspect import currentframe, ismethod
+from inspect import ismethod
 from os import getenv
 from pathlib import Path
 from site import getsitepackages, getusersitepackages
@@ -26,14 +26,7 @@ from .proxy import Proxy
 
 def is_called_internally(*, extra_depth=0) -> bool:
     """Protect private methods from being called from outside this package."""
-
-    frame = currentframe()  # this function
-    assert frame is not None
-
-    for _ in range(extra_depth + 2):
-        frame = frame.f_back
-        assert frame is not None
-
+    frame = sys._getframe(extra_depth + 2)  # noqa: SLF001
     return frame.f_globals.get("__package__") == __package__
 
 
