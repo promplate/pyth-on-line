@@ -42,7 +42,7 @@
     "monaco-editor-core": "^0.52.2",
     "openai": "^5.12.2",
     "paneforge": "^0.0.6",
-    "pyodide": "0.28.0",
+    "pyodide": "0.28.1",
     "rollup-plugin-flatten-dir": "^1.0.1",
     "shiki": "^3.9.2",
     "svelte": "^4.2.20",
