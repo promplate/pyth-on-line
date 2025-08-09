@@ -18,3 +18,4 @@ vite.config.ts.timestamp-*
 /src/python/**/index.d.ts
 /packages/**/index.d.ts
 __pycache__
+*.egg-info/
