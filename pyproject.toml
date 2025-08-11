@@ -8,7 +8,7 @@ dependencies = [
     "micropip~=0.10.0",
     "pyodide-py==0.28.0",
     "promplate-pyodide~=0.0.4.0",
-    "pre-commit~=4.2.0",
+    "pre-commit~=4.3.0",
     "pure-eval~=0.2.3",
     "html2text2~=1.1.1",
     "pytest~=8.4.0",
