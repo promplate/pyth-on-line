@@ -9,7 +9,7 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Set up python
         uses: astral-sh/setup-uv@v6
         with:
@@ -41,7 +41,7 @@ jobs:
         py: [3.13]
     runs-on: ${{ matrix.os }}-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Set up python ${{ matrix.py }}
         uses: astral-sh/setup-uv@v6
         with:
@@ -60,7 +60,7 @@ jobs:
     permissions:
       id-token: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           sparse-checkout: packages/hmr
       - name: Set up python
