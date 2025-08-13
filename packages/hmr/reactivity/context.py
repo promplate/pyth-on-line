@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import sys
 from collections.abc import Iterable
 from contextlib import contextmanager
 from functools import partial
@@ -10,30 +11,30 @@ if TYPE_CHECKING:
 
 
 class Context(NamedTuple):
-    current_computations: list[BaseComputation]
     batches: list[Batch]
+    no_track: list
 
     def schedule_callbacks(self, callbacks: Iterable[BaseComputation]):
         self.batches[-1].callbacks.update(callbacks)
 
-    @contextmanager
-    def enter(self, computation: BaseComputation):
-        old_dependencies = {*computation.dependencies}
-        computation.dispose()
-        self.current_computations.append(computation)
-        try:
-            yield
-        except BaseException:
-            # For backward compatibility, we restore old dependencies only if some dependencies are lost after an exception.
-            # This behavior may be configurable in the future.
-            if computation.dependencies.issubset(old_dependencies):
-                for dep in old_dependencies:
-                    dep.subscribers.add(computation)
-                computation.dependencies.update(old_dependencies)
-            raise
-        finally:
-            last = self.current_computations.pop()
-            assert last is computation  # sanity check
+    def iter_computations(self, extra_depth=0):
+        frame = sys._getframe(extra_depth + 1)  # noqa: SLF001
+        while frame is not None:
+            with self.untrack():
+                computation = frame.f_locals.get("--computation-context")
+            if computation is not None:
+                yield computation
+            frame = frame.f_back
+
+    @property
+    def last_computation(self):
+        for comp in self.iter_computations(extra_depth=1):
+            if comp.context is self:
+                return comp
+
+    @property
+    def current_computations(self):
+        return [*reversed([c for c in self.iter_computations(extra_depth=1) if c.context is self])]
 
     @property
     def batch(self):
@@ -49,12 +50,11 @@ class Context(NamedTuple):
 
     @contextmanager
     def untrack(self):
-        computations = self.current_computations[:]
-        self.current_computations.clear()
+        self.no_track.append(None)
         try:
             yield
         finally:
-            self.current_computations[:] = computations
+            self.no_track.pop()
 
 
 def new_context():

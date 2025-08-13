@@ -50,6 +50,12 @@ class NamespaceProxy(Proxy):
         return signal
 
     def __getitem__(self, key):
+        # Special handling for computation context to avoid recursion
+        if key == "--computation-context":
+            # Access the raw signal value without tracking
+            if key in self._signals:
+                return self._signals[key]._value  # noqa: SLF001
+            return None
         try:
             return super().__getitem__(key)
         finally:
@@ -100,13 +106,27 @@ class ReactiveModule(ModuleType):
         except SyntaxError as e:
             sys.excepthook(type(e), e, e.__traceback__)
         else:
+            # Clear ALL dependencies before executing new code
+            # This ensures old file system subscriptions are cleared when module content changes
+            load = self.__load
+            assert ismethod(load.fn)  # for type narrowing
+            for dep in list(load.dependencies):
+                dep.subscribers.discard(load)
+            load.dependencies.clear()
+
+            # Clear old hooks before executing new code
             for dispose in self.__hooks:
                 with suppress(Exception):
                     dispose()
             self.__hooks.clear()
             self.__doc__ = get_docstring(ast)
-            exec(code, self.__namespace, self.__namespace_proxy)  # https://github.com/python/cpython/issues/121306
-            self.__namespace_proxy.update(self.__namespace)
+            try:
+                exec(code, self.__namespace, self.__namespace_proxy)  # https://github.com/python/cpython/issues/121306
+                self.__namespace_proxy.update(self.__namespace)
+            except Exception:  # noqa: TRY203
+                # If exec fails, we should still clean up to avoid stale subscriptions
+                # Re-raise the exception to maintain original behavior
+                raise
         finally:
             load = self.__load
             assert ismethod(load.fn)  # for type narrowing

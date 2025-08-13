@@ -1,4 +1,5 @@
 from collections.abc import Callable
+from sys import _getframe
 from typing import Any, Self, overload
 from weakref import WeakKeyDictionary, WeakSet
 
@@ -30,20 +31,23 @@ class Subscribable:
         self.context = context or default_context
 
     def track(self):
-        if not self.context.current_computations:
+        if self.context.no_track:
             return
-        last = self.context.current_computations[-1]
-        if last is not self:
+        if (last := self.context.last_computation) is None:
+            return
+        if last is not self and last.context is self.context:
             with self.context.untrack():
                 self.subscribers.add(last)
                 last.dependencies.add(self)
 
     def notify(self):
+        # Only notify subscribers in the same context
+        same_context_subscribers = {s for s in self.subscribers if s.context is self.context}
         if self.context.batches:
-            self.context.schedule_callbacks(self.subscribers)
+            self.context.schedule_callbacks(same_context_subscribers)
         else:
             with Batch(force_flush=False, context=self.context):
-                self.context.schedule_callbacks(self.subscribers)
+                self.context.schedule_callbacks(same_context_subscribers)
 
 
 class BaseComputation[T]:
@@ -58,7 +62,7 @@ class BaseComputation[T]:
         self.dependencies.clear()
 
     def _enter(self):
-        return self.context.enter(self)
+        _getframe(1).f_locals["--computation-context"] = self
 
     def __enter__(self):
         return self
@@ -130,8 +134,8 @@ class Effect[T](BaseComputation[T]):
             self()
 
     def trigger(self):
-        with self._enter():
-            return self._fn()
+        self._enter()
+        return self._fn()
 
 
 class Batch:
@@ -187,17 +191,17 @@ class Derived[T](BaseDerived[T]):
         self._value = self.UNSET
 
     def recompute(self):
-        with self._enter():
-            value = self.fn()
-            self.dirty = False
-            if self._check_equality:
-                if _equal(value, self._value):
-                    return
-                elif self._value is self.UNSET:  # do not notify on first set
-                    self._value = value
-                    return
-            self._value = value
-            self.notify()
+        self._enter()
+        value = self.fn()
+        self.dirty = False
+        if self._check_equality:
+            if _equal(value, self._value):
+                return
+            elif self._value is self.UNSET:  # do not notify on first set
+                self._value = value
+                return
+        self._value = value
+        self.notify()
 
     def __call__(self):
         self.track()
