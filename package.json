@@ -24,7 +24,7 @@
     "@neodrag/svelte": "^2.3.3",
     "@shikijs/monaco": "^3.9.2",
     "@sveltejs/adapter-netlify": "^5.1.1",
-    "@sveltejs/kit": "^2.29.1",
+    "@sveltejs/kit": "^2.30.1",
     "@sveltejs/vite-plugin-svelte": "^3.1.2",
     "@unocss/extractor-svelte": "^66.4.2",
     "@unocss/reset": "^66.4.2",
@@ -49,7 +49,7 @@
     "svelte-persisted-store": "^0.12.0",
     "svelte-portal": "^2.2.1",
     "svelte-sonner": "0.3.28",
-    "turndown": "^7.2.0",
+    "turndown": "^7.2.1",
     "unocss": "^66.4.2",
     "unzipit": "^1.4.3",
     "vite": "^5.4.19"
