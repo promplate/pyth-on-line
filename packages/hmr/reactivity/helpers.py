@@ -1,10 +1,9 @@
-from collections import defaultdict
-from collections.abc import Callable, Mapping, MutableMapping
-from typing import Self, overload
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Self, overload
 from weakref import WeakKeyDictionary
 
 from .context import Context
-from .primitives import BaseComputation, Batch, Derived, Signal, Subscribable
+from .primitives import BaseComputation, Derived, Subscribable
 
 
 class Memoized[T](Subscribable, BaseComputation[T]):
@@ -77,62 +76,6 @@ class MemoizedMethod[T, I]:
         return memo
 
 
-class Reactive[K, V](Subscribable, MutableMapping[K, V]):
-    UNSET: V = object()  # type: ignore
-
-    def __hash__(self):
-        return id(self)
-
-    def _null(self):
-        return Signal(self.UNSET, self._check_equality, context=self.context)
-
-    def __init__(self, initial: Mapping[K, V] | None = None, check_equality=True, *, context: Context | None = None):
-        super().__init__(context=context)
-        self._signals = defaultdict[K, Signal[V]](self._null) if initial is None else defaultdict(self._null, {k: Signal(v, check_equality, context=context) for k, v in initial.items()})
-        self._check_equality = check_equality
-
-    def __getitem__(self, key: K):
-        value = self._signals[key].get()
-        if value is self.UNSET:
-            raise KeyError(key)
-        return value
-
-    def __setitem__(self, key: K, value: V):
-        with Batch(force_flush=False, context=self.context):
-            old_value = self._signals[key].get(track=False)
-            self._signals[key].set(value)
-            if old_value is self.UNSET:
-                self.notify()
-
-    def __delitem__(self, key: K):
-        state = self._signals[key]
-        if state.get(track=False) is self.UNSET:
-            raise KeyError(key)
-        with Batch(force_flush=False, context=self.context):
-            state.set(self.UNSET)
-            self.notify()
-
-    def __iter__(self):
-        self.track()
-        unset = self.UNSET
-        return (key for key, signal in self._signals.items() if signal.get(track=False) is not unset)
-
-    def __len__(self):
-        self.track()
-        unset = self.UNSET
-        return sum(signal.get(track=False) is not unset for signal in self._signals.values())
-
-    def __repr__(self):
-        self.track()
-        unset = self.UNSET
-        return repr({k: value for k, v in self._signals.items() if (value := v.get()) is not unset})
-
-    def items(self):
-        self.track()
-        unset = self.UNSET
-        return ({k: v for k, signal in self._signals.items() if (v := signal.get()) is not unset}).items()
-
-
 class DerivedProperty[T, I]:
     def __init__(self, method: Callable[[I], T], *, context: Context | None = None):
         super().__init__()
@@ -175,3 +118,15 @@ class DerivedMethod[T, I]:
 
         self.map[instance] = func = Derived(self.method.__get__(instance, owner), self.check_equality, context=self.context)
         return func
+
+
+if TYPE_CHECKING:
+    from typing_extensions import deprecated  # noqa: UP035
+
+    from .collections import ReactiveMapping
+
+    @deprecated("Use `ReactiveMapping` instead")
+    class Reactive[K, V](ReactiveMapping[K, V]): ...
+
+else:
+    from .collections import ReactiveMapping as Reactive  # noqa: F401

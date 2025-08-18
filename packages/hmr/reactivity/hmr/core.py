@@ -38,14 +38,11 @@ class Name(Signal, BaseDerived):
 
 class NamespaceProxy(Proxy):
     def __init__(self, initial: MutableMapping, module: "ReactiveModule", check_equality=True, *, context: Context | None = None):
-        super().__init__(initial, check_equality, context=context)
-        for key, signal in self._signals.items():
-            if not isinstance(signal, Name):  # plain signals are replaced with `Name`
-                self._signals[key] = Name(signal._value, signal._check_equality, context=context)  # noqa: SLF001
         self.module = module
+        super().__init__(initial, check_equality, context=context)
 
-    def _null(self):
-        self.module.load.subscribers.add(signal := Name(self.UNSET, self._check_equality, context=self.context))
+    def _signal(self, value=False):
+        self.module.load.subscribers.add(signal := Name(value, self._check_equality, context=self.context))
         signal.dependencies.add(self.module.load)
         return signal
 
@@ -53,7 +50,7 @@ class NamespaceProxy(Proxy):
         try:
             return super().__getitem__(key)
         finally:
-            signal = self._signals[key]
+            signal = self._keys[key]
             if self.module.load in signal.subscribers:
                 # a module's loader shouldn't subscribe its variables
                 signal.subscribers.remove(self.module.load)
