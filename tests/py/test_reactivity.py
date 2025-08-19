@@ -463,6 +463,29 @@ def test_reactive_repr():
     assert not obj.items()
 
 
+def test_reactive_lazy_track():
+    obj = Reactive()
+
+    with capture_stdout() as stdout:
+        with create_effect(lambda: [*obj, print(123)]):
+            obj[1] = 2
+            assert stdout.delta == "123\n123\n"
+        with create_effect(lambda: [*obj.keys(), print(123)]):
+            obj[2] = 3
+            assert stdout.delta == "123\n123\n"
+        with create_effect(lambda: [*obj.values(), print(123)]):
+            obj[3] = 4
+            assert stdout.delta == "123\n123\n"
+        with create_effect(lambda: [*obj.items(), print(123)]):
+            obj[4] = 5
+            assert stdout.delta == "123\n123\n"
+
+        # views don't track iteration until actually consumed (e.g., by next() or unpacking)
+        with create_effect(lambda: [obj.keys(), obj.values(), obj.items(), print(123)]):
+            obj[5] = 6
+            assert stdout.delta == "123\n"
+
+
 def test_reactive_lazy_notify():
     obj = Reactive({1: 2})
 
