@@ -24,7 +24,7 @@
     "@neodrag/svelte": "^2.3.3",
     "@shikijs/monaco": "^3.9.2",
     "@sveltejs/adapter-netlify": "^5.2.1",
-    "@sveltejs/kit": "^2.31.1",
+    "@sveltejs/kit": "^2.33.0",
     "@sveltejs/vite-plugin-svelte": "^3.1.2",
     "@unocss/extractor-svelte": "^66.4.2",
     "@unocss/reset": "^66.4.2",
