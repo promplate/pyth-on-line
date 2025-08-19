@@ -52,7 +52,7 @@
     "turndown": "^7.2.1",
     "unocss": "^66.4.2",
     "unzipit": "^1.4.3",
-    "vite": "^5.4.19"
+    "vite": "^7.1.2"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^5.2.1",
