@@ -22,29 +22,24 @@ class ReactiveMappingProxy[K, V](MutableMapping[K, V]):
         raise KeyError(key)
 
     def __setitem__(self, key: K, value: V):
-        with self.context.batch(force_flush=False):
-            if self._keys[key]._value:  # noqa: SLF001
-                if self._check_equality:
-                    old_value = self._data[key]
-                    self._data[key] = value
-                    if not _equal(old_value, value):
-                        self._keys[key].notify()
-                else:
-                    self._data[key] = value
-                    self._keys[key].notify()
-            else:
-                self._data[key] = value
+        if self._keys[key]._value:  # noqa: SLF001
+            should_notify = not self._check_equality or not _equal(self._data[key], value)
+            self._data[key] = value
+            if should_notify:
+                self._keys[key].notify()
+        else:
+            self._data[key] = value
+            with self.context.batch(force_flush=False):
                 self._keys[key].set(True)
                 self._iter.notify()
 
     def __delitem__(self, key: K):
-        if self._keys[key]._value:  # noqa: SLF001
-            del self._data[key]
-            with self.context.batch(force_flush=False):
-                self._keys[key].set(False)
-                self._iter.notify()
-        else:
+        if not self._keys[key]._value:  # noqa: SLF001
             raise KeyError(key)
+        del self._data[key]
+        with self.context.batch(force_flush=False):
+            self._keys[key].set(False)
+            self._iter.notify()
 
     def __iter__(self):
         self._iter.track()
