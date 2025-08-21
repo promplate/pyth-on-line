@@ -369,12 +369,50 @@ class AsyncReloader(BaseReloader):
 
 def cli():
     if len(sys.argv) < 2:
-        print("\n Usage: hmr <entry file>, just like python <entry file>\n")
+        print("\n Usage: hmr <entry file>, just like python <entry file>")
+        print(" Usage: hmr -m <module>, just like python -m <module>\n")
         exit(1)
+    
     sys.argv.pop(0)  # this file itself
-    entry = sys.argv[0]
-    if not (path := Path(entry)).is_file():
-        raise FileNotFoundError(path.resolve())
+    
+    # Handle -m flag for module execution
+    if sys.argv[0] == "-m":
+        if len(sys.argv) < 2:
+            print("\n Usage: hmr -m <module>, just like python -m <module>\n")
+            exit(1)
+        
+        module_name = sys.argv[1]
+        sys.argv.pop(0)  # remove -m flag
+        
+        # Find the module using importlib
+        import importlib.util
+        try:
+            spec = importlib.util.find_spec(module_name)
+            if spec is None:
+                raise ModuleNotFoundError(f"No module named '{module_name}'")
+            
+            # Check if it's a package (has submodule_search_locations)
+            if spec.submodule_search_locations:
+                # It's a package, look for __main__.py
+                main_spec = importlib.util.find_spec(f"{module_name}.__main__")
+                if main_spec and main_spec.origin:
+                    entry = main_spec.origin
+                else:
+                    raise ModuleNotFoundError(f"No module named '{module_name}.__main__'; '{module_name}' is a package and cannot be directly executed")
+            elif spec.origin is None:
+                raise ModuleNotFoundError(f"Cannot find entry point for module '{module_name}'")
+            else:
+                entry = spec.origin
+        except ModuleNotFoundError as e:
+            print(f"Error: {e}")
+            exit(1)
+    else:
+        # Original file-based behavior
+        entry = sys.argv[0]
+        if not (path := Path(entry)).is_file():
+            raise FileNotFoundError(path.resolve())
+    
+    path = Path(entry)
     sys.path.insert(0, str(path.parent.resolve()))
     reloader = SyncReloader(entry)
     sys.modules["__main__"] = reloader.entry_module
