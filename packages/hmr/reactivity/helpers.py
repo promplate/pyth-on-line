@@ -15,9 +15,9 @@ class Memoized[T](Subscribable, BaseComputation[T]):
         self.cached_value: T
 
     def recompute(self):
-        self._enter()
-        self.cached_value = self.fn()
-        self.is_stale = False
+        with self._enter():
+            self.cached_value = self.fn()
+            self.is_stale = False
 
     def trigger(self):
         self.invalidate()

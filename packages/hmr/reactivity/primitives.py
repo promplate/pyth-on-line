@@ -1,4 +1,5 @@
 from collections.abc import Callable
+from contextlib import contextmanager
 from sys import _getframe
 from typing import Any, Self, overload
 from weakref import WeakKeyDictionary, WeakSet
@@ -62,7 +63,17 @@ class BaseComputation[T]:
         self.dependencies.clear()
 
     def _enter(self):
-        _getframe(1).f_locals["--computation-context"] = self
+        f_locals = _getframe(1).f_locals
+
+        @contextmanager
+        def ctx():
+            f_locals["--computation-context"] = self
+            try:
+                yield
+            finally:
+                del f_locals["--computation-context"]
+
+        return ctx()
 
     def __enter__(self):
         return self
@@ -134,8 +145,8 @@ class Effect[T](BaseComputation[T]):
             self()
 
     def trigger(self):
-        self._enter()
-        return self._fn()
+        with self._enter():
+            return self._fn()
 
 
 class Batch:
@@ -191,17 +202,17 @@ class Derived[T](BaseDerived[T]):
         self._value = self.UNSET
 
     def recompute(self):
-        self._enter()
-        value = self.fn()
-        self.dirty = False
-        if self._check_equality:
-            if _equal(value, self._value):
-                return
-            elif self._value is self.UNSET:  # do not notify on first set
-                self._value = value
-                return
-        self._value = value
-        self.notify()
+        with self._enter():
+            value = self.fn()
+            self.dirty = False
+            if self._check_equality:
+                if _equal(value, self._value):
+                    return
+                elif self._value is self.UNSET:  # do not notify on first set
+                    self._value = value
+                    return
+            self._value = value
+            self.notify()
 
     def __call__(self):
         self.track()
