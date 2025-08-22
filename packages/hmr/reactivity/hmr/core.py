@@ -12,7 +12,7 @@ from pathlib import Path
 from site import getsitepackages, getusersitepackages
 from sysconfig import get_paths
 from types import ModuleType, TracebackType
-from typing import Any, Self
+from typing import TYPE_CHECKING, Any, Self
 from weakref import WeakValueDictionary
 
 from ..context import Context
@@ -366,5 +366,14 @@ class AsyncReloader(BaseReloader):
             call_post_reload_hooks()
             await self.start_watching()
 
+
+if TYPE_CHECKING:
+    from typing_extensions import NoReturn, deprecated  # noqa: UP035
+
+    @deprecated("Please use `cli()` from `reactivity.hmr.cli` for programmatic usage")
+    def cli() -> NoReturn: ...
+
+else:
+    from .cli import main as cli  # noqa: F401
 
 __version__ = "0.6.4.4"
