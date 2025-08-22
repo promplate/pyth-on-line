@@ -390,7 +390,8 @@ def cli():
         try:
             spec = importlib.util.find_spec(module_name)
             if spec is None:
-                raise ModuleNotFoundError(f"No module named '{module_name}'")
+                print(f"Error: No module named '{module_name}'")
+                exit(1)
 
             # Check if it's a package (has submodule_search_locations)
             if spec.submodule_search_locations:
@@ -399,9 +400,11 @@ def cli():
                 if main_spec and main_spec.origin:
                     entry = main_spec.origin
                 else:
-                    raise ModuleNotFoundError(f"No module named '{module_name}.__main__'; '{module_name}' is a package and cannot be directly executed")
+                    print(f"Error: No module named '{module_name}.__main__'; '{module_name}' is a package and cannot be directly executed")
+                    exit(1)
             elif spec.origin is None:
-                raise ModuleNotFoundError(f"Cannot find entry point for module '{module_name}'")
+                print(f"Error: Cannot find entry point for module '{module_name}'")
+                exit(1)
             else:
                 entry = spec.origin
         except ModuleNotFoundError as e:
