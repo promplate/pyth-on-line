@@ -5,9 +5,9 @@ from pathlib import Path
 def run_path(entry: str, args: list[str]):
     path = Path(entry).resolve()
     if path.is_dir():
-        if (main := path / "__main__.py").is_file():
+        if (__main__ := path / "__main__.py").is_file():
             parent = ""
-            path = main
+            path = __main__
         else:
             raise FileNotFoundError(f"No __main__.py file in {path}")  # noqa: TRY003
     elif path.is_file():
@@ -110,4 +110,4 @@ def cli(args: list[str] | None = None):
 
 
 def main():
-    exit(cli(sys.argv[1:]))
+    sys.exit(cli(sys.argv[1:]))
