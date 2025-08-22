@@ -362,18 +362,4 @@ class AsyncReloader(BaseReloader):
             await self.start_watching()
 
 
-def cli():
-    if len(sys.argv) < 2:
-        print("\n Usage: hmr <entry file>, just like python <entry file>\n")
-        exit(1)
-    sys.argv.pop(0)  # this file itself
-    entry = sys.argv[0]
-    if not (path := Path(entry)).is_file():
-        raise FileNotFoundError(path.resolve())
-    sys.path.insert(0, str(path.parent.resolve()))
-    reloader = SyncReloader(entry)
-    sys.modules["__main__"] = reloader.entry_module
-    reloader.keep_watching_until_interrupt()
-
-
 __version__ = "0.6.4.6"
