@@ -4,22 +4,25 @@ from pathlib import Path
 from .core import SyncReloader
 
 
-def cli():
-    if len(sys.argv) < 2:
+def cli(argv: list[str] | None = None):
+    if argv is None:
+        argv = sys.argv
+
+    if len(argv) < 2:
         print("\n Usage: hmr <entry file>, just like python <entry file>")
         print(" Usage: hmr -m <module>, just like python -m <module>\n")
         exit(1)
 
-    sys.argv.pop(0)  # this file itself
+    argv.pop(0)  # this file itself
 
     # Handle -m flag for module execution
-    if sys.argv[0] == "-m":
-        if len(sys.argv) < 2:
+    if argv[0] == "-m":
+        if len(argv) < 2:
             print("\n Usage: hmr -m <module>, just like python -m <module>\n")
             exit(1)
 
-        module_name = sys.argv[1]
-        sys.argv.pop(0)  # remove -m flag
+        module_name = argv[1]
+        argv.pop(0)  # remove -m flag
 
         if (cwd := str(Path.cwd())) not in sys.path:
             sys.path.insert(0, cwd)
@@ -50,15 +53,20 @@ def cli():
         except ModuleNotFoundError as e:
             print(f"Error: {e}")
             exit(1)
-        sys.argv[0] = entry
+        argv[0] = entry
     else:
         # Original file-based behavior
-        entry = sys.argv[0]
+        entry = argv[0]
         if not (path := Path(entry)).is_file():
             raise FileNotFoundError(path.resolve())
         path = Path(entry)
         sys.path.insert(0, str(path.parent.resolve()))
 
-    reloader = SyncReloader(entry)
-    sys.modules["__main__"] = reloader.entry_module
-    reloader.keep_watching_until_interrupt()
+    _argv = sys.argv[:]
+    sys.argv[:] = argv
+    try:
+        reloader = SyncReloader(entry)
+        sys.modules["__main__"] = reloader.entry_module
+        reloader.keep_watching_until_interrupt()
+    finally:
+        sys.argv[:] = _argv
