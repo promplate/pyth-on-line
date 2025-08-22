@@ -19,7 +19,7 @@ start_watching = SyncReloader.start_watching
 
 def test_entry_module():
     with environment() as env, mock_reloader():
-        env["a/b/__main__.py"] = "print(123)"
+        env["a/b/__main__.py"] = "if __name__ == '__main__': print(123)"
         assert cli(["-m", "a.b"]) == 0
         assert env.stdout_delta == "123\n"
         assert cli(["a/b"]) == 0
@@ -28,7 +28,7 @@ def test_entry_module():
 
 def test_entry_file():
     with environment() as env, mock_reloader():
-        env["a/b.py"] = "print(123)"
+        env["a/b.py"] = "if __name__ == '__main__': print(123)"
         assert cli(["a/b.py"]) == 0
         assert env.stdout_delta == "123\n"
 
