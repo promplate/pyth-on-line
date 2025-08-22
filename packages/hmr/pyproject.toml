@@ -15,7 +15,7 @@ description = "Hot Module Reload for Python"
 dependencies = ["watchfiles>=0.21,<2 ; sys_platform != 'emscripten'"]
 
 [project.scripts]
-hmr = "reactivity.hmr.cli:cli"
+hmr = "reactivity.hmr.cli:main"
 
 [project.urls]
 repository = "https://github.com/promplate/pyth-on-line/tree/main/packages/hmr"

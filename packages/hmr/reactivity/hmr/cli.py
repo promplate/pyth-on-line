@@ -35,9 +35,9 @@ def run_module(module_name: str, args: list[str]):
 
     if spec.submodule_search_locations:
         # It's a package, look for __main__.py
-        main_spec = find_spec(f"{module_name}.__main__")
-        if main_spec and main_spec.origin:
-            entry = main_spec.origin
+        spec = find_spec(f"{module_name}.__main__")
+        if spec and spec.origin:
+            entry = spec.origin
         else:
             raise ModuleNotFoundError(f"No module named '{module_name}.__main__'; '{module_name}' is a package and cannot be directly executed")  # noqa: TRY003
     elif spec.origin is None:
@@ -48,18 +48,23 @@ def run_module(module_name: str, args: list[str]):
     # Replace the first argument with the full path
     args[0] = entry
 
+    from importlib import import_module
+
     from .core import SyncReloader
+
+    class Reloader(SyncReloader):
+        entry_module = None  # type: ignore
+
+        def run_entry_file(self):
+            import_module(spec.name)
 
     _argv = sys.argv[:]
     sys.argv[:] = args
-    _main = sys.modules["__main__"]
     try:
-        reloader = SyncReloader(entry)
-        sys.modules["__main__"] = reloader.entry_module
+        reloader = Reloader(entry)
         reloader.keep_watching_until_interrupt()
     finally:
         sys.argv[:] = _argv
-        sys.modules["__main__"] = _main
 
 
 def cli(args: list[str] | None = None):
@@ -72,12 +77,11 @@ def cli(args: list[str] | None = None):
             print("   hmr <entry file>, just like python <entry file>")
             print("   hmr -m <module>, just like python -m <module>\n")
             if len(args) < 1:
-                exit(1)
+                return 1
         elif args[0] == "-m":
             if len(args) < 2:
                 print("\n Usage: hmr -m <module>, just like python -m <module>\n")
-                exit(1)
-
+                return 1
             module_name = args[1]
             args.pop(0)  # remove -m flag
             run_module(module_name, args)
@@ -85,4 +89,10 @@ def cli(args: list[str] | None = None):
             run_file(args[0], args)
     except (FileNotFoundError, ModuleNotFoundError) as e:
         print(f"\n Error: {e}\n")
-        exit(1)
+        return 1
+
+    return 0
+
+
+def main():
+    exit(cli(sys.argv[1:]))
