@@ -6,6 +6,7 @@ from tempfile import TemporaryDirectory
 from textwrap import dedent
 
 import pytest
+import watchfiles as _  # noqa: F401
 from reactivity.hmr.api import AsyncReloaderAPI, SyncReloaderAPI
 from reactivity.hmr.core import ReactiveModule
 from reactivity.hmr.hooks import use_post_reload
