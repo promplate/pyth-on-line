@@ -1,4 +1,4 @@
 if __name__ == "__main__":
-    from .core import cli
+    from .run import main
 
-    cli()
+    main()
