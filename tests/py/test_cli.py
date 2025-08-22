@@ -2,8 +2,8 @@ from contextlib import suppress
 from tempfile import NamedTemporaryFile
 from unittest.mock import patch
 
-import pytest
 from reactivity.hmr.cli import cli
+from utils import capture_stdout
 
 
 def test_entry_module():
@@ -36,10 +36,7 @@ def test_entry_file():
 
 
 def test_help_message():
-    from utils import capture_stdout
-
     with capture_stdout() as stdout:
-        with pytest.raises(SystemExit, match="1"):
-            cli([])
+        cli(["--help"])
         assert "<entry file>" in stdout
         assert "-m <module>" in stdout

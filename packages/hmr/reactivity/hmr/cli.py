@@ -67,13 +67,13 @@ def cli(args: list[str] | None = None):
         args = sys.argv[1:]
 
     try:
-        if len(args) < 1:
+        if len(args) < 1 or "--help" in args or "-h" in args:
             print("\n Usage:")
             print("   hmr <entry file>, just like python <entry file>")
             print("   hmr -m <module>, just like python -m <module>\n")
-            exit(1)
-
-        if args[0] == "-m":
+            if len(args) < 1:
+                exit(1)
+        elif args[0] == "-m":
             if len(args) < 2:
                 print("\n Usage: hmr -m <module>, just like python -m <module>\n")
                 exit(1)
