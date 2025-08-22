@@ -11,10 +11,10 @@ def test_cli_module_flag_parsing():
     """Test that CLI correctly parses -m flag and resolves modules"""
 
     # Import the cli function to test
-    from reactivity.hmr.core import cli
+    from reactivity.hmr.cli import cli
 
     # Test with json module which has a proper file path
-    with patch.object(sys, "argv", ["hmr", "-m", "json"]), patch("reactivity.hmr.core.SyncReloader") as mock_reloader:
+    with patch.object(sys, "argv", ["hmr", "-m", "json"]), patch("reactivity.hmr.cli.SyncReloader") as mock_reloader:
         mock_reloader.return_value.keep_watching_until_interrupt = lambda: None
 
         try:
@@ -32,10 +32,10 @@ def test_cli_module_flag_parsing():
 
 def test_cli_package_flag_parsing():
     """Test that CLI correctly handles packages with __main__.py"""
-    from reactivity.hmr.core import cli
+    from reactivity.hmr.cli import cli
 
     # Create a temporary package structure
-    with patch.object(sys, "argv", ["hmr", "-m", "json.tool"]), patch("reactivity.hmr.core.SyncReloader") as mock_reloader:
+    with patch.object(sys, "argv", ["hmr", "-m", "json.tool"]), patch("reactivity.hmr.cli.SyncReloader") as mock_reloader:
         mock_reloader.return_value.keep_watching_until_interrupt = lambda: None
 
         try:
@@ -51,7 +51,7 @@ def test_cli_package_flag_parsing():
 
 def test_cli_module_not_found():
     """Test that CLI properly handles non-existent modules"""
-    from reactivity.hmr.core import cli
+    from reactivity.hmr.cli import cli
 
     with patch.object(sys, "argv", ["hmr", "-m", "nonexistent_module_12345"]), patch("builtins.print") as mock_print:
         with pytest.raises(SystemExit) as exc_info:
@@ -67,7 +67,7 @@ def test_cli_module_not_found():
 
 def test_cli_missing_module_name():
     """Test that CLI handles -m flag without module name"""
-    from reactivity.hmr.core import cli
+    from reactivity.hmr.cli import cli
 
     with patch.object(sys, "argv", ["hmr", "-m"]), patch("builtins.print") as mock_print:
         with pytest.raises(SystemExit) as exc_info:
@@ -85,14 +85,14 @@ def test_cli_file_mode_still_works():
     # Create a temporary file
     import tempfile
 
-    from reactivity.hmr.core import cli
+    from reactivity.hmr.cli import cli
 
     with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
         f.write('print("test")')
         temp_file = f.name
 
     try:
-        with patch.object(sys, "argv", ["hmr", temp_file]), patch("reactivity.hmr.core.SyncReloader") as mock_reloader:
+        with patch.object(sys, "argv", ["hmr", temp_file]), patch("reactivity.hmr.cli.SyncReloader") as mock_reloader:
             mock_reloader.return_value.keep_watching_until_interrupt = lambda: None
 
             try:
@@ -110,7 +110,7 @@ def test_cli_file_mode_still_works():
 
 def test_cli_help_message():
     """Test that CLI shows help when no arguments provided"""
-    from reactivity.hmr.core import cli
+    from reactivity.hmr.cli import cli
 
     with patch.object(sys, "argv", ["hmr"]), patch("builtins.print") as mock_print:
         with pytest.raises(SystemExit) as exc_info:
