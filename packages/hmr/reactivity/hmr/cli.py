@@ -35,6 +35,10 @@ def run_module(module_name: str, args: list[str]):
 
     from importlib.util import find_spec
 
+    from .core import SyncReloader, patch_meta_path
+
+    patch_meta_path()
+
     spec = find_spec(module_name)
     if spec is None:
         raise ModuleNotFoundError(f"No module named '{module_name}'")  # noqa: TRY003
@@ -51,26 +55,19 @@ def run_module(module_name: str, args: list[str]):
     else:
         entry = spec.origin
 
-    # Replace the first argument with the full path
-    args[0] = entry
-
-    from importlib import import_module
-
-    from .core import SyncReloader
-
-    class Reloader(SyncReloader):
-        entry_module = None  # type: ignore
-
-        def run_entry_file(self):
-            import_module(spec.name)
+    args[0] = entry  # Replace the first argument with the full path
 
     _argv = sys.argv[:]
     sys.argv[:] = args
+    _main = sys.modules["__main__"]
     try:
-        reloader = Reloader(entry)
+        reloader = SyncReloader(entry)
+        sys.modules["__main__"] = mod = reloader.entry_module
+        mod.__dict__.update({"__spec__": spec, "__loader__": spec.loader, "__package__": spec.parent})
         reloader.keep_watching_until_interrupt()
     finally:
         sys.argv[:] = _argv
+        sys.modules["__main__"] = _main
 
 
 def cli(args: list[str] | None = None):
