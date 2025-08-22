@@ -384,6 +384,9 @@ def cli():
         module_name = sys.argv[1]
         sys.argv.pop(0)  # remove -m flag
 
+        if (cwd := str(Path.cwd())) not in sys.path:
+            sys.path.insert(0, cwd)
+
         # Find the module using importlib
         import importlib.util
 
@@ -410,14 +413,15 @@ def cli():
         except ModuleNotFoundError as e:
             print(f"Error: {e}")
             exit(1)
+        sys.argv[0] = entry
     else:
         # Original file-based behavior
         entry = sys.argv[0]
         if not (path := Path(entry)).is_file():
             raise FileNotFoundError(path.resolve())
+        path = Path(entry)
+        sys.path.insert(0, str(path.parent.resolve()))
 
-    path = Path(entry)
-    sys.path.insert(0, str(path.parent.resolve()))
     reloader = SyncReloader(entry)
     sys.modules["__main__"] = reloader.entry_module
     reloader.keep_watching_until_interrupt()
