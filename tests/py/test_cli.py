@@ -22,6 +22,8 @@ def test_entry_module():
         env["a/b/__main__.py"] = "print(123)"
         assert cli(["-m", "a.b"]) == 0
         assert env.stdout_delta == "123\n"
+        assert cli(["a/b"]) == 0
+        assert env.stdout_delta == "123\n"
 
 
 def test_entry_file():

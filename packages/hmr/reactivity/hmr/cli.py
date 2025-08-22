@@ -2,12 +2,18 @@ import sys
 from pathlib import Path
 
 
-def run_file(entry: str, args: list[str]):
-    path = Path(entry)
-    if not path.is_file():
-        raise FileNotFoundError(f"No such file named {path.resolve()}")  # noqa: TRY003
+def run_path(entry: str, args: list[str]):
+    path = Path(entry).resolve()
+    if path.is_dir():
+        if (main := path / "__main__.py").is_file():
+            path = main
+        else:
+            raise FileNotFoundError(f"No __main__.py file in {path}")  # noqa: TRY003
+    elif not path.is_file():
+        raise FileNotFoundError(f"No such file named {path}")  # noqa: TRY003
 
-    sys.path.insert(0, str(path.parent.resolve()))
+    entry = str(path)
+    sys.path.insert(0, str(path.parent))
 
     from .core import SyncReloader
 
@@ -86,7 +92,7 @@ def cli(args: list[str] | None = None):
             args.pop(0)  # remove -m flag
             run_module(module_name, args)
         else:
-            run_file(args[0], args)
+            run_path(args[0], args)
     except (FileNotFoundError, ModuleNotFoundError) as e:
         print(f"\n Error: {e}\n")
         return 1
