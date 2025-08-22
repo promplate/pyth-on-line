@@ -1,7 +1,7 @@
 from contextlib import contextmanager
 
-from reactivity.hmr.cli import cli
 from reactivity.hmr.core import SyncReloader
+from reactivity.hmr.run import cli
 from utils import capture_stdout, environment
 
 

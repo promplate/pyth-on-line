@@ -370,10 +370,11 @@ class AsyncReloader(BaseReloader):
 if TYPE_CHECKING:
     from typing_extensions import NoReturn, deprecated  # noqa: UP035
 
-    @deprecated("Please use `cli()` from `reactivity.hmr.cli` for programmatic usage")
+    @deprecated("Please use `cli()` from `reactivity.hmr.run` for programmatic usage")
     def cli() -> NoReturn: ...
 
 else:
-    from .cli import main as cli  # noqa: F401
+    from .run import main as cli  # noqa: F401
+
 
 __version__ = "0.6.4.4"
