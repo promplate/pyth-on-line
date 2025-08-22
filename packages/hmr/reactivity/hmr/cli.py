@@ -6,23 +6,35 @@ def run_path(entry: str, args: list[str]):
     path = Path(entry).resolve()
     if path.is_dir():
         if (main := path / "__main__.py").is_file():
+            parent = ""
             path = main
         else:
             raise FileNotFoundError(f"No __main__.py file in {path}")  # noqa: TRY003
-    elif not path.is_file():
+    elif path.is_file():
+        parent = None
+    else:
         raise FileNotFoundError(f"No such file named {path}")  # noqa: TRY003
 
     entry = str(path)
     sys.path.insert(0, str(path.parent))
 
-    from .core import SyncReloader
+    from importlib.machinery import ModuleSpec
+
+    from .core import SyncReloader, _loader
 
     _argv = sys.argv[:]
     sys.argv[:] = args
     _main = sys.modules["__main__"]
     try:
         reloader = SyncReloader(entry)
-        sys.modules["__main__"] = reloader.entry_module
+        sys.modules["__main__"] = mod = reloader.entry_module
+        mod.__dict__.update(
+            {
+                "__loader__": _loader,
+                "__package__": parent,
+                "__spec__": None if parent is None else ModuleSpec("__main__", _loader, origin=entry),
+            }
+        )
         reloader.keep_watching_until_interrupt()
     finally:
         sys.argv[:] = _argv
