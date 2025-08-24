@@ -30,7 +30,7 @@ class Subscribable:
         self.context = context or default_context
 
     def track(self):
-        ctx = current.get(self.context)
+        ctx = self.context.get_current_context()
 
         if not ctx.current_computations:
             return
@@ -229,6 +229,3 @@ def _pulled(sub: Subscribable):
             if s not in visited:
                 to_visit.add(s)
     return False
-
-
-from .async_primitives import current

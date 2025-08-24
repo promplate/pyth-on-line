@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from contextlib import contextmanager
+from contextvars import ContextVar
 from functools import partial
 from typing import TYPE_CHECKING, NamedTuple
 
@@ -12,6 +13,7 @@ if TYPE_CHECKING:
 class Context(NamedTuple):
     current_computations: list[BaseComputation]
     batches: list[Batch]
+    async_execution_context: ContextVar[Context | None]
 
     def schedule_callbacks(self, callbacks: Iterable[BaseComputation]):
         self.batches[-1].callbacks.update(callbacks)
@@ -56,9 +58,15 @@ class Context(NamedTuple):
         finally:
             self.current_computations[:] = computations
 
+    def get_current_context(self):
+        return self.async_execution_context.get() or self
+
+    def fork(self):
+        self.async_execution_context.set(Context(self.current_computations[:], self.batches[:], self.async_execution_context))
+
 
 def new_context():
-    return Context([], [])
+    return Context([], [], async_execution_context=ContextVar("current context", default=None))
 
 
 default_context = new_context()
