@@ -30,7 +30,7 @@ class Subscribable:
         self.context = context or default_context
 
     def track(self):
-        ctx = self.context.get_current_context()
+        ctx = self.context.current
 
         if not ctx.current_computations:
             return
