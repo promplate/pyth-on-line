@@ -59,7 +59,7 @@ class Context(NamedTuple):
             self.current_computations[:] = computations
 
     @property
-    def current(self):
+    def leaf(self):
         return self.async_execution_context.get() or self
 
     def fork(self):

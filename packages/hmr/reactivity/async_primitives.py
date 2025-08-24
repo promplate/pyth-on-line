@@ -22,7 +22,7 @@ class AsyncEffect[T](Effect[Awaitable[T]]):
 
     async def _run_in_context(self):
         self.context.fork()
-        with self.context.current.enter(self):
+        with self.context.leaf.enter(self):
             return await self._fn()
 
     def trigger(self):
