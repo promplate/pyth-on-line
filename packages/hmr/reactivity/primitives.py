@@ -41,11 +41,13 @@ class Subscribable:
                 last.dependencies.add(self)
 
     def notify(self):
-        if self.context.batches:
-            self.context.schedule_callbacks(self.subscribers)
+        ctx = self.context.leaf
+
+        if ctx.batches:
+            ctx.schedule_callbacks(self.subscribers)
         else:
-            with Batch(force_flush=False, context=self.context):
-                self.context.schedule_callbacks(self.subscribers)
+            with Batch(force_flush=False, context=ctx):
+                ctx.schedule_callbacks(self.subscribers)
 
 
 class BaseComputation[T]:
@@ -60,7 +62,7 @@ class BaseComputation[T]:
         self.dependencies.clear()
 
     def _enter(self):
-        return self.context.enter(self)
+        return self.context.leaf.enter(self)
 
     def __enter__(self):
         return self
@@ -174,8 +176,9 @@ class BaseDerived[T](Subscribable, BaseComputation[T]):
         self.dirty = True
 
     def _sync_dirty_deps(self):
+        current_computations = self.context.leaf.current_computations
         for dep in self.dependencies:
-            if isinstance(dep, BaseDerived) and dep.dirty and dep not in self.context.current_computations:
+            if isinstance(dep, BaseDerived) and dep.dirty and dep not in current_computations:
                 dep()
 
 
