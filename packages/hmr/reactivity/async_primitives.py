@@ -17,8 +17,8 @@ def default_task_factory[T](async_function: AsyncFunction[T]):
 
 class AsyncEffect[T](Effect[Awaitable[T]]):
     def __init__(self, fn: Callable[[], Awaitable[T]], call_immediately=True, *, context: Context | None = None, task_factory: TaskFactory[T] = default_task_factory):
-        Effect.__init__(self, fn, call_immediately, context=context)
         self.start = task_factory
+        Effect.__init__(self, fn, call_immediately, context=context)
 
     async def _run_in_context(self):
         self.context.fork()

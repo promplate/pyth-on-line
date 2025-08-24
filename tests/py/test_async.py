@@ -10,15 +10,29 @@ async def test_async_effect():
 
     async def f():
         print(s.get())
-        return s.get()
 
     with capture_stdout() as stdout:
-        async with TaskGroup() as tg:
-            effect = AsyncEffect(f, False, task_factory=lambda f: tg.create_task(f()))
-            await effect()
-            assert stdout.delta == "1\n"
-            await effect()
-            assert stdout.delta == "1\n"
-            s.set(2)
-            await sleep(0.1)
+        tg: TaskGroup
+        with AsyncEffect(f, False, task_factory=lambda f: tg.create_task(f())) as effect:
+            async with TaskGroup() as tg:
+                # manually trigger
+                await effect()
+                assert stdout.delta == "1\n"
+                await effect()
+                assert stdout.delta == "1\n"
+
+                # automatically trigger
+                s.set(2)
+                assert stdout.delta == ""
         assert stdout.delta == "2\n"
+
+        del tg
+        s.set(3)
+
+        async with TaskGroup() as tg:
+            with AsyncEffect(f, task_factory=lambda f: tg.create_task(f())) as effect:
+                assert stdout.delta == ""
+                await sleep(0.01)
+                s.set(4)
+
+        assert stdout.delta == "3\n4\n"
