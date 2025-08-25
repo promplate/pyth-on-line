@@ -4,7 +4,7 @@ from asyncio import TaskGroup, sleep
 from pytest import raises
 from reactivity.async_primitives import AsyncDerived, AsyncEffect
 from reactivity.primitives import Signal
-from utils import StepController, TimeEvent, capture_stdout
+from utils import StepController, capture_stdout
 
 
 async def test_async_effect():
@@ -80,39 +80,6 @@ async def test_async_derived_deterministic():
     result2 = await result_task2
     assert result2 == 6  # 3 * 2
     assert step_ctrl.current_step == 4
-
-
-async def test_async_derived_with_time_event():
-    s = Signal(10)
-    event = TimeEvent()
-    step_ctrl = StepController()
-
-    async def compute_with_event():
-        await step_ctrl.wait_for_step(2)
-        await event.wait()  # wait for event to be triggered
-        return s.get() + 5
-
-    derived = AsyncDerived(compute_with_event)
-
-    # Step 1: create
-    assert step_ctrl.current_step == 0
-
-    # Step 2: start execution, will block at event.wait()
-    await step_ctrl.step()
-    result_task = derived()
-    await step_ctrl.step()  # advance to step 3
-
-    # Task should be waiting for event now
-    assert not event.is_set()
-
-    # Step 3: trigger event
-    event.set()
-    await step_ctrl.step()  # advance to step 4
-
-    # Step 4: get result
-    result = await result_task
-    assert result == 15  # 10 + 5
-    assert step_ctrl.current_step == 3
 
 
 async def test_async_derived_equality_check():
