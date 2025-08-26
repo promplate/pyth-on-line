@@ -30,7 +30,7 @@ def _literal_eval(source: str, namespace: Mapping[str, Any]):
 
 
 def inspect(name: str, *namespaces: dict[str, Any]):
-    namespace = ChainMap(*namespaces)  # type: ignore
+    namespace = ChainMap(*namespaces)
 
     if name.isidentifier():
         with suppress(KeyError):

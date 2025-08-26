@@ -18,7 +18,7 @@ class PatchedConsole(Console):
         assert isinstance(self.globals, ReactiveNamespace)
         with self.redirect_streams():
             try:
-                return await code.run_async(self.globals.raw, self.globals)  # type: ignore
+                return await code.run_async(self.globals.raw, self.globals)
             finally:
                 sys.stdout.flush()
                 sys.stderr.flush()

@@ -32,7 +32,7 @@ def cache_across_reloads[T](func: Callable[[], T]) -> Callable[[], T]:
     if module is None:
         from functools import cache
 
-        return cache(func)  # type: ignore
+        return cache(func)
 
     source = getsource(func)
 
