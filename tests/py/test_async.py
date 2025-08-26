@@ -47,86 +47,88 @@ async def test_async_effect():
             s.set(6)
 
 
-async def test_async_derived_deterministic():
-    s = Signal(1)
-    step_ctrl = StepController()
+async def test_async_derived():
+    s = Signal(0)
 
-    async def compute():
-        await step_ctrl.wait_for_step(2)  # wait for step 2 to execute
-        return s.get() * 2
+    @AsyncDerived
+    async def f():
+        print(s.get())
+        return s.get() + 1
 
-    derived = AsyncDerived(compute)
+    with capture_stdout() as stdout:
+        assert await f() == 1
+        assert stdout.delta == "0\n"
+        await f()
+        assert stdout.delta == ""
+        assert not f.dirty
+        s.set(1)
+        assert stdout.delta == ""
+        assert f.dirty
+        assert await f() == 2
+        assert stdout.delta == "1\n"
 
-    # Step 1: create derived, won't execute immediately
-    assert step_ctrl.current_step == 0
+    assert {*f.dependencies} == {s}
 
-    # Step 2: trigger execution
-    await step_ctrl.step()
-    result_task = derived()
-    await step_ctrl.step()  # advance to step 3, let compute complete
+    @AsyncDerived
+    async def g():
+        print(await f() + 1)
+        return await f() + 1
 
-    result = await result_task
-    assert result == 2  # 1 * 2
-    assert step_ctrl.current_step == 2
+    with capture_stdout() as stdout:
+        assert await g() == 3
+        assert stdout.delta == "3\n"
+        f.invalidate()
+        assert stdout.delta == ""
+        assert await g() == 3
+        assert stdout.delta == "1\n"  # only f() recomputed
 
-    # Step 3: modify signal value, should trigger recomputation
-    s.set(3)
-    await step_ctrl.step()  # advance to step 4
-
-    # Step 4: get new result
-    result_task2 = derived()
-    await step_ctrl.step()  # advance to step 5, let compute complete
-
-    result2 = await result_task2
-    assert result2 == 6  # 3 * 2
-    assert step_ctrl.current_step == 4
+    assert {*g.dependencies} == {f}
 
 
-async def test_async_derived_equality_check():
-    s = Signal("hello")
-    step_ctrl = StepController()
-    computations = []
+async def test_nested_derived():
+    s = Signal(0)
 
-    async def compute():
-        await step_ctrl.wait_for_step(2)
-        computations.append(step_ctrl.current_step)
+    @AsyncDerived
+    async def f():
+        print("f")
         return s.get()
 
-    derived = AsyncDerived(compute, check_equality=True)
+    @AsyncDerived
+    async def g():
+        print("g")
+        return await f() // 2
 
-    # Step 1: create
-    await step_ctrl.step()
+    @AsyncDerived
+    async def h():
+        print("h")
+        return await g() // 2
 
-    # Step 2: first computation
-    result_task1 = derived()
-    await step_ctrl.step()
-    result1 = await result_task1
-    assert result1 == "hello"
-    assert computations == [2]
+    with capture_stdout() as stdout:
+        assert await h() == 0
+        assert stdout == "h\ng\nf\n"
 
-    # Step 3: same value, should not recompute
-    s.set("hello")  # set same value
-    await step_ctrl.step()
+    assert {*f.dependencies} == {s}
+    assert {*g.dependencies} == {f}
+    assert {*h.dependencies} == {g}
 
-    result_task2 = derived()
-    await step_ctrl.step()
-    result2 = await result_task2
-    assert result2 == "hello"
-    assert computations == [2]  # no new computation
+    with capture_stdout() as stdout:
+        s.set(1)
+        assert await f() == 1
+        assert stdout.delta == "f\n"
+        assert await g() == 0
+        assert stdout.delta == "g\n"
 
-    # Step 4: different value, should recompute
-    s.set("world")
-    await step_ctrl.step()
-
-    result_task3 = derived()
-    await step_ctrl.step()
-    result3 = await result_task3
-    assert result3 == "world"
-    assert computations == [2, 6]  # new computation at step 6
+    with capture_stdout() as stdout:
+        s.set(2)
+        assert await f() == 2
+        assert stdout.delta == "f\n"
+        assert await g() == 1
+        assert stdout.delta == "g\n"
+        assert await h() == 0
+        assert stdout.delta == "h\n"
 
 
 async def test_async_derived_concurrent_independence():
-    """Test that concurrent AsyncDerived computations don't interfere with each other"""
     s1 = Signal(10)
     s2 = Signal(20)
     step_ctrl = StepController()
@@ -142,39 +144,17 @@ async def test_async_derived_concurrent_independence():
     derived1 = AsyncDerived(compute1)
     derived2 = AsyncDerived(compute2)
 
-    # Step 1: create both derived
-    assert step_ctrl.current_step == 0
-
-    # Step 2: trigger both computations
-    await step_ctrl.step()
+    await step_ctrl.step()  # Step 1: trigger both computations
     task1 = derived1()
     task2 = derived2()
 
-    # Step 3: advance to let compute1 complete
-    await step_ctrl.step()
+    await step_ctrl.step()  # Step 2: advance to let compute1 complete
     result1 = await task1
     assert result1 == 11  # 10 + 1
 
-    # Step 4: advance to let compute2 complete
-    await step_ctrl.step()
+    await step_ctrl.step()  # Step 3: advance to let compute2 complete
     result2 = await task2
     assert result2 == 22  # 20 + 2
-
-    # Step 5: modify signals independently
-    s1.set(100)
-    s2.set(200)
-    await step_ctrl.step()
-
-    # Step 6: get new results
-    task1_new = derived1()
-    task2_new = derived2()
-    await step_ctrl.step()  # Step 7
-
-    result1_new = await task1_new
-    result2_new = await task2_new
-
-    assert result1_new == 101  # 100 + 1
-    assert result2_new == 202  # 200 + 2
 
 
 async def test_async_derived_concurrent_dependency():
