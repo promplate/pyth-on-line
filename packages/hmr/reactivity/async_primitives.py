@@ -31,7 +31,7 @@ class AsyncEffect[T](Effect[Awaitable[T]]):
         return self.start(self._run_in_context)
 
 
-class AsyncDerived[T, R](BaseDerived[Awaitable[T]]):
+class AsyncDerived[T](BaseDerived[Awaitable[T]]):
     UNSET: T = object()  # type: ignore
 
     def __init__(self, fn: AsyncFunction[T], check_equality=True, *, context: Context | None = None, task_factory: TaskFactory = default_task_factory):
@@ -40,6 +40,8 @@ class AsyncDerived[T, R](BaseDerived[Awaitable[T]]):
         self._check_equality = check_equality
         self._value = self.UNSET
         self.start: TaskFactory = task_factory
+        self._call_task: Awaitable[T] | None = None
+        self._sync_dirty_deps_task: Awaitable[None] | None = None
 
     async def _run_in_context(self):
         self.context.fork()
@@ -61,22 +63,34 @@ class AsyncDerived[T, R](BaseDerived[Awaitable[T]]):
     async def __sync_dirty_deps(self):
         current_computations = self.context.leaf.current_computations
         for dep in self.dependencies:
-            if isinstance(dep, BaseDerived) and dep.dirty and dep not in current_computations:
-                await dep() if isinstance(dep, AsyncDerived) else dep()
+            if isinstance(dep, BaseDerived) and dep not in current_computations:
+                if isinstance(dep, AsyncDerived):
+                    await dep._sync_dirty_deps()  # noqa: SLF001
+                    if dep.dirty:
+                        await dep()
+                elif dep.dirty:
+                    dep()
+        self._sync_dirty_deps_task = None
 
     def _sync_dirty_deps(self):
-        return self.start(self.__sync_dirty_deps)
+        if self._sync_dirty_deps_task is not None:
+            return self._sync_dirty_deps_task
+        task = self._sync_dirty_deps_task = self.start(self.__sync_dirty_deps)
+        return task
 
     async def _call_async(self):
         self.track()
         await self._sync_dirty_deps()
         if self.dirty:
             await self.recompute()
-
+        self._call_task = None
         return self._value
 
     def __call__(self):
-        return self.start(self._call_async)
+        if self._call_task is not None:
+            return self._call_task
+        task = self._call_task = self.start(self._call_async)
+        return task
 
     def trigger(self):
         self.dirty = True

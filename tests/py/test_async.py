@@ -120,10 +120,8 @@ async def test_nested_derived():
 
     with capture_stdout() as stdout:
         s.set(2)
-        assert await g() == 1
-        assert stdout.delta == "f\ng\n"
         assert await h() == 0
-        assert stdout.delta == "h\n"
+        assert stdout.delta == "f\ng\nh\n"
 
 
 async def test_async_derived_concurrent_independence():
