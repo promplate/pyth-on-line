@@ -175,7 +175,7 @@ class BaseDerived[T](Subscribable, BaseComputation[T]):
         super().__init__(context=context)
         self.dirty = True
 
-    def _sync_dirty_deps(self):
+    def _sync_dirty_deps(self) -> Any:
         current_computations = self.context.leaf.current_computations
         for dep in self.dependencies:
             if isinstance(dep, BaseDerived) and dep.dirty and dep not in current_computations:

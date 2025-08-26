@@ -1,12 +1,14 @@
 from collections.abc import Awaitable, Callable, Coroutine
-from typing import Any
+from typing import Any, Protocol
 
 from .context import Context
 from .primitives import BaseDerived, Effect, _equal, _pulled
 
 type AsyncFunction[T] = Callable[[], Coroutine[Any, Any, T]]
 
-type TaskFactory[T] = Callable[[AsyncFunction[T]], Awaitable[T]]
+
+class TaskFactory(Protocol):
+    def __call__[T](self, func: AsyncFunction[T], /) -> Awaitable[T]: ...
 
 
 def default_task_factory[T](async_function: AsyncFunction[T]):
@@ -16,7 +18,7 @@ def default_task_factory[T](async_function: AsyncFunction[T]):
 
 
 class AsyncEffect[T](Effect[Awaitable[T]]):
-    def __init__(self, fn: AsyncFunction[T], call_immediately=True, *, context: Context | None = None, task_factory: TaskFactory[T] = default_task_factory):
+    def __init__(self, fn: AsyncFunction[T], call_immediately=True, *, context: Context | None = None, task_factory: TaskFactory = default_task_factory):
         self.start = task_factory
         Effect.__init__(self, fn, call_immediately, context=context)
 
@@ -29,15 +31,15 @@ class AsyncEffect[T](Effect[Awaitable[T]]):
         return self.start(self._run_in_context)
 
 
-class AsyncDerived[T](BaseDerived[Awaitable[T]]):
+class AsyncDerived[T, R](BaseDerived[Awaitable[T]]):
     UNSET: T = object()  # type: ignore
 
-    def __init__(self, fn: AsyncFunction[T], check_equality=True, *, context: Context | None = None, task_factory: TaskFactory[T] = default_task_factory):
+    def __init__(self, fn: AsyncFunction[T], check_equality=True, *, context: Context | None = None, task_factory: TaskFactory = default_task_factory):
         super().__init__(context=context)
         self.fn = fn
         self._check_equality = check_equality
         self._value = self.UNSET
-        self.start = task_factory
+        self.start: TaskFactory = task_factory
 
     async def _run_in_context(self):
         self.context.fork()
@@ -56,9 +58,18 @@ class AsyncDerived[T](BaseDerived[Awaitable[T]]):
         self._value = value
         self.notify()
 
+    async def __sync_dirty_deps(self):
+        current_computations = self.context.leaf.current_computations
+        for dep in self.dependencies:
+            if isinstance(dep, BaseDerived) and dep.dirty and dep not in current_computations:
+                await dep() if isinstance(dep, AsyncDerived) else dep()
+
+    def _sync_dirty_deps(self):
+        return self.start(self.__sync_dirty_deps)
+
     async def _call_async(self):
         self.track()
-        self._sync_dirty_deps()
+        await self._sync_dirty_deps()
         if self.dirty:
             await self.recompute()
 
