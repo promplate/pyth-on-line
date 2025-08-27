@@ -3,7 +3,6 @@ from collections import ChainMap
 from inspect import getsource
 from textwrap import dedent
 
-import pytest
 from pytest import raises
 from reactivity import Reactive, create_effect
 from reactivity.hmr.exec_hack import fix_class_name_resolution
@@ -64,8 +63,7 @@ def test_exec_within_default_dict():
     assert stdout == "d\ng\nb\nf\nh\n"  # defaults and annotations printed in order
 
 
-@pytest.mark.xfail(strict=True)
-def test_nested_scope_resolution_bug():
+def test_no_parent_frame_namespace_leak():
     def main():
         def f():
             def g():
