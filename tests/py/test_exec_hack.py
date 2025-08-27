@@ -83,3 +83,29 @@ def test_no_parent_frame_namespace_leak():
 
     with raises(NameError):
         exec_with_hack(dedent(getsource(main)) + "\n\nmain()")
+
+
+def test_name_lookup():
+    a = b = c = None  # noqa: F841
+
+    def main():
+        a = 1
+
+        def f():
+            b = 2
+
+            def g():
+                c = 3
+
+                class _:  # noqa: N801
+                    print(a, b, c)
+
+            return g()
+
+        f()
+
+    with capture_stdout() as stdout:
+        main()
+        assert stdout.delta == "1 2 3\n"
+        exec_with_hack(dedent(getsource(main)) + "\n\nmain()")
+        assert stdout.delta == "1 2 3\n"
