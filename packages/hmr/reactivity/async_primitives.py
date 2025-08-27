@@ -18,7 +18,7 @@ def default_task_factory[T](async_function: AsyncFunction[T]):
 
 
 class AsyncEffect[T](Effect[Awaitable[T]]):
-    def __init__(self, fn: AsyncFunction[T], call_immediately=True, *, context: Context | None = None, task_factory: TaskFactory = default_task_factory):
+    def __init__(self, fn: Callable[[], Awaitable[T]], call_immediately=True, *, context: Context | None = None, task_factory: TaskFactory = default_task_factory):
         self.start = task_factory
         Effect.__init__(self, fn, call_immediately, context=context)
 
@@ -34,7 +34,7 @@ class AsyncEffect[T](Effect[Awaitable[T]]):
 class AsyncDerived[T](BaseDerived[Awaitable[T]]):
     UNSET: T = object()  # type: ignore
 
-    def __init__(self, fn: AsyncFunction[T], check_equality=True, *, context: Context | None = None, task_factory: TaskFactory = default_task_factory):
+    def __init__(self, fn: Callable[[], Awaitable[T]], check_equality=True, *, context: Context | None = None, task_factory: TaskFactory = default_task_factory):
         super().__init__(context=context)
         self.fn = fn
         self._check_equality = check_equality

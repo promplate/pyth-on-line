@@ -1,10 +1,12 @@
 import asyncio
 from asyncio import TaskGroup, sleep
+from functools import partial
+from typing import TYPE_CHECKING
 
 from pytest import raises
 from reactivity.async_primitives import AsyncDerived, AsyncEffect
 from reactivity.primitives import Signal
-from utils import StepController, capture_stdout
+from utils import StepController, capture_stdout, create_task_factory, run_trio_in_asyncio
 
 
 async def test_async_effect():
@@ -122,6 +124,50 @@ async def test_nested_derived():
         s.set(2)
         assert await h() == 0
         assert stdout.delta == "f\ng\nh\n"
+
+
+async def _trio_test_nested_derived():
+    from trio import open_nursery
+
+    async with open_nursery() as nursery:
+        if TYPE_CHECKING:
+            trio_async_derived = AsyncDerived
+        else:
+            trio_async_derived = partial(AsyncDerived, task_factory=create_task_factory(nursery))
+
+        s = Signal(0)
+
+        @trio_async_derived
+        async def f():
+            print("f")
+            return s.get()
+
+        @trio_async_derived
+        async def g():
+            print("g")
+            return await f() // 2
+
+        @trio_async_derived
+        async def h():
+            print("h")
+            return await g() // 2
+
+        with capture_stdout() as stdout:
+            assert await h() == 0
+            assert stdout.delta == "h\ng\nf\n"
+            s.set(4)
+            assert await h() == 1
+            assert stdout.delta == "f\ng\nh\n"
+
+
+def test_trio_nested_derived_sync():
+    from trio import run  # pytest-trio conflicts with pytest-asyncio auto mode, so we use sync `trio.run` here
+
+    run(_trio_test_nested_derived)
+
+
+async def test_trio_nested_derived_guest_mode():
+    await run_trio_in_asyncio(_trio_test_nested_derived)
 
 
 async def test_async_derived_concurrent_independence():
