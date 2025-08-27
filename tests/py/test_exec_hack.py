@@ -1,7 +1,9 @@
 from ast import parse
 from collections import ChainMap
+from inspect import getsource
 from textwrap import dedent
 
+import pytest
 from reactivity import Reactive, create_effect
 from reactivity.hmr.exec_hack import fix_class_name_resolution
 from utils import capture_stdout
@@ -59,3 +61,27 @@ def test_exec_within_default_dict():
         exec_with_hack(source, DefaultDict())
 
     assert stdout == "d\ng\nb\nf\nh\n"  # defaults and annotations printed in order
+
+
+@pytest.mark.xfail(reason="nested scope resolution not properly handled in exec_hack")
+def test_nested_scope_resolution_bug():
+    def main():
+        def f():
+            value = "right"
+
+            def g():
+                class _:  # noqa: N801
+                    print(value)
+
+            return g()
+
+        value = "wrong"  # noqa: F841
+        f()
+
+    source = dedent(getsource(main)) + "\n\nmain()"
+
+    with capture_stdout() as stdout:
+        exec_with_hack(source)
+        # Currently prints "wrong" instead of "right"
+        # This demonstrates a bug in nested scope resolution
+        assert stdout == "right\n"
