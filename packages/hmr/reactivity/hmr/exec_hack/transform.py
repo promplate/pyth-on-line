@@ -50,7 +50,7 @@ def __name_lookup(name):
     c = ChainMap(f.f_locals, f.f_globals, f.f_builtins)
     f = f.f_back
     while f is not None and f.f_code.co_name != "<module>":
-        c.maps.insert(1, f.f_locals)
+        c.maps.insert(-2, f.f_locals)
         f = f.f_back
     try:
         return c[name]
