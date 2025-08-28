@@ -5,18 +5,24 @@ from typing import override
 class ClassTransformer(ast.NodeTransformer):
     @override
     def visit_ClassDef(self, node: ast.ClassDef):
+        traverser = ClassBodyTransformer()
         node.body = [
             *name_lookup_function,
-            *map(ClassBodyTransformer().visit, node.body),
+            *map(traverser.visit, node.body),
             ast.Delete(targets=[ast.Name(id="__name_lookup", ctx=ast.Del())]),
+            ast.parse(f"False and ( {','.join(traverser.names)} )").body[0],
         ]
         return node
 
 
 class ClassBodyTransformer(ast.NodeTransformer):
+    def __init__(self):
+        self.names: dict[str, None] = {}  # to keep order for better readability
+
     @override
     def visit_Name(self, node: ast.Name):
         if isinstance(node.ctx, ast.Load) and node.id != "__name_lookup":
+            self.names[node.id] = None
             return build_name_lookup(node.id)
         return node
 
@@ -48,6 +54,15 @@ def __name_lookup():
     from inspect import currentframe
     f = currentframe().f_back
     c = ChainMap(f.f_locals, f.f_globals, f.f_builtins)
+    if freevars := f.f_code.co_freevars:
+        c.maps.insert(1, e := {})
+        freevars = {*f.f_code.co_freevars}
+        while freevars:
+            f = f.f_back
+            for name in f.f_code.co_cellvars:
+                if name in freevars.intersection(f.f_code.co_cellvars):
+                    freevars.remove(name)
+                    c[name] = f.f_locals[name]
     def lookup(name):
         try:
             return c[name]
