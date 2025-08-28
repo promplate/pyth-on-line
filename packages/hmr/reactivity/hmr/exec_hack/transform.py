@@ -7,12 +7,12 @@ class ClassTransformer(ast.NodeTransformer):
     def visit_ClassDef(self, node: ast.ClassDef):
         traverser = ClassBodyTransformer()
         node.body = [
-            *name_lookup_function,
+            *def_name_lookup().body,
             *map(traverser.visit, node.body),
             ast.Delete(targets=[ast.Name(id="__name_lookup", ctx=ast.Del())]),
             ast.parse(f"False and ( {','.join(traverser.names)} )").body[0],
         ]
-        return node
+        return ast.fix_missing_locations(node)
 
 
 class ClassBodyTransformer(ast.NodeTransformer):
@@ -74,4 +74,13 @@ __name_lookup = __name_lookup()
 
 """
 
-name_lookup_function = ast.parse(name_lookup_source).body
+
+def def_name_lookup():
+    tree = ast.parse(name_lookup_source)
+
+    for node in ast.walk(tree):
+        for attr in ("lineno", "end_lineno", "col_offset", "end_col_offset"):
+            if hasattr(node, attr):
+                delattr(node, attr)
+
+    return tree
