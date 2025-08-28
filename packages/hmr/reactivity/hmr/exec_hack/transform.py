@@ -6,9 +6,10 @@ class ClassTransformer(ast.NodeTransformer):
     @override
     def visit_ClassDef(self, node: ast.ClassDef):
         traverser = ClassBodyTransformer()
-        node.body = [
+        has_docstring = node.body and isinstance(node.body[0], ast.Expr) and isinstance(node.body[0].value, ast.Constant) and isinstance(node.body[0].value.value, str)
+        node.body[has_docstring:] = [
             *def_name_lookup().body,
-            *map(traverser.visit, node.body),
+            *map(traverser.visit, node.body[has_docstring:]),
             ast.Delete(targets=[ast.Name(id="__name_lookup", ctx=ast.Del())]),
             ast.parse(f"False and ( {','.join(traverser.names)} )").body[0],
         ]
