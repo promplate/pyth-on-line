@@ -109,3 +109,14 @@ def test_name_lookup():
         assert stdout.delta == "1 2 3\n"
         exec_with_hack(dedent(getsource(main)) + "\n\nmain()")
         assert stdout.delta == "1 2 3\n"
+
+
+def test_docstring_preserved():
+    source = """
+        class Foo:
+            # some comments
+            '''xxx'''
+    """
+
+    exec_with_hack(source, ns := {})
+    assert ns["Foo"].__doc__ == "xxx"
