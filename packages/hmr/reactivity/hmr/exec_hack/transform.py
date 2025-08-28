@@ -62,7 +62,7 @@ def __name_lookup():
             for name in f.f_code.co_cellvars:
                 if name in freevars.intersection(f.f_code.co_cellvars):
                     freevars.remove(name)
-                    c[name] = f.f_locals[name]
+                    e[name] = f.f_locals[name]
     def lookup(name):
         try:
             return c[name]
