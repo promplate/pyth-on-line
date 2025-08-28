@@ -1,18 +1,26 @@
 from ast import parse
 from collections import ChainMap
-from inspect import getsource
-from textwrap import dedent
+from collections.abc import Callable
+from inspect import cleandoc, getsource, getsourcefile
 
 from pytest import raises
 from reactivity import Reactive, create_effect
-from reactivity.hmr.exec_hack import fix_class_name_resolution
+from reactivity.hmr.exec_hack import dedent, fix_class_name_resolution
 from utils import capture_stdout
 
 
 def exec_with_hack(source: str, globals=None, locals=None):
-    tree = fix_class_name_resolution(parse(dedent(source)))
+    tree = fix_class_name_resolution(parse(cleandoc(source)))
     code = compile(tree, "<string>", "exec")
     exec(code, globals, locals)
+
+
+def call_with_hack[**P, T](func: Callable[P, T], globals=None, locals=None, *args: P.args, **kwargs: P.kwargs) -> T:
+    source, col_offset = dedent(getsource(func))
+    tree = fix_class_name_resolution(parse(source), func.__code__.co_firstlineno - 1, col_offset)
+    code = compile(tree, getsourcefile(func), "exec")  # type: ignore
+    exec(code, globals, (ns := {} if locals is None else locals))
+    return ns[func.__name__](*args, **kwargs)  # type: ignore
 
 
 def test_exec_within_chainmap():
@@ -82,7 +90,7 @@ def test_no_parent_frame_namespace_leak():
         main()
 
     with raises(NameError):
-        exec_with_hack(dedent(getsource(main)) + "\n\nmain()")
+        call_with_hack(main)
 
 
 def test_name_lookup():
@@ -107,7 +115,7 @@ def test_name_lookup():
     with capture_stdout() as stdout:
         main()
         assert stdout.delta == "1 2 3\n"
-        exec_with_hack(dedent(getsource(main)) + "\n\nmain()")
+        call_with_hack(main)
         assert stdout.delta == "1 2 3\n"
 
 
