@@ -8,7 +8,7 @@ from types import FunctionType
 
 from ..helpers import Derived
 from .core import HMR_CONTEXT, NamespaceProxy, ReactiveModule
-from .exec_hack import fix_class_name_resolution
+from .exec_hack import dedent, fix_class_name_resolution
 from .hooks import on_dispose, post_reload
 
 memos: dict[tuple[Path, str], tuple[Callable, str]] = {}  # (path, __qualname__) -> (memo, source)
@@ -34,7 +34,7 @@ def cache_across_reloads[T](func: Callable[[], T]) -> Callable[[], T]:
 
         return cache(func)
 
-    source = getsource(func)
+    source, col_offset = dedent(getsource(func))
 
     key = (path, func.__qualname__)
 
@@ -45,7 +45,7 @@ def cache_across_reloads[T](func: Callable[[], T]) -> Callable[[], T]:
     if _cache_decorator_phase:  # this function will be called twice: once transforming ast and once re-executing the patched source
         on_dispose(lambda: functions.pop(key), file)
         try:
-            exec(compile(fix_class_name_resolution(parse(source), func.__code__.co_firstlineno - 1), file, "exec"), DictProxy(proxy))
+            exec(compile(fix_class_name_resolution(parse(source), func.__code__.co_firstlineno - 1, col_offset), file, "exec"), DictProxy(proxy))
         except _Return as e:
             # If this function is used as a decorator, it will raise an `_Return` exception in the second phase.
             return e.value
