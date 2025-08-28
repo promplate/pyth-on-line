@@ -280,6 +280,33 @@ def test_cache_across_reloads_chaining():
             assert env.stdout_delta == "3\n"  # return value don't change, so no need to re-run `g()`
 
 
+def test_cache_across_reloads_traceback():
+    with environment() as env:
+        env["main.py"] = """
+            from sys import stdout
+            from traceback import print_exc
+            from reactivity.hmr.utils import cache_across_reloads
+
+            def main():
+                @cache_across_reloads
+                def f():
+                    try:
+                        _ = 1 / 0
+                    except:
+                        print_exc(limit=1, file=stdout)
+                f()
+            main()
+        """
+
+        expected_segment = "    _ = 1 / 0\n        ~~^~~"
+        with env.hmr("main.py"):
+            assert expected_segment in env.stdout_delta
+            env["main.py"].touch()
+            assert env.stdout_delta == ""
+            env["main.py"].replace("1 / 0", "2 / 0")
+            assert expected_segment.replace("1", "2") in env.stdout_delta
+
+
 def test_module_metadata():
     with environment() as env:
         env["main.py"] = "'abc'; print(__doc__)"
