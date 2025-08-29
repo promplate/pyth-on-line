@@ -15,8 +15,8 @@
 
   const { children }: Props = $props();
 
-  let progress: Spring<number> = $state();
-  let reset: () => any = $state();
+  let progress: Spring<number> = $state()!;
+  let reset: () => any = $state()!;
 
   $query = $page.url.searchParams.get("q") ?? "";
 

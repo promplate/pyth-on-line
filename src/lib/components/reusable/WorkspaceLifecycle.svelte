@@ -11,7 +11,7 @@
 
   const { sources, children }: Props = $props();
 
-  let workspace: WorkspaceAPI = $state();
+  let workspace: WorkspaceAPI = $state()!;
 
   onMount(async () => {
     const py = await getPy({ workspace: true });

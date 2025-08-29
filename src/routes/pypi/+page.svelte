@@ -19,7 +19,7 @@
 
   const enough = $derived(data.total !== null && data.total <= data.results.length);
 
-  let ref: HTMLDivElement = $state();
+  let ref: HTMLDivElement = $state()!;
   let index = 1;
 
   let intersecting = $state(!enough);

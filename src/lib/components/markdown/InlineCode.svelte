@@ -15,12 +15,12 @@
 
   const { node, inspect = null, watch = null }: Props = $props();
 
-  let ref: HTMLElement = $state();
+  let ref: HTMLElement = $state()!;
 
   const inlineCode = ($derived(node as InlineCode));
 
   let show = $state(false);
-  let inspection: Inspection = $state();
+  let inspection: Inspection = $state()!;
 
   run(() => {
     show && inspect && (inspection = inspect(inlineCode.value));
@@ -38,9 +38,9 @@
 
   onDestroy(stopWatching);
 
-  let outerColor: string = $state();
-  let classColor: string = $state();
-  let valueColor: string = $state();
+  let outerColor: string = $state()!;
+  let classColor: string = $state()!;
+  let valueColor: string = $state()!;
 
   run(() => {
     switch (inspection?.type) {

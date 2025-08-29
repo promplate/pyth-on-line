@@ -7,7 +7,7 @@
   import { fly } from "svelte/transition";
 
   let input = $state("");
-  let ref: HTMLInputElement = $state();
+  let ref: HTMLInputElement = $state()!;
 
   const valid = $derived(input.split("/").length === 2 && !input.endsWith("/") && !input.startsWith("/"));
 

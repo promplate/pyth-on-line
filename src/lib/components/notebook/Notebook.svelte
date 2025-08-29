@@ -15,7 +15,7 @@
   {#snippet children({ pyNotebook })}
     <WithMarkdown>
       {#snippet children({ parse })}
-        <Router node={parse(text)} {OverrideCode} codeProps={{ pyNotebook }} inlineCodeProps={{ watch: pyNotebook?.watch }} />
+        <Router node={parse(text)} OverrideCode={OverrideCode as any} codeProps={{ pyNotebook }} inlineCodeProps={{ watch: pyNotebook?.watch }} />
       {/snippet}
     </WithMarkdown>
   {/snippet}

@@ -18,7 +18,7 @@
   }: Props = $props();
 
   let position = $state({ top: 0, left: 0 });
-  let div: HTMLDivElement = $state();
+  let div: HTMLDivElement = $state()!;
 
   async function updatePosition() {
     await tick();

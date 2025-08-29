@@ -16,6 +16,6 @@
 
 <WithMarkdown>
   {#snippet children({ parse })}
-    <Router node={parse(text)} {OverrideCode} codeProps={{ runCode }} inlineCodeProps={{ inspect }} />
+    <Router node={parse(text)} OverrideCode={OverrideCode as any} codeProps={{ runCode }} inlineCodeProps={{ inspect }} />
   {/snippet}
 </WithMarkdown>

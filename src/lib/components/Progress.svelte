@@ -19,7 +19,7 @@
   let {
     show = false,
     progress = $bindable(newStore()),
-    reset = () => progress = newStore(),
+    reset = $bindable(() => progress = newStore()),
     children,
   }: Props = $props();
 </script>

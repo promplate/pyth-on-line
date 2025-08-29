@@ -31,7 +31,7 @@
     {@html headScripts}
   {/if}
   {#if originTrialToken}
-    <meta http-equiv="origin-trial" content={originTrialToken} />
+    <meta http-equiv={"origin-trial" as any} content={originTrialToken} />
   {/if}
 
   <title>{ogTitle}</title>

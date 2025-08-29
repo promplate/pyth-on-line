@@ -1,5 +1,5 @@
 <script module>
-  let firstLoad = true;
+  let firstLoad = $state(true);
 </script>
 
 <script lang="ts">
@@ -12,7 +12,7 @@
   import { run } from "svelte/legacy";
   import { fade } from "svelte/transition";
 
-  let container: HTMLDivElement = $state();
+  let container: HTMLDivElement = $state()!;
 
   interface Props {
     source: string;
@@ -28,7 +28,7 @@
     lang,
   }: Props = $props();
 
-  let editor: monaco.editor.IStandaloneCodeEditor = $state();
+  let editor: monaco.editor.IStandaloneCodeEditor = $state()!;
   let core: typeof monaco;
 
   async function loadLanguage(language: string) {

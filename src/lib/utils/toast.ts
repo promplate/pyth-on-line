@@ -16,5 +16,5 @@ export function withToast(data: { loading: string; success?: string; duration?: 
 }
 
 export function toastMarkdown(markdown: string, type: "message" | "success" | "info" | "warning" | "error" = "success") {
-  toast[type](BaseMarkdown, { componentProps: { text: markdown } });
+  toast[type](BaseMarkdown as any, { componentProps: { text: markdown } });
 }

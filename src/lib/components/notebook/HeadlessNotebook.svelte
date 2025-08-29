@@ -10,7 +10,7 @@
 
   const { children }: Props = $props();
 
-  let pyNotebook: NotebookAPI = $state();
+  let pyNotebook: NotebookAPI = $state()!;
 
   onMount(async () => {
     const py = await getPy({ notebook: true });

@@ -9,8 +9,6 @@
   import { run } from "svelte/legacy";
   import { slide } from "svelte/transition";
 
-  let collapse = $state(collapseStates.get(parent) ?? folder.children.length > 20);
-
   interface Props {
     folder: Folder;
     parent?: string;
@@ -24,6 +22,8 @@
     focusedFile = $bindable(null),
     depth = 0,
   }: Props = $props();
+
+  let collapse = $state(collapseStates.get(parent) ?? folder.children.length > 20);
 
   function getPath(item: Tree[number]) {
     return parent ? `${parent}/${item.name}` : item.name;

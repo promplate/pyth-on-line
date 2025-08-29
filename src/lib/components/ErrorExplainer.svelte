@@ -48,7 +48,7 @@
 
   onMount(invoke);
 
-  let ref: HTMLDivElement = $state();
+  let ref: HTMLDivElement = $state()!;
 </script>
 
 <div class="mt-10 h-full max-w-[calc(100vw-40px)] w-full sm:mt-30vh lg:max-w-xl sm:max-w-lg sm:w-3/4">

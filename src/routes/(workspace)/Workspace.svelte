@@ -18,7 +18,7 @@
   }
 
   let focusedFile: keyof typeof sources = $state(getDefaultFile());
-  let container: HTMLElement = $state();
+  let container: HTMLElement = $state()!;
 
   registerCommandGroup("Workspace", Object.keys(sources).map(name => ({
     text: `Open ${name}`,

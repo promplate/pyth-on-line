@@ -10,6 +10,7 @@
 
   interface Props {
     text?: string;
+    onclick?: () => void;
   }
 
   const { text = "" }: Props = $props();
