@@ -80,11 +80,13 @@ class AsyncDerived[T](BaseDerived[Awaitable[T]]):
 
     async def _call_async(self):
         self.track()
-        await self._sync_dirty_deps()
-        if self.dirty:
-            await self.recompute()
-        self._call_task = None
-        return self._value
+        try:
+            await self._sync_dirty_deps()
+            if self.dirty:
+                await self.recompute()
+            return self._value
+        finally:
+            self._call_task = None
 
     def __call__(self) -> Awaitable[T]:
         if self._call_task is not None:
