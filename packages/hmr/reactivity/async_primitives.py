@@ -61,17 +61,18 @@ class AsyncDerived[T](BaseDerived[Awaitable[T]]):
         self.notify()
 
     async def __sync_dirty_deps(self):
-        current_computations = self.context.leaf.current_computations
-        for dep in self.dependencies:
-            if isinstance(dep, BaseDerived) and dep not in current_computations:
-                if isinstance(dep, AsyncDerived):
-                    await dep._sync_dirty_deps()  # noqa: SLF001
-                    if dep.dirty:
-                        await dep()
-                elif dep.dirty:
-                    dep()
-        self._sync_dirty_deps_task = None
-
+        try:
+            current_computations = self.context.leaf.current_computations
+            for dep in self.dependencies:
+                if isinstance(dep, BaseDerived) and dep not in current_computations:
+                    if isinstance(dep, AsyncDerived):
+                        await dep._sync_dirty_deps()  # noqa: SLF001
+                        if dep.dirty:
+                            await dep()
+                    elif dep.dirty:
+                        dep()
+        finally:
+            self._sync_dirty_deps_task = None
     def _sync_dirty_deps(self):
         if self._sync_dirty_deps_task is not None:
             return self._sync_dirty_deps_task
