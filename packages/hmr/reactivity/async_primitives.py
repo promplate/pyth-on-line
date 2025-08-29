@@ -86,11 +86,17 @@ class AsyncDerived[T](BaseDerived[Awaitable[T]]):
         self._call_task = None
         return self._value
 
-    def __call__(self):
+    def __call__(self) -> Awaitable[T]:
         if self._call_task is not None:
             return self._call_task
         task = self._call_task = self.start(self._call_async)
-        return task
+
+        class Future:
+            def __await__(_):  # noqa: N805  # type: ignore
+                self.track()
+                return task.__await__()
+
+        return Future()
 
     def trigger(self):
         self.dirty = True

@@ -127,12 +127,15 @@ async def test_nested_derived():
 
 async def _trio_test_nested_derived():
     from trio import open_nursery
+    from trio.testing import wait_all_tasks_blocked
 
     async with open_nursery() as nursery:
+        factory = create_task_factory(nursery)
+
         if TYPE_CHECKING:
             trio_async_derived = AsyncDerived
         else:
-            trio_async_derived = partial(AsyncDerived, task_factory=create_task_factory(nursery))
+            trio_async_derived = partial(AsyncDerived, task_factory=factory)
 
         s = Signal(0)
 
@@ -157,6 +160,23 @@ async def _trio_test_nested_derived():
             s.set(4)
             assert await h() == 1
             assert stdout.delta == "f\ng\nh\n"
+
+            with AsyncEffect(h, task_factory=factory) as effect:  # hard puller
+                await wait_all_tasks_blocked()
+                assert h.subscribers == {effect}
+
+                s.set(5)
+                assert stdout.delta == ""
+                await wait_all_tasks_blocked()
+                assert stdout.delta == "f\ng\n"
+                assert [await f(), await g(), await h()] == [5, 2, 1]
+
+                s.set(6)
+                assert stdout.delta == ""
+                await wait_all_tasks_blocked()
+                assert stdout.delta == "f\ng\nh\n"
+                assert [await f(), await g(), await h()] == [6, 3, 1]
+                assert stdout.delta == ""
 
 
 def test_trio_nested_derived_sync():
