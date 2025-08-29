@@ -73,6 +73,7 @@ class AsyncDerived[T](BaseDerived[Awaitable[T]]):
                         dep()
         finally:
             self._sync_dirty_deps_task = None
+
     def _sync_dirty_deps(self):
         if self._sync_dirty_deps_task is not None:
             return self._sync_dirty_deps_task
