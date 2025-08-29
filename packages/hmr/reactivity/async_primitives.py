@@ -82,8 +82,8 @@ class AsyncDerived[T](BaseDerived[Awaitable[T]]):
 
     async def _call_async(self):
         self.track()
+        await self._sync_dirty_deps()
         try:
-            await self._sync_dirty_deps()
             if self.dirty:
                 await self.recompute()
             return self._value
