@@ -4,7 +4,13 @@
   import getPy from "$lib/pyodide";
   import { onDestroy, onMount } from "svelte";
 
-  let pyNotebook: NotebookAPI;
+  interface Props {
+    children?: import("svelte").Snippet<[any]>;
+  }
+
+  const { children }: Props = $props();
+
+  let pyNotebook: NotebookAPI = $state();
 
   onMount(async () => {
     const py = await getPy({ notebook: true });
@@ -14,4 +20,4 @@
   onDestroy(() => pyNotebook?.destroy());
 </script>
 
-<slot {pyNotebook} />
+{@render children?.({ pyNotebook })}

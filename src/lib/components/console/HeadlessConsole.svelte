@@ -1,3 +1,4 @@
+<!-- @migration-task Error while migrating Svelte code: Can't migrate code with afterUpdate and beforeUpdate. Please migrate by hand. -->
 <script context="module" lang="ts">
   export interface Item {
     type: "out" | "err" | "in" | "repr";

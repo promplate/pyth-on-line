@@ -1,22 +1,29 @@
-<script context="module" lang="ts">
+<script module lang="ts">
   const collapseStates = new Map<string, boolean>();
 </script>
 
 <script lang="ts">
   import type { File, Folder, Tree } from "$lib/utils/list2tree";
 
+  import Tree_1 from "./Tree.svelte";
+  import { run } from "svelte/legacy";
   import { slide } from "svelte/transition";
 
-  export let folder: Folder;
-  export let parent = "";
-  export let focusedFile: string | null = null;
+  let collapse = $state(collapseStates.get(parent) ?? folder.children.length > 20);
 
-  let collapse = collapseStates.get(parent) ?? folder.children.length > 20;
-  $: collapseStates.set(parent, collapse);
+  interface Props {
+    folder: Folder;
+    parent?: string;
+    focusedFile?: string | null;
+    depth?: number;
+  }
 
-  $: tree = folder.children;
-
-  export let depth = 0;
+  let {
+    folder,
+    parent = "",
+    focusedFile = $bindable(null),
+    depth = 0,
+  }: Props = $props();
 
   function getPath(item: Tree[number]) {
     return parent ? `${parent}/${item.name}` : item.name;
@@ -60,12 +67,16 @@
         return "i-catppuccin-file";
     }
   }
+  run(() => {
+    collapseStates.set(parent, collapse);
+  });
+  const tree = $derived(folder.children);
 </script>
 
 <section data-container>
   {#if parent !== ""}
-    <button style:--depth="{depth - 1 + 0.8}em" on:click={() => collapse = !collapse}>
-      <div class={collapse ? "i-catppuccin-folder" : "i-catppuccin-folder-open"} />
+    <button style:--depth="{depth - 1 + 0.8}em" onclick={() => collapse = !collapse}>
+      <div class={collapse ? "i-catppuccin-folder" : "i-catppuccin-folder-open"}></div>
       <div>{parent.split("/").at(-1)}</div>
     </button>
   {/if}
@@ -76,12 +87,12 @@
 
       {#each tree as item}
         {#if item.type === "file"}
-          <button style:--depth="{depth + 0.8}em" class:!bg-neutral-8={focusedFile === getPath(item)} on:click={() => (focusedFile = getPath(item))}>
-            <div class={getFileIcon(item)} />
+          <button style:--depth="{depth + 0.8}em" class:!bg-neutral-8={focusedFile === getPath(item)} onclick={() => (focusedFile = getPath(item))}>
+            <div class={getFileIcon(item)}></div>
             <div>{item.name}</div>
           </button>
         {:else}
-          <svelte:self folder={item} parent={getPath(item)} depth={depth + 1} bind:focusedFile />
+          <Tree_1 folder={item} parent={getPath(item)} depth={depth + 1} bind:focusedFile />
         {/if}
       {/each}
 
@@ -107,7 +118,7 @@
     --uno: transition-background-color duration-100;
   }
 
-  [data-container]:has(> button:first-child:hover) {
+  [data-container]:has(:global(> button:first-child:hover)) {
     --uno: rounded-r-sm bg-neutral-8/10;
   }
 </style>

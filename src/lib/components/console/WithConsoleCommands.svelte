@@ -6,7 +6,11 @@
   import getPy from "$lib/pyodide";
   import { tick } from "svelte";
 
-  export let pyConsole: ConsoleAPI;
+  interface Props {
+    pyConsole: ConsoleAPI;
+  }
+
+  const { pyConsole }: Props = $props();
 
   const installTitle = "Install Packages";
 

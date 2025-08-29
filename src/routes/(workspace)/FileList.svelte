@@ -4,13 +4,15 @@
   import Tree from "./Tree.svelte";
   import { unflatten } from "$lib/utils/list2tree";
 
-  export let files: string[] = [];
+  interface Props {
+    files?: string[];
+    focusedFile?: any;
+    title?: string;
+  }
 
-  export let focusedFile = files.length ? files![0] : null;
+  let { files = [], focusedFile = $bindable(files.length ? files![0] : null), title = "Files" }: Props = $props();
 
-  export let title = "Files";
-
-  $: root = { name: "", children: unflatten(files), type: "folder" } as Folder;
+  const root = $derived({ name: "", children: unflatten(files), type: "folder" } as Folder);
 </script>
 
 <div class="relative h-full select-none gap-1 overflow-y-scroll">

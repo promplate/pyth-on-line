@@ -9,10 +9,14 @@
   import getPy from "$lib/pyodide";
   import { onMount } from "svelte";
 
-  export let data: PageServerData;
+  interface Props {
+    data: PageServerData;
+  }
 
-  let text = "";
-  let loading = true;
+  const { data }: Props = $props();
+
+  let text = $state("");
+  let loading = $state(true);
 
   async function refresh() {
     loading = true;
@@ -27,12 +31,16 @@
 
 {#if loading}
   <div class="grid h-50vh w-full place-items-center rounded-md bg-white/3">
-    <div class="i-svg-spinners-90-ring-with-bg op-50" />
+    <div class="i-svg-spinners-90-ring-with-bg op-50"></div>
   </div>
 {:else}
-  <HeadlessNotebook let:pyNotebook>
-    <WithMarkdown let:parse>
-      <Router node={parse(text)} {OverrideCode} codeProps={{ pyNotebook, heuristics: true }} inlineCodeProps={{ watch: pyNotebook?.watch }} />
-    </WithMarkdown>
+  <HeadlessNotebook>
+    {#snippet children({ pyNotebook })}
+      <WithMarkdown>
+        {#snippet children({ parse })}
+          <Router node={parse(text)} {OverrideCode} codeProps={{ pyNotebook, heuristics: true }} inlineCodeProps={{ watch: pyNotebook?.watch }} />
+        {/snippet}
+      </WithMarkdown>
+    {/snippet}
   </HeadlessNotebook>
 {/if}

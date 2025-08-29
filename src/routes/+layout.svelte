@@ -1,14 +1,20 @@
-<script>
+<script lang="ts">
   import "@unocss/reset/tailwind.css";
   import "uno.css";
   import "@fontsource-variable/fira-code";
   import "@fontsource-variable/inter";
 
   import { dev } from "$app/environment";
-  import { page } from "$app/stores";
+  import { page } from "$app/state";
   import * as env from "$env/static/public";
   import CmdK from "$lib/components/command/CmdK.svelte";
   import { Toaster } from "svelte-sonner";
+
+  interface Props {
+    children?: import("svelte").Snippet;
+  }
+
+  const { children }: Props = $props();
 
   // @ts-ignore
   const headScripts = atob(env.PUBLIC_HEAD_SCRIPTS ?? "");
@@ -16,7 +22,7 @@
   const originTrialToken = env.PUBLIC_ORIGIN_TRIAL_TOKEN;
 
   const ogTitle = "Python Online";
-  const ogImage = `${$page.url.origin.replace("http://sveltekit-prerender", "")}/og${$page.url.pathname}`;
+  const ogImage = `${page.url.origin.replace("http://sveltekit-prerender", "")}/og${page.url.pathname}`;
   const ogDescription = "A simple online python console";
 </script>
 
@@ -46,7 +52,7 @@
 
 <Toaster theme="dark" toastOptions={{ class: "text-xs font-mono" }} />
 
-<slot />
+{@render children?.()}
 
 <CmdK />
 

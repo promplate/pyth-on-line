@@ -4,11 +4,19 @@
   import OverrideCode from "./Code.svelte";
   import HeadlessNotebook from "$lib/components/notebook/HeadlessNotebook.svelte";
 
-  export let text: string;
+  interface Props {
+    text: string;
+  }
+
+  const { text }: Props = $props();
 </script>
 
-<HeadlessNotebook let:pyNotebook>
-  <WithMarkdown let:parse>
-    <Router node={parse(text)} {OverrideCode} codeProps={{ pyNotebook }} inlineCodeProps={{ watch: pyNotebook?.watch }} />
-  </WithMarkdown>
+<HeadlessNotebook>
+  {#snippet children({ pyNotebook })}
+    <WithMarkdown>
+      {#snippet children({ parse })}
+        <Router node={parse(text)} {OverrideCode} codeProps={{ pyNotebook }} inlineCodeProps={{ watch: pyNotebook?.watch }} />
+      {/snippet}
+    </WithMarkdown>
+  {/snippet}
 </HeadlessNotebook>

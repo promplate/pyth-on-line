@@ -4,7 +4,11 @@
   import GitHubUser from "$lib/components/GitHubUser.svelte";
   import { fromNow } from "$lib/date";
 
-  export let data: PageData;
+  interface Props {
+    data: PageData;
+  }
+
+  const { data }: Props = $props();
 
   const { avatarUrl, name, login, total, gists } = data;
 </script>
@@ -25,14 +29,14 @@
           <div class="flex flex-row items-center justify-between gap-2">
             <h2 class="overflow-hidden text-ellipsis">{description || name.slice(0, 8)}</h2>
             {#if isPublic}
-              <div class="i-material-symbols-public shrink-0 op-50" />
+              <div class="i-material-symbols-public shrink-0 op-50"></div>
             {/if}
           </div>
           <div class="flex flex-row items-center gap-2 op-50">
             {#if stargazerCount}
               <div class="flex flex-row items-center gap-0.5">
                 {stargazerCount}
-                <div class={viewerHasStarred ? "i-material-symbols-kid-star" : "i-material-symbols-kid-star-outline"} />
+                <div class={viewerHasStarred ? "i-material-symbols-kid-star" : "i-material-symbols-kid-star-outline"}></div>
               </div>
             {/if}
             <div class="ml-auto">

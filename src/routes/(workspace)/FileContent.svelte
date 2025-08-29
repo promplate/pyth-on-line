@@ -1,8 +1,12 @@
 <script lang="ts">
   import Editor from "$lib/components/Editor.svelte";
 
-  export let content: string;
-  export let lang: string;
+  interface Props {
+    content: string;
+    lang: string;
+  }
+
+  let { content = $bindable(), lang }: Props = $props();
 
   function getLanguage(ext: string) {
     switch (ext) {

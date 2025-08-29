@@ -5,23 +5,32 @@
 
   import Tooltip from "../Tooltip.svelte";
   import { onDestroy } from "svelte";
+  import { run } from "svelte/legacy";
 
-  export let node: Node;
-  export let inspect: typeof ConsoleAPI.prototype.inspect | null = null;
-  export let watch: typeof NotebookAPI.prototype.watch | null = null;
+  interface Props {
+    node: Node;
+    inspect?: typeof ConsoleAPI.prototype.inspect | null;
+    watch?: typeof NotebookAPI.prototype.watch | null;
+  }
 
-  let ref: HTMLElement;
+  const { node, inspect = null, watch = null }: Props = $props();
 
-  $: inlineCode = (node as InlineCode);
+  let ref: HTMLElement = $state();
 
-  let show = false;
-  let inspection: Inspection;
+  const inlineCode = ($derived(node as InlineCode));
 
-  $: show && inspect && (inspection = inspect(inlineCode.value));
+  let show = $state(false);
+  let inspection: Inspection = $state();
+
+  run(() => {
+    show && inspect && (inspection = inspect(inlineCode.value));
+  });
 
   const callbacks: (() => void)[] = [];
 
-  $: show && watch && !callbacks.length && callbacks.push(watch(inlineCode.value, result => (inspection = result)));
+  run(() => {
+    show && watch && !callbacks.length && callbacks.push(watch(inlineCode.value, result => (inspection = result)));
+  });
 
   function stopWatching() {
     while (callbacks.length) callbacks.pop()!();
@@ -29,11 +38,11 @@
 
   onDestroy(stopWatching);
 
-  let outerColor: string;
-  let classColor: string;
-  let valueColor: string;
+  let outerColor: string = $state();
+  let classColor: string = $state();
+  let valueColor: string = $state();
 
-  $: {
+  run(() => {
     switch (inspection?.type) {
       case "class": {
         outerColor = "ring-orange-3/80";
@@ -53,7 +62,7 @@
         valueColor = "text-blue-50";
       }
     }
-  }
+  });
 </script>
 
 {#if inspect || watch}
@@ -64,7 +73,7 @@
     </div>
   </Tooltip>
 
-  <code on:mouseenter={() => show = true} on:mouseleave={() => [(show = false), stopWatching()]} bind:this={ref}>{inlineCode.value}</code>
+  <code onmouseenter={() => show = true} onmouseleave={() => [(show = false), stopWatching()]} bind:this={ref}>{inlineCode.value}</code>
 {:else}
   <code>{inlineCode.value}</code>
 {/if}

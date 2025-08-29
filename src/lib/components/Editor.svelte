@@ -1,4 +1,4 @@
-<script context="module">
+<script module>
   let firstLoad = true;
 </script>
 
@@ -9,16 +9,26 @@
   import { shikiToMonaco } from "@shikijs/monaco";
   import { getHighlighter } from "$lib/highlight";
   import { createEventDispatcher, onDestroy, onMount } from "svelte";
+  import { run } from "svelte/legacy";
   import { fade } from "svelte/transition";
 
-  let container: HTMLDivElement;
+  let container: HTMLDivElement = $state();
 
-  export let source: string;
-  export let showLineNum = false;
-  export let wrap = false;
-  export let lang: string;
+  interface Props {
+    source: string;
+    showLineNum?: boolean;
+    wrap?: boolean;
+    lang: string;
+  }
 
-  let editor: monaco.editor.IStandaloneCodeEditor;
+  let {
+    source = $bindable(),
+    showLineNum = false,
+    wrap = false,
+    lang,
+  }: Props = $props();
+
+  let editor: monaco.editor.IStandaloneCodeEditor = $state();
   let core: typeof monaco;
 
   async function loadLanguage(language: string) {
@@ -80,15 +90,17 @@
     }
   }
 
-  $: editor && reload(source, lang);
+  run(() => {
+    editor && reload(source, lang);
+  });
 </script>
 
-<div bind:this={container} class="h-full w-full overflow-hidden transition-opacity duration-400" class:op-0={!editor && firstLoad} />
+<div bind:this={container} class="h-full w-full overflow-hidden transition-opacity duration-400" class:op-0={!editor && firstLoad}></div>
 
 {#if !editor && firstLoad}
   <div class="absolute inset-0 grid place-items-center @container" out:fade>
     <div class="flex flex-row items-center gap-2 op-80">
-      <div class="i-svg-spinners-90-ring-with-bg" />
+      <div class="i-svg-spinners-90-ring-with-bg"></div>
       <div class="hidden text-sm tracking-wide @lg:block">initiating monaco editor</div>
     </div>
   </div>

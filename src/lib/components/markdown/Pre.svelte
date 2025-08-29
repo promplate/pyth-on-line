@@ -4,9 +4,15 @@
   import WithCodeActions from "../reusable/WithCodeActions.svelte";
   import CodeBlock from "$lib/components/CodeBlock.svelte";
 
-  export let node: Node;
+  interface Props {
+    node: Node;
+  }
+
+  const { node }: Props = $props();
 </script>
 
-<WithCodeActions {node} let:code>
-  <CodeBlock lang={code.lang ?? "text"} code={code.value} />
+<WithCodeActions {node}>
+  {#snippet children({ code })}
+    <CodeBlock lang={code.lang ?? "text"} code={code.value} />
+  {/snippet}
 </WithCodeActions>

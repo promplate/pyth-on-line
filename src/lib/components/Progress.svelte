@@ -1,10 +1,6 @@
 <script lang="ts">
   import { spring } from "svelte/motion";
 
-  export let show = false;
-
-  export let progress = newStore();
-
   function newStore() {
     return spring(0, {
       stiffness: 0.1,
@@ -13,13 +9,25 @@
     });
   }
 
-  export let reset = () => progress = newStore();
+  interface Props {
+    show?: boolean;
+    progress?: any;
+    reset?: any;
+    children?: import("svelte").Snippet<[any]>;
+  }
+
+  let {
+    show = false,
+    progress = $bindable(newStore()),
+    reset = () => progress = newStore(),
+    children,
+  }: Props = $props();
 </script>
 
-<slot value={$progress} />
+{@render children?.({ value: $progress })}
 
-<div on:transitionend={() => !show && reset()} class="relative h-2px overflow-hidden rounded-full" class:hide={!show}>
-  <div class="absolute left-0 h-full rounded-full bg-neutral-2" style:right="{100 - $progress * 100}%" />
+<div ontransitionend={() => !show && reset()} class="relative h-2px overflow-hidden rounded-full" class:hide={!show}>
+  <div class="absolute left-0 h-full rounded-full bg-neutral-2" style:right="{100 - $progress * 100}%"></div>
 </div>
 
 <style>

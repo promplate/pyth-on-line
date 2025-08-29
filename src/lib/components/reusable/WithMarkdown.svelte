@@ -1,4 +1,12 @@
-<script context="module" lang="ts">
+<script lang="ts">
+  interface Props {
+    children?: import("svelte").Snippet<[any]>;
+  }
+
+  const { children }: Props = $props();
+</script>
+
+<script module lang="ts">
   import "../../md.css";
 
   import { fromMarkdown } from "mdast-util-from-markdown";
@@ -14,5 +22,5 @@
 </script>
 
 <article class="max-w-full text-sm text-neutral-2 font-sans prose [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
-  <slot {parse} />
+  {@render children?.({ parse })}
 </article>

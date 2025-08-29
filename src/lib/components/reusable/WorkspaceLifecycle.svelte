@@ -4,9 +4,14 @@
   import getPy from "$lib/pyodide";
   import { onDestroy, onMount } from "svelte";
 
-  export let sources: Record<string, string>;
+  interface Props {
+    sources: Record<string, string>;
+    children?: import("svelte").Snippet<[any]>;
+  }
 
-  let workspace: WorkspaceAPI;
+  const { sources, children }: Props = $props();
+
+  let workspace: WorkspaceAPI = $state();
 
   onMount(async () => {
     const py = await getPy({ workspace: true });
@@ -19,4 +24,4 @@
   });
 </script>
 
-<slot sync={workspace?.sync} save={workspace?.save} />
+{@render children?.({ sync: workspace?.sync, save: workspace?.save })}

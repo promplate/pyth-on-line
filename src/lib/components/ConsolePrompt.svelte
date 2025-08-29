@@ -1,5 +1,9 @@
-<script>
-  export let prompt = ">>>";
+<script lang="ts">
+  interface Props {
+    prompt?: string;
+  }
+
+  const { prompt = ">>>" }: Props = $props();
 </script>
 
 <span class="flex-shrink-0 select-none op-25 group-hover:op-100">{`${prompt} `}</span>

@@ -1,13 +1,24 @@
 <script lang="ts">
   import { tick } from "svelte";
   import Portal from "svelte-portal";
+  import { run } from "svelte/legacy";
 
-  export let target: HTMLElement;
-  export let show: boolean;
-  export let onHide: () => void = () => {};
+  interface Props {
+    target: HTMLElement;
+    show: boolean;
+    onHide?: () => void;
+    children?: import("svelte").Snippet;
+  }
 
-  let position = { top: 0, left: 0 };
-  let div: HTMLDivElement;
+  const {
+    target,
+    show,
+    onHide = () => {},
+    children,
+  }: Props = $props();
+
+  let position = $state({ top: 0, left: 0 });
+  let div: HTMLDivElement = $state();
 
   async function updatePosition() {
     await tick();
@@ -30,12 +41,14 @@
     position = { top, left };
   }
 
-  $: show && updatePosition();
+  run(() => {
+    show && updatePosition();
+  });
 
-  $: top = `${position.top}px`;
-  $: left = `${position.left}px`;
+  const top = $derived(`${position.top}px`);
+  const left = $derived(`${position.left}px`);
 
-  let showing = show;
+  let showing = $state(show);
 
   async function maybeFadeIn(show: boolean) {
     if (show && !showing) {
@@ -44,14 +57,16 @@
     }
   }
 
-  $: maybeFadeIn(show);
+  run(() => {
+    maybeFadeIn(show);
+  });
 </script>
 
 {#if show || showing}
   <Portal>
     {@const hiding = !show || !showing}
-    <div on:transitionend={() => [(showing = show), !show && onHide()]} class:op-0={hiding} class:pointer-events-none={hiding} class="fixed transition-opacity" style:top style:left bind:this={div}>
-      <slot />
+    <div ontransitionend={() => [(showing = show), !show && onHide()]} class:op-0={hiding} class:pointer-events-none={hiding} class="fixed transition-opacity" style:top style:left bind:this={div}>
+      {@render children?.()}
     </div>
   </Portal>
 {/if}

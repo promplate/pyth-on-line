@@ -1,7 +1,12 @@
 <script lang="ts">
   import { toastMarkdown } from "$lib/utils/toast";
 
-  export let text: string;
+  interface Props {
+    text: string;
+    children?: import("svelte").Snippet<[any]>;
+  }
+
+  let { text = $bindable(), children }: Props = $props();
 
   async function handleClick() {
     text = text.trimEnd();
@@ -11,4 +16,4 @@
   }
 </script>
 
-<slot {handleClick} />
+{@render children?.({ handleClick })}

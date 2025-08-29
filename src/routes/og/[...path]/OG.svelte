@@ -1,8 +1,17 @@
 <script lang="ts">
-  export let origin: string;
-  export let path: string;
-  export let title = "Pythonline: Python IDE with Pyodide";
-  export let subtitle = path;
+  interface Props {
+    origin: string;
+    path: string;
+    title?: string;
+    subtitle?: any;
+  }
+
+  const {
+    origin,
+    path,
+    title = "Pythonline: Python IDE with Pyodide",
+    subtitle = path,
+  }: Props = $props();
 
   const href = new URL(path, origin).href;
 </script>

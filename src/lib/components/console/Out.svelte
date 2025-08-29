@@ -3,7 +3,11 @@
   import Copy from "./Copy.svelte";
   import MaybeAnsi from "./MaybeANSI.svelte";
 
-  export let text: string;
+  interface Props {
+    text: string;
+  }
+
+  const { text }: Props = $props();
 </script>
 
 <div class="group relative whitespace-normal">
