@@ -3,7 +3,11 @@
 
   import Workspace from "../../../Workspace.svelte";
 
-  export let data: PageServerData;
+  interface Props {
+    data: PageServerData;
+  }
+
+  const { data }: Props = $props();
 
   const { sources } = data;
 </script>

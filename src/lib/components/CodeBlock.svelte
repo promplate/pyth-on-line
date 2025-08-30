@@ -3,9 +3,13 @@
 
   import { highlight } from "../highlight";
 
-  export let code: string;
-  export let lang = "text";
-  export let items: Item[] = [];
+  interface Props {
+    code: string;
+    lang?: string;
+    items?: Item[];
+  }
+
+  let { code = $bindable(), lang = "text", items = [] }: Props = $props();
 
   code = code.replaceAll("\r", "");
 </script>

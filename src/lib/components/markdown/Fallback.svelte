@@ -4,9 +4,13 @@
   import { toHtml } from "hast-util-to-html";
   import { toHast } from "mdast-util-to-hast";
 
-  export let node: Node;
+  interface Props {
+    node: Node;
+  }
 
-  $: root = node as Root;
+  const { node }: Props = $props();
+
+  const root = $derived(node as Root);
 </script>
 
 {@html toHtml(toHast(root))}

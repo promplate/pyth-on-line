@@ -1,9 +1,9 @@
-<div class="i-carbon-logo-python pointer-events-none absolute right-0 top-1/2 text-[clamp(9rem,50vw-7rem,22.5rem)] op-3 -translate-y-1/2" />
+<div class="i-carbon-logo-python pointer-events-none absolute right-0 top-1/2 text-[clamp(9rem,50vw-7rem,22.5rem)] op-3 -translate-y-1/2"></div>
 
 <div class="h-full min-h-sm flex flex-col justify-between">
   <div class="flex flex-row items-center gap-2">
     <a class="w-fit flex flex-row select-none items-center gap-1 rounded-full bg-white/5 p-2 pr-2.5 transition hover:(bg-white text-neutral-9)" href="https://github.com/promplate/pyth-on-line">
-      <div class="i-mdi-github" />
+      <div class="i-mdi-github"></div>
       <h2 class="contents">
         <div class="flex flex-row gap-0.3 text-xs tracking-wider">
           promplate
@@ -13,7 +13,7 @@
       </h2>
     </a>
     <a class="rounded-full bg-white/5 p-2 transition hover:(bg-white text-neutral-9 -rotate-45)" href="https://github.com/promplate/pyth-on-line" target="_blank">
-      <div class="i-ic-twotone-arrow-forward" />
+      <div class="i-ic-twotone-arrow-forward"></div>
     </a>
   </div>
 
@@ -33,10 +33,10 @@
     <div>
       <h2 class="group w-fit flex flex-row gap-1.5 rounded-sm bg-neutral-1 px-2.5 py-1.5 text-sm text-neutral-9 font-bold font-mono">
         AI-supercharged online python IDE
-        <span class="hidden select-none group-hover:(block after:content-['🚀'])" />
+        <span class="hidden select-none group-hover:(block after:content-['🚀'])"></span>
       </h2>
     </div>
   </div>
 
-  <div />
+  <div></div>
 </div>

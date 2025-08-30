@@ -5,7 +5,11 @@
   import { accessToken, login } from "$lib/oauth";
   import { onMount } from "svelte";
 
-  export let data: PageServerData;
+  interface Props {
+    data: PageServerData;
+  }
+
+  const { data }: Props = $props();
 
   const success = Boolean(data.access_token);
 
@@ -22,7 +26,7 @@
       Login successful, redirecting...
     {:else}
       Failed to login,
-      <button class="inline underline underline-(white offset-2) not-hover:underline-op-30" on:click={login}>retry</button>?
+      <button class="inline underline underline-(white offset-2) not-hover:underline-op-30" onclick={login}>retry</button>?
     {/if}
   </div>
 </div>

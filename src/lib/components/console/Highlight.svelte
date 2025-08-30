@@ -1,8 +1,12 @@
 <script lang="ts">
   import { highlight } from "../../highlight";
 
-  export let lang = "python";
-  export let text: string;
+  interface Props {
+    lang?: string;
+    text: string;
+  }
+
+  const { lang = "python", text }: Props = $props();
 </script>
 
 <div tabindex="-1" class="contents [&>pre]:(inline whitespace-pre-wrap) [&_code>span]:min-h-[calc(2em-8px)] [&_code]:(flex flex-col gap-0.2em) [&_span]:font-mono ![&>pre]:bg-transparent">

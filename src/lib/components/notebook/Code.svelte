@@ -6,11 +6,15 @@
   import CodeBlock from "$lib/components/CodeBlock.svelte";
   import { patchSource } from "$lib/utils/formatSource";
 
-  export let node: Node;
-  export let pyNotebook: NotebookAPI;
-  export let heuristics = false;
+  interface Props {
+    node: Node;
+    pyNotebook: NotebookAPI;
+    heuristics?: boolean;
+  }
 
-  let items: Item[] = [];
+  const { node, pyNotebook, heuristics = false }: Props = $props();
+
+  let items: Item[] = $state([]);
 
   function sync(newItems: Item[]) {
     items = newItems;
@@ -35,9 +39,11 @@
     return false;
   }
 
-  $: valid = isPython(pyNotebook, (node as Code).value);
+  const valid = $derived(isPython(pyNotebook, (node as Code).value));
 </script>
 
-<WithCodeActions {node} {run} runnable={valid} let:code>
-  <CodeBlock lang={code.lang ?? valid ? "python" : "text"} code={code.value} {items} />
+<WithCodeActions {node} {run} runnable={valid}>
+  {#snippet children({ code })}
+    <CodeBlock lang={code.lang ?? valid ? "python" : "text"} code={code.value} {items} />
+  {/snippet}
 </WithCodeActions>

@@ -1,4 +1,4 @@
-<script context="module" lang="ts">
+<script module lang="ts">
   interface BaseItem {
     text: string;
     alwaysRender?: boolean;
@@ -23,16 +23,20 @@
 </script>
 
 <script lang="ts">
+  import ItemComponent from "./Item.svelte";
   import { browser } from "$app/environment";
   import { beforeNavigate, preloadData } from "$app/navigation";
   import { Command } from "cmdk-sv";
 
-  export let item: Item;
+  interface Props {
+    item: Item;
 
-  // eslint-disable-next-line no-undef-init
-  export let callback: (() => any) | undefined = undefined;
+    callback?: (() => any) | undefined;
+  }
 
-  let acted = false;
+  const { item, callback = undefined }: Props = $props();
+
+  let acted = $state(false);
 
   beforeNavigate(({ complete }) => {
     acted && complete.then(callback);
@@ -48,11 +52,10 @@
       </h6>
       <div {...group.attrs} class="flex flex-col">
         {#each item.children as child}
-          <svelte:self item={child} {callback} />
+          <ItemComponent item={child} {callback} />
         {/each}
       </div>
     </div>
-
   </Command.Group>
 
 {:else if item.type === "link"}
