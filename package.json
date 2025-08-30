@@ -31,7 +31,7 @@
     "bits-ui": "^0.22.0",
     "cheerio": "^1.1.2",
     "cmdk-sv": "^0.0.19",
-    "dayjs": "^1.11.15",
+    "dayjs": "^1.11.17",
     "hast-util-from-html": "^2.0.3",
     "hast-util-to-mdast": "^10.1.2",
     "htmlparser2": "^10.0.0",
