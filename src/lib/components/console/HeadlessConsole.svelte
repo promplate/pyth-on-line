@@ -1,5 +1,4 @@
-<!-- @migration-task Error while migrating Svelte code: Can't migrate code with afterUpdate and beforeUpdate. Please migrate by hand. -->
-<script context="module" lang="ts">
+<script module lang="ts">
   export interface Item {
     type: "out" | "err" | "in" | "repr";
     text: string;
@@ -17,16 +16,27 @@
   import WithConsoleCommands from "./WithConsoleCommands.svelte";
   import getPy from "$lib/pyodide";
   import { needScroll, scrollToBottom } from "$lib/utils/scroll";
-  import { afterUpdate, beforeUpdate, onDestroy, onMount } from "svelte";
+  import { onDestroy, onMount } from "svelte";
 
-  export let ready = false;
-  export let status: Status = "complete";
-  export let log: Item[] = [];
-  export let pyConsole: ConsoleAPI;
-  export let complete: AutoComplete | undefined;
-  export let container: HTMLElement | undefined;
+  let loading = $state(0);
 
-  let loading = 0;
+  let {
+    ready = $bindable(false),
+    status = $bindable<Status>("complete"),
+    log = $bindable<Item[]>([]),
+    pyConsole = $bindable<ConsoleAPI>(),
+    complete = $bindable<AutoComplete | undefined>(),
+    container = $bindable<HTMLElement | undefined>(),
+    push = $bindable(async (source: string, hidden = false) => {
+      const res = pyConsole.push(source, hidden);
+      if (res.status === "complete") {
+        loading++;
+        res.future.add_done_callback(() => loading--);
+      }
+      return res;
+    }),
+    children,
+  } = $props();
 
   function syncLog() {
     log = pyConsole.get_items();
@@ -47,24 +57,16 @@
 
   let autoscroll = false;
 
-  beforeUpdate(() => {
+  $effect.pre(() => {
     autoscroll = needScroll(container ?? document.documentElement, 500);
   });
 
-  afterUpdate(() => {
+  $effect(() => {
     autoscroll && scrollToBottom(container ?? document.documentElement);
   });
 
-  export async function push(source: string, hidden = false) {
-    const res = pyConsole.push(source, hidden);
-    if (res.status === "complete") {
-      loading++;
-      res.future.add_done_callback(() => loading--);
-    }
-    return res;
-  }
 </script>
 
-<slot {status} {loading} />
+{@render children?.({ status, loading })}
 
 <WithConsoleCommands {pyConsole} />
