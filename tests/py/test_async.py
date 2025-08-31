@@ -268,7 +268,7 @@ async def test_async_derived_track_behavior():
 
     assert await h() == 1
 
-    assert f.subscribers == {g}
+    assert f.subscribers == {g.fn}  # the inner one
     assert g.subscribers == {h}
 
     s.set(2)

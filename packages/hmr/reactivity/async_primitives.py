@@ -71,7 +71,7 @@ class AsyncDerived[T](BaseDerived[Awaitable[T]]):
                         if dep.dirty:
                             await dep()
                     else:
-                        await self.__sync_dirty_deps.__func__(dep)
+                        await __class__.__sync_dirty_deps(dep)  # noqa: SLF001  # type: ignore
                         if dep.dirty:
                             dep()
         finally:
