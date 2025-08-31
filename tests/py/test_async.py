@@ -1,11 +1,11 @@
-from asyncio import TaskGroup, sleep
+from asyncio import TaskGroup, gather, sleep, timeout
 from functools import partial
 from typing import TYPE_CHECKING
 
 from pytest import raises
 from reactivity.async_primitives import AsyncDerived, AsyncEffect
 from reactivity.primitives import Derived, Signal
-from utils import StepController, capture_stdout, create_task_factory, run_trio_in_asyncio
+from utils import Clock, capture_stdout, create_task_factory, run_trio_in_asyncio
 
 
 async def test_async_effect():
@@ -210,47 +210,45 @@ async def test_invalidate_before_call_done():
     assert await f() == 2
 
 
-async def test_async_derived_race_condition_prevention():
-    s = Signal(1)
-    clock = StepController()
-    order = []
+async def test_concurrent_tracking():
+    a, b, c = Signal(1), Signal(1), Signal(1)
 
-    @AsyncDerived
-    async def slow():
-        order.append("start_slow")
-        await clock.wait_until(3)  # intentionally slow
-        result = s.get() * 10
-        order.append("end_slow")
-        return result
+    async with timeout(1), Clock() as clock:
 
-    @AsyncDerived
-    async def fast():
-        order.append("fast")
-        return s.get() + 1
+        @clock.async_derived
+        async def _f():
+            await clock.sleep(1)
+            return a.get()
 
-    # Step 1: create
-    await clock.step()
+        @clock.async_derived
+        async def _g():
+            await clock.sleep(2)
+            return b.get()
 
-    # Step 2: start both computations
-    slow_task = slow()
-    fast_task = fast()
-    await clock.step()  # Step 3
+        f = Derived(lambda: _f())
+        g = Derived(lambda: _g())
 
-    # Fast computation should complete first
-    assert await fast_task == 2
+        @clock.async_derived
+        async def h():
+            return sum(await gather(f(), g())) + c.get()
 
-    # Step 4: let slow computation complete
-    await clock.step()
-    assert await slow_task == 10
+        await clock.fast_forward_to(2)
+        assert await h() == 3
 
-    # Verify execution order
-    assert order == ["start_slow", "fast", "end_slow"]
+        assert {*h.dependencies} == {f, g, c}
 
-    # Step 5: modify signal and test reactivity
-    s.set(2)
+        c.set(2)
+        assert await h() == 4
 
-    assert await fast() == 3
-    assert await slow() == 20
+        a.set(2)
+        await clock.tick()
+        assert await h() == 5
+
+        b.set(2)
+        await clock.tick()
+        assert await f() == 2
+        await clock.tick()
+        assert await h() == 6
 
 
 async def test_async_derived_track_behavior():
