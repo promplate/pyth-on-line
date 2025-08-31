@@ -84,7 +84,6 @@ class AsyncDerived[T](BaseDerived[Awaitable[T]]):
         return task
 
     async def _call_async(self):
-        self.track()
         await self._sync_dirty_deps()
         try:
             if self.dirty:
@@ -97,15 +96,9 @@ class AsyncDerived[T](BaseDerived[Awaitable[T]]):
         finally:
             self._call_task = None
 
-    def __call__(self) -> Awaitable[T]:
-        task = self.start(self._call_async)
-
-        class Future:
-            def __await__(_):  # noqa: N805  # type: ignore
-                self.track()
-                return task.__await__()
-
-        return Future()
+    def __call__(self):
+        self.track()
+        return self.start(self._call_async)
 
     def trigger(self):
         self.dirty = True

@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 from pytest import raises
 from reactivity.async_primitives import AsyncDerived, AsyncEffect
-from reactivity.primitives import Signal
+from reactivity.primitives import Derived, Signal
 from utils import StepController, capture_stdout, create_task_factory, run_trio_in_asyncio
 
 
@@ -265,3 +265,33 @@ async def test_async_derived_race_condition_prevention():
 
     assert fast_result2 == 3  # 2 + 1
     assert slow_result2 == 20  # 2 * 10
+
+
+async def test_async_derived_track_behavior():
+    """Test that awaiting AsyncDerived doesn't track dependencies, but calling does."""
+    s = Signal(1)
+
+    @AsyncDerived
+    async def f():
+        return s.get()
+
+    @Derived
+    def g():
+        return f()
+
+    @AsyncDerived
+    async def h():
+        return await g()
+
+    assert await h() == 1
+
+    assert f.subscribers == {g}
+    assert g.subscribers == {h}
+
+    s.set(2)
+
+    # This is an XFAIL
+
+    assert await h() == 1
+
+    assert await h() == 2
