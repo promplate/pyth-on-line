@@ -216,17 +216,14 @@ async def test_concurrent_tracking():
     async with timeout(1), Clock() as clock:
 
         @clock.async_derived
-        async def _f():
+        async def f():
             await clock.sleep(1)
             return a.get()
 
         @clock.async_derived
-        async def _g():
+        async def g():
             await clock.sleep(2)
             return b.get()
-
-        f = Derived(lambda: _f())
-        g = Derived(lambda: _g())
 
         @clock.async_derived
         async def h():
@@ -260,6 +257,7 @@ async def test_async_derived_track_behavior():
     async def f():
         return s.get()
 
+    @Derived
     @Derived
     def g():
         return f()
