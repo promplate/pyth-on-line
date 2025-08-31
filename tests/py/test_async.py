@@ -232,23 +232,24 @@ async def test_concurrent_tracking():
         async def h():
             return sum(await gather(f(), g())) + c.get()
 
-        await clock.fast_forward_to(2)
-        assert await h() == 3
+        with AsyncEffect(h):
+            await clock.fast_forward_to(2)
+            assert await h() == 3
 
-        assert {*h.dependencies} == {f, g, c}
+            assert {*h.dependencies} == {f, g, c}
 
-        c.set(2)
-        assert await h() == 4
+            c.set(2)
+            assert await h() == 4
 
-        a.set(2)
-        await clock.tick()
-        assert await h() == 5
+            a.set(2)
+            await clock.tick()
+            assert await h() == 5
 
-        b.set(2)
-        await clock.tick()
-        assert await f() == 2
-        await clock.tick()
-        assert await h() == 6
+            b.set(2)
+            await clock.tick()
+            assert await f() == 2
+            await clock.tick()
+            assert await h() == 6
 
 
 async def test_async_derived_track_behavior():
