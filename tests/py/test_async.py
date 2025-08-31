@@ -211,60 +211,46 @@ async def test_invalidate_before_call_done():
 
 
 async def test_async_derived_race_condition_prevention():
-    """Test that AsyncDerived prevents race conditions with proper dependency tracking"""
-    base_signal = Signal(1)
-    step_ctrl = StepController()
-    execution_order = []
+    s = Signal(1)
+    clock = StepController()
+    order = []
 
-    async def slow_computation():
-        execution_order.append("start_slow")
-        await step_ctrl.wait_for_step(3)  # intentionally slow
-        result = base_signal.get() * 10
-        execution_order.append("end_slow")
+    @AsyncDerived
+    async def slow():
+        order.append("start_slow")
+        await clock.wait_until(3)  # intentionally slow
+        result = s.get() * 10
+        order.append("end_slow")
         return result
 
-    async def fast_computation():
-        execution_order.append("fast")
-        return base_signal.get() + 1
-
-    slow_derived = AsyncDerived(slow_computation)
-    fast_derived = AsyncDerived(fast_computation)
+    @AsyncDerived
+    async def fast():
+        order.append("fast")
+        return s.get() + 1
 
     # Step 1: create
-    await step_ctrl.step()
+    await clock.step()
 
     # Step 2: start both computations
-    slow_task = slow_derived()
-    fast_task = fast_derived()
-    await step_ctrl.step()  # Step 3
+    slow_task = slow()
+    fast_task = fast()
+    await clock.step()  # Step 3
 
     # Fast computation should complete first
-    fast_result = await fast_task
-    assert fast_result == 2  # 1 + 1
+    assert await fast_task == 2
 
     # Step 4: let slow computation complete
-    await step_ctrl.step()
-    slow_result = await slow_task
-    assert slow_result == 10  # 1 * 10
+    await clock.step()
+    assert await slow_task == 10
 
     # Verify execution order
-    assert execution_order == ["start_slow", "fast", "end_slow"]
+    assert order == ["start_slow", "fast", "end_slow"]
 
     # Step 5: modify signal and test reactivity
-    base_signal.set(2)
-    await step_ctrl.step()
+    s.set(2)
 
-    # Step 6: recompute
-    slow_task2 = slow_derived()
-    fast_task2 = fast_derived()
-    await step_ctrl.step()  # Step 7
-
-    fast_result2 = await fast_task2
-    await step_ctrl.step()  # Step 8
-    slow_result2 = await slow_task2
-
-    assert fast_result2 == 3  # 2 + 1
-    assert slow_result2 == 20  # 2 * 10
+    assert await fast() == 3
+    assert await slow() == 20
 
 
 async def test_async_derived_track_behavior():

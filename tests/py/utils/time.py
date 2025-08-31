@@ -11,7 +11,7 @@ class StepController:
             self.current_step += 1
             self._step_condition.notify_all()
 
-    async def wait_for_step(self, step: int):
+    async def wait_until(self, step: int):
         while self.current_step < step:
             async with self._step_condition:
                 await self._step_condition.wait()
