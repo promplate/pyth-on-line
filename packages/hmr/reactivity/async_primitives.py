@@ -40,7 +40,7 @@ class AsyncDerived[T](BaseDerived[Awaitable[T]]):
         self._check_equality = check_equality
         self._value = self.UNSET
         self.start: TaskFactory = task_factory
-        self._call_task: Awaitable[T] | None = None
+        self._call_task: Awaitable[None] | None = None
         self._sync_dirty_deps_task: Awaitable[None] | None = None
 
     async def _run_in_context(self):
@@ -50,7 +50,8 @@ class AsyncDerived[T](BaseDerived[Awaitable[T]]):
 
     async def recompute(self):
         value = await self._run_in_context()
-        self.dirty = False
+        if self._call_task is not None:
+            self.dirty = False  # If invalidated before this run completes, stay dirty.
         if self._check_equality:
             if _equal(value, self._value):
                 return
@@ -85,15 +86,17 @@ class AsyncDerived[T](BaseDerived[Awaitable[T]]):
         await self._sync_dirty_deps()
         try:
             if self.dirty:
-                await self.recompute()
+                if self._call_task is not None:
+                    await self._call_task
+                else:
+                    task = self._call_task = self.start(self.recompute)
+                    await task
             return self._value
         finally:
             self._call_task = None
 
     def __call__(self) -> Awaitable[T]:
-        if self._call_task is not None:
-            return self._call_task
-        task = self._call_task = self.start(self._call_async)
+        task = self.start(self._call_async)
 
         class Future:
             def __await__(_):  # noqa: N805  # type: ignore
@@ -104,6 +107,7 @@ class AsyncDerived[T](BaseDerived[Awaitable[T]]):
 
     def trigger(self):
         self.dirty = True
+        self._call_task = None
         if _pulled(self):
             return self()
 

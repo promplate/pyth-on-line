@@ -160,6 +160,7 @@ async def _trio_test_nested_derived():
             s.set(4)
             assert await h() == 1
             assert stdout.delta == "f\ng\nh\n"
+            assert h.dirty is False
 
             with AsyncEffect(h, task_factory=factory) as effect:  # hard puller
                 await wait_all_tasks_blocked()
@@ -187,6 +188,26 @@ def test_trio_nested_derived_sync():
 
 async def test_trio_nested_derived_guest_mode():
     await run_trio_in_asyncio(_trio_test_nested_derived)
+
+
+async def test_invalidate_before_call_done():
+    s = Signal(1)
+
+    @AsyncDerived
+    async def f():
+        try:
+            return s.get()
+        finally:
+            [await sleep(0) for _ in range(10)]
+
+    call_task = f()
+
+    [await sleep(0) for _ in range(5)]
+    # now the first `s.get` is complete
+    s.set(2)
+
+    assert await call_task == 1
+    assert await f() == 2
 
 
 async def test_async_derived_race_condition_prevention():
