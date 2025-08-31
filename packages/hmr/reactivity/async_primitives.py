@@ -64,7 +64,7 @@ class AsyncDerived[T](BaseDerived[Awaitable[T]]):
     async def __sync_dirty_deps(self):
         try:
             current_computations = self.context.leaf.current_computations
-            for dep in self.dependencies:
+            for dep in tuple(self.dependencies):  # note: I don't know why but `self.dependencies` may shrink during iteration
                 if isinstance(dep, BaseDerived) and dep not in current_computations:
                     if isinstance(dep, AsyncDerived):
                         await dep._sync_dirty_deps()  # noqa: SLF001
