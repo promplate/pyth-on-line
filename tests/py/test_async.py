@@ -290,8 +290,4 @@ async def test_async_derived_track_behavior():
 
     s.set(2)
 
-    # This is an XFAIL
-
-    assert await h() == 1
-
     assert await h() == 2
