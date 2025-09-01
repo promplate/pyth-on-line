@@ -11,11 +11,15 @@ dependencies = [
     "pre-commit~=4.3.0",
     "pure-eval~=0.2.3",
     "html2text2~=1.1.1",
+    "numpy~=2.2",
+    "pandas~=2.2",
+]
+
+[dependency-groups]
+test = [
     "pytest~=8.4.0",
     "pytest-asyncio~=1.1.0",
     "hmr",
-    "numpy~=2.2",
-    "pandas~=2.2",
     "trio~=0.30.0",
 ]
 
@@ -80,6 +84,9 @@ markers = ["trio: mark test to run with trio backend instead of asyncio"]
 
 [tool.uv.sources]
 hmr = { workspace = true }
+
+[tool.uv.dependency-groups]
+test = { requires-python = ">=3.12" }
 
 [tool.uv.workspace]
 members = ["packages/*"]
