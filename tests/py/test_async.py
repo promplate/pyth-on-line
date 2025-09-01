@@ -1,11 +1,19 @@
 from asyncio import TaskGroup, gather, sleep, timeout
-from functools import partial
+from functools import partial, wraps
 from typing import TYPE_CHECKING
 
 from pytest import raises
 from reactivity.async_primitives import AsyncDerived, AsyncEffect
 from reactivity.primitives import Derived, Signal
 from utils import Clock, capture_stdout, create_task_factory, run_trio_in_asyncio
+
+
+def trio(func):
+    @wraps(func)
+    async def wrapper():
+        return await run_trio_in_asyncio(func)
+
+    return wrapper
 
 
 async def test_async_effect():
@@ -125,7 +133,8 @@ async def test_nested_derived():
         assert stdout.delta == "f\ng\nh\n"
 
 
-async def _trio_test_nested_derived():
+@trio
+async def test_trio_nested_derived():
     from trio import open_nursery
     from trio.testing import wait_all_tasks_blocked
 
@@ -178,16 +187,6 @@ async def _trio_test_nested_derived():
                 assert stdout.delta == "f\ng\nh\n"
                 assert [await f(), await g(), await h()] == [6, 3, 1]
                 assert stdout.delta == ""
-
-
-def test_trio_nested_derived_sync():
-    from trio import run  # pytest-trio conflicts with pytest-asyncio auto mode, so we use sync `trio.run` here
-
-    run(_trio_test_nested_derived)
-
-
-async def test_trio_nested_derived_guest_mode():
-    await run_trio_in_asyncio(_trio_test_nested_derived)
 
 
 async def test_invalidate_before_call_done():
