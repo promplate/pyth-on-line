@@ -7,6 +7,7 @@ Pyth-on-line is a comprehensive web-based Python development platform that runs 
 ## 🚀 Features
 
 ### Core Capabilities
+
 - **Browser-based Python interpreter** - Full CPython experience running on WebAssembly via Pyodide
 - **Interactive code execution** - Run Python code with real-time output and interactive debugging
 - **Package management** - Support for pure Python packages and many popular libraries (NumPy, Pandas, SciPy, etc.)
@@ -14,12 +15,14 @@ Pyth-on-line is a comprehensive web-based Python development platform that runs 
 - **Multi-format support** - Work with Jupyter notebooks, Python scripts, and interactive sessions
 
 ### Development Environment
+
 - **Workspace management** - Organize projects with file trees and multiple editors
 - **GitHub integration** - Import and export projects directly from/to GitHub repositories
 - **Gist support** - Share code snippets via GitHub Gists
 - **Real-time collaboration** - Share interactive Python sessions with others
 
 ### Advanced Features
+
 - **Top-level await support** - Use async/await at the module level
 - **Web API access** - Interact with browser APIs and make HTTP requests
 - **Rich debugging** - Native Python tracebacks and error handling
@@ -30,13 +33,16 @@ Pyth-on-line is a comprehensive web-based Python development platform that runs 
 This project is structured as a monorepo containing:
 
 ### Web Application (`src/`)
+
 - **SvelteKit frontend** - Modern web interface built with Svelte and TypeScript
 - **Pyodide integration** - WebAssembly Python runtime
 - **Monaco Editor** - Advanced code editing with syntax highlighting
 - **Workspace system** - File management and project organization
 
 ### HMR Library (`packages/hmr/`)
+
 Hot Module Reload system for Python that provides:
+
 - **Dependency tracking** - Runtime analysis of module dependencies
 - **Selective reloading** - Only reload modules that have changed
 - **Push-pull reactivity** - Efficient update propagation
@@ -45,6 +51,7 @@ Hot Module Reload system for Python that provides:
 ## 🛠️ Development
 
 ### Prerequisites
+
 - Node.js 18+ and pnpm
 - Python 3.13+ (for HMR development)
 
@@ -100,6 +107,7 @@ hmr your_script.py --arg1 value1
 ```
 
 ### HMR Features
+
 - **Runtime dependency tracking** - Monitors module relationships during execution
 - **Selective reloading** - Only reloads changed modules and their dependents
 - **Preserves state** - Maintains application state across reloads where possible
@@ -118,6 +126,7 @@ The application is designed for easy deployment on modern web platforms:
 We welcome contributions! Please see our [contributing guidelines](./CONTRIBUTING.md) for details.
 
 ### Development Workflow
+
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
