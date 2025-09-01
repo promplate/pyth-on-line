@@ -17,7 +17,7 @@ jobs:
           activate-environment: true
       - name: Install dependencies
         run: |
-          uv pip install -r pyproject.toml basedpyright isort black --color always
+          uv pip install --group dev basedpyright isort black --color always
       - name: Run isort check
         run: |
           python -m isort . --check --diff
@@ -49,7 +49,7 @@ jobs:
           activate-environment: true
       - name: Install dependencies
         run: |
-          uv pip install -r pyproject.toml --color always ${{ matrix.os == 'windows' && 'pytest-rerunfailures' || '' }}
+          uv pip install --group test --color always ${{ matrix.os == 'windows' && 'pytest-rerunfailures' || '' }}
       - name: Run tests
         run: |
           pytest -v --color=yes ${{ matrix.os == 'windows' && '--reruns 500' || '' }}
