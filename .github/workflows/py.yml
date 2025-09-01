@@ -53,7 +53,8 @@ jobs:
           if [ "${{ matrix.py }}" = "3.12" ]; then
             uv pip install --project . --group test --color always ${{ matrix.os == 'windows' && 'pytest-rerunfailures' || '' }}
           else
-            uv pip install --project . -r pyproject.toml --group test --color always ${{ matrix.os == 'windows' && 'pytest-rerunfailures' || '' }}
+            uv pip install -r pyproject.toml --color always
+            uv pip install --project . --group test --color always ${{ matrix.os == 'windows' && 'pytest-rerunfailures' || '' }}
           fi
         shell: bash
       - name: Run tests
