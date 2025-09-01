@@ -17,20 +17,20 @@ jobs:
           activate-environment: true
       - name: Install dependencies
         run: |
-          uv pip install -r pyproject.toml basedpyright isort black --color always
+          uv sync --group dev --color always
       - name: Run isort check
         run: |
-          python -m isort . --check --diff
+          uv run python -m isort . --check --diff
       - name: Run black check
         run: |
-          python -m black . --check --diff --extend-exclude tests
+          uv run python -m black . --check --diff --extend-exclude tests
       - name: Run Ruff check
         run: |
-          ruff check --output-format github
-          ruff format --check --diff
+          uv run ruff check --output-format github
+          uv run ruff format --check --diff
       - name: Run pyright check
         run: |
-          basedpyright
+          uv run basedpyright
   test-hmr:
     permissions:
       contents: read
