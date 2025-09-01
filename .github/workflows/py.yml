@@ -49,18 +49,18 @@ jobs:
           activate-environment: true
       - name: Install dependencies
         run: |
-          # Install test dependencies for Python 3.12, all dependencies for Python 3.13
+          # Install test dependencies for Python 3.12, all dependencies plus test group for Python 3.13
           if [ "${{ matrix.py }}" = "3.12" ]; then
-            uv pip install --group test --color always ${{ matrix.os == 'windows' && 'pytest-rerunfailures' || '' }}
+            uv pip install --project . --group test --color always ${{ matrix.os == 'windows' && 'pytest-rerunfailures' || '' }}
           else
-            uv pip install -r pyproject.toml --color always ${{ matrix.os == 'windows' && 'pytest-rerunfailures' || '' }}
+            uv pip install --project . -r pyproject.toml --group test --color always ${{ matrix.os == 'windows' && 'pytest-rerunfailures' || '' }}
           fi
         shell: bash
       - name: Run tests
         run: |
           # Run HMR tests for Python 3.12, all tests for Python 3.13
           if [ "${{ matrix.py }}" = "3.12" ]; then
-            pytest tests/py/test_hmr.py -v --color=yes ${{ matrix.os == 'windows' && '--reruns 500' || '' }}
+            python -m pytest tests/py/test_hmr.py -v --color=yes ${{ matrix.os == 'windows' && '--reruns 500' || '' }}
           else
             pytest -v --color=yes ${{ matrix.os == 'windows' && '--reruns 500' || '' }}
           fi
