@@ -24,6 +24,9 @@ hmr-test = [
     "trio~=0.30.0",
     # Add minimal dependencies needed for HMR tests
     "pure-eval~=0.2.3",  # needed by HMR
+    # Add numpy and pandas for reactivity equality testing
+    "numpy~=2.2",
+    "pandas~=2.2",
 ]
 
 # Development tools that can work with Python >=3.12  
