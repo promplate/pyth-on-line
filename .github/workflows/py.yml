@@ -53,8 +53,31 @@ jobs:
       - name: Run tests
         run: |
           pytest -v --color=yes ${{ matrix.os == 'windows' && '--reruns 500' || '' }}
+  
+  test-hmr:
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu, windows, macos]
+        py: [3.12, 3.13]
+    runs-on: ${{ matrix.os }}-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Set up python ${{ matrix.py }}
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: ${{ matrix.py }}
+          activate-environment: true
+      - name: Install HMR test dependencies
+        run: |
+          uv pip install --group hmr-test --color always ${{ matrix.os == 'windows' && 'pytest-rerunfailures' || '' }}
+      - name: Run HMR tests
+        run: |
+          pytest tests/py/test_hmr.py tests/py/test_watchfiles.py tests/py/test_reactivity.py -v --color=yes ${{ matrix.os == 'windows' && '--reruns 500' || '' }}
   publish-hmr:
-    needs: [test, check]
+    needs: [test, test-hmr, check]
     runs-on: ubuntu-latest
     if: github.ref_type == 'tag'
     permissions:
