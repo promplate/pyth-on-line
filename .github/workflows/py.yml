@@ -31,7 +31,30 @@ jobs:
       - name: Run pyright check
         run: |
           basedpyright
-  test:
+  test-hmr:
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu, windows, macos]
+        py: [3.12, 3.13]
+    runs-on: ${{ matrix.os }}-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Set up python ${{ matrix.py }}
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: ${{ matrix.py }}
+          activate-environment: true
+      - name: Install test dependencies for HMR
+        run: |
+          # Install HMR package dependencies and test tools for Python 3.12+
+          uv pip install --color always packages/hmr/ pytest pytest-asyncio trio numpy pandas ${{ matrix.os == 'windows' && 'pytest-rerunfailures' || '' }}
+      - name: Run HMR tests
+        run: |
+          pytest tests/py/test_hmr.py tests/py/test_async.py tests/py/test_reactivity.py -v --color=yes ${{ matrix.os == 'windows' && '--reruns 500' || '' }}
+  test-main:
     permissions:
       contents: read
     strategy:
@@ -49,12 +72,12 @@ jobs:
           activate-environment: true
       - name: Install dependencies
         run: |
-          uv pip install -r pyproject.toml --color always ${{ matrix.os == 'windows' && 'pytest-rerunfailures' || '' }}
-      - name: Run tests
+          uv sync --group test --color always ${{ matrix.os == 'windows' && '--extra pytest-rerunfailures' || '' }}
+      - name: Run all tests
         run: |
-          pytest -v --color=yes ${{ matrix.os == 'windows' && '--reruns 500' || '' }}
+          uv run --group test pytest tests/py/ -v --color=yes ${{ matrix.os == 'windows' && '--reruns 500' || '' }}
   publish-hmr:
-    needs: [test, check]
+    needs: [test-hmr, test-main, check]
     runs-on: ubuntu-latest
     if: github.ref_type == 'tag'
     permissions:
