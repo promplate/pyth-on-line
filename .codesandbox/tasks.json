@@ -1,13 +1,35 @@
 {
-  "$schema": "https://codesandbox.io/schemas/tasks.json",
-  "setupTasks": ["pnpm install"],
+  "setupTasks": [
+    {
+      "name": "Install Dependencies",
+      "command": "pnpm install"
+    }
+  ],
   "tasks": {
     "dev": {
-      "name": "Start Dev Server",
+      "name": "Development Server",
       "command": "pnpm dev",
       "runAtStart": true,
       "preview": {
         "port": 5173,
+        "prLink": "direct"
+      },
+      "restartOn": {
+        "files": ["package.json", "vite.config.ts", "svelte.config.js"],
+        "branch": true,
+        "clone": false,
+        "resume": false
+      }
+    },
+    "build": {
+      "name": "Build Project",
+      "command": "pnpm build"
+    },
+    "preview": {
+      "name": "Preview Build",
+      "command": "pnpm preview",
+      "preview": {
+        "port": 4173,
         "prLink": "direct"
       }
     }

@@ -6,4 +6,5 @@ import { defineConfig } from "vite";
 export default defineConfig({
   plugins: [Unocss(), sveltekit(), dir2json({ include: ["**/*.py", "**/*.j2"] })],
   assetsInclude: ["src/python/**/*"],
+  server: { allowedHosts: true },
 });

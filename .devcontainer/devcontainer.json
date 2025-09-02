@@ -1,0 +1,20 @@
+{
+  "name": "Ubuntu",
+  "image": "mcr.microsoft.com/devcontainers/base:noble",
+  "features": {
+    "ghcr.io/devcontainers/features/node": {
+      "version": "lts",
+      "nodeGypDependencies": "true",
+      "pnpmVersion": "latest",
+      "nvmVersion": "latest"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-vscode.vscode-typescript-next"
+      ]
+    }
+  }
+}
