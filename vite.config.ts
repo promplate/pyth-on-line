@@ -4,7 +4,7 @@ import Unocss from "unocss/vite";
 import { defineConfig } from "vite";
 
 export default defineConfig({
-  plugins: [Unocss(), sveltekit(), dir2json({ include: ["**/*.py", "**/*.j2"] })],
+  plugins: [Unocss(), sveltekit(), dir2json({ include: ["**/*.py", "**/*.j2", "**/pyproject.toml", "**/README.md"] })],
   assetsInclude: ["src/python/**/*"],
   server: { allowedHosts: true },
 });

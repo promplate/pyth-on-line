@@ -17,4 +17,5 @@ vite.config.ts.timestamp-*
 /.pdm-python
 /src/python/**/index.d.ts
 /packages/**/index.d.ts
+/tests/py/**/index.d.ts
 __pycache__

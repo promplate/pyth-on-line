@@ -36,6 +36,7 @@
     "hast-util-to-html": "^9.0.5",
     "hast-util-to-mdast": "^10.1.2",
     "htmlparser2": "^10.0.0",
+    "mcp-handler": "^1.0.2",
     "mdast-util-from-markdown": "^2.0.2",
     "mdast-util-gfm": "^3.1.0",
     "mdast-util-to-hast": "^13.2.0",
@@ -55,7 +56,8 @@
     "turndown": "^7.2.1",
     "unocss": "~66.4.2",
     "unzipit": "^1.4.3",
-    "vite": "^5.4.19"
+    "vite": "^5.4.19",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^5.2.1",
