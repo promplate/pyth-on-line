@@ -278,12 +278,6 @@ class BaseReloader:
         with self.error_filter:
             self.entry_module.load()
 
-    @property
-    def watch_filter(self):
-        from watchfiles import PythonFilter
-
-        return PythonFilter(ignore_paths=tuple(self.excludes))
-
     def on_events(self, events: Iterable[tuple[int, str]]):
         from watchfiles import Change
 

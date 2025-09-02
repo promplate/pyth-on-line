@@ -17,7 +17,7 @@ class Change(IntEnum):
 
 FileChange = tuple[Change, str]
 
-__all__ = "BaseFilter", "Change", "DefaultFilter", "PythonFilter", "awatch"
+__all__ = "BaseFilter", "Change", "DefaultFilter", "awatch"
 
 
 class BaseFilter:
@@ -84,20 +84,6 @@ class DefaultFilter(BaseFilter):
             self.ignore_paths = ignore_paths
 
         super().__init__()
-
-
-class PythonFilter(DefaultFilter):
-    def __init__(
-        self,
-        *,
-        ignore_paths: Sequence[str | Path] | None = None,
-        extra_extensions: Sequence[str] = (),
-    ) -> None:
-        self.extensions = (".py", ".pyx", ".pyd", *tuple(extra_extensions))
-        super().__init__(ignore_paths=ignore_paths)
-
-    def __call__(self, change: Change, path: str) -> bool:
-        return path.endswith(self.extensions) and super().__call__(change, path)
 
 
 async def awatch(
