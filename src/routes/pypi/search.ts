@@ -19,5 +19,13 @@ export async function search({ url: { searchParams } }: RequestEvent) {
     updated: new Date(item.latest_release_published_at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }),
   }));
 
-  return { query, total, page, npages: Math.ceil(total / per_page), results };
+  // prioritize items where the query is fully contained in the name
+  const sortedResults = [...results].sort((A, B) => {
+    const q = query.toLowerCase();
+    const a = A.name.toLowerCase();
+    const b = B.name.toLowerCase();
+    return (Number(a.includes(q)) - Number(b.includes(q))) || (a.length - b.length);
+  });
+
+  return { query, total, page, npages: Math.ceil(total / per_page), results: sortedResults };
 }
