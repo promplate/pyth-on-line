@@ -4,10 +4,12 @@ import coreFiles from "../../../../packages/hmr";
 import concepts from "../concepts";
 import { text } from "@sveltejs/kit";
 
+const { "README.md": readme, ...rest } = coreFiles;
+
 const content = `\
 # Hot Module Reload for Python (https://pypi.org/project/hmr/)
 
-${coreFiles["README.md"].replace(/.*<\/div>/s, "").trim()}
+${readme.replace(/.*<\/div>/s, "").trim()}
 
 ---
 
@@ -19,7 +21,7 @@ The \`hmr\` library doesn't have a documentation site yet, but the code is high-
 
 ## Core files
 
-${Object.entries(coreFiles).map(([path, text]) => `\`${path}\`\n\n\`\`\`${path.split(".").at(-1) ?? ""}\n${text.replaceAll("\r", "").trimEnd()}\n\`\`\``).join("\n\n---\n\n")}
+${Object.entries(rest).map(([path, text]) => `\`${path}\`\n\n\`\`\`${path.split(".").at(-1) ?? ""}\n${text.replaceAll("\r", "").trimEnd()}\n\`\`\``).join("\n\n---\n\n")}
 `;
 
 export const GET: RequestHandler = async () => {
