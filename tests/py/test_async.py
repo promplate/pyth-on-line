@@ -4,7 +4,7 @@ from functools import partial, wraps
 from pytest import raises
 from reactivity.async_primitives import AsyncDerived, AsyncEffect
 from reactivity.primitives import Derived, Signal
-from utils import Clock, capture_stdout, create_task_factory, run_trio_in_asyncio
+from utils import Clock, capture_stdout, create_trio_task_factory, run_trio_in_asyncio
 
 
 def trio(func):
@@ -138,7 +138,7 @@ async def test_trio_nested_derived():
     from trio.testing import wait_all_tasks_blocked
 
     async with open_nursery() as nursery:
-        factory = create_task_factory(nursery)
+        factory = create_trio_task_factory(nursery)
 
         s = Signal(0)
 

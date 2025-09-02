@@ -39,7 +39,7 @@ async def run_trio_in_asyncio[T](trio_main: Callable[[], Coroutine[Any, Any, T]]
     return await future
 
 
-def create_task_factory(nursery: "Nursery"):
+def create_trio_task_factory(nursery: "Nursery"):
     from trio import Event
 
     def task_factory[T](async_fn: AsyncFunction[T]) -> Awaitable[T]:
