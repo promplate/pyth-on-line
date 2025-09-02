@@ -1,4 +1,3 @@
-import sys
 from contextlib import redirect_stderr, redirect_stdout
 
 from pyodide.code import eval_code_async
@@ -16,12 +15,7 @@ class ReactiveNamespace(Proxy, dict):
 class PatchedConsole(Console):
     async def runcode(self, source, code):  # noqa: ARG002
         assert isinstance(self.globals, ReactiveNamespace)
-        with self.redirect_streams():
-            try:
-                return await code.run_async(self.globals.raw, self.globals)
-            finally:
-                sys.stdout.flush()
-                sys.stderr.flush()
+        return await code.run_async(self.globals.raw, self.globals)
 
 
 async def exec_source(filename: str, source: str, context: ReactiveNamespace, manager: StreamManager):
