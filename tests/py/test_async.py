@@ -1,6 +1,5 @@
 from asyncio import TaskGroup, gather, sleep, timeout
 from functools import partial, wraps
-from typing import TYPE_CHECKING
 
 from pytest import raises
 from reactivity.async_primitives import AsyncDerived, AsyncEffect
@@ -141,24 +140,19 @@ async def test_trio_nested_derived():
     async with open_nursery() as nursery:
         factory = create_task_factory(nursery)
 
-        if TYPE_CHECKING:
-            trio_async_derived = AsyncDerived
-        else:
-            trio_async_derived = partial(AsyncDerived, task_factory=factory)
-
         s = Signal(0)
 
-        @trio_async_derived
+        @partial(AsyncDerived, task_factory=factory)  # a mixture
         async def f():
             print("f")
             return s.get()
 
-        @trio_async_derived
+        @AsyncDerived
         async def g():
             print("g")
             return await f() // 2
 
-        @trio_async_derived
+        @AsyncDerived
         async def h():
             print("h")
             return await g() // 2

@@ -11,10 +11,44 @@ class TaskFactory(Protocol):
     def __call__[T](self, func: AsyncFunction[T], /) -> Awaitable[T]: ...
 
 
-def default_task_factory[T](async_function: AsyncFunction[T]):
-    from asyncio import ensure_future
+def default_task_factory[T](async_function: AsyncFunction[T]) -> Awaitable[T]:
+    from sniffio import AsyncLibraryNotFoundError, current_async_library
 
-    return ensure_future(async_function())
+    match current_async_library():
+        case "asyncio":
+            from asyncio import ensure_future
+
+            return ensure_future(async_function())
+
+        case "trio":
+            from trio import Event
+            from trio.lowlevel import spawn_system_task
+
+            evt = Event()
+            res: T
+            exc: BaseException | None = None
+
+            @spawn_system_task
+            async def _():
+                nonlocal res, exc
+                try:
+                    res = await async_function()
+                except BaseException as e:
+                    exc = e
+                finally:
+                    evt.set()
+
+            class Future:  # An awaitable that can be awaited multiple times
+                def __await__(self):
+                    yield from evt.wait().__await__()
+                    if exc is not None:
+                        raise exc
+                    return res  # noqa: F821
+
+            return Future()
+
+        case _:
+            raise AsyncLibraryNotFoundError("Only asyncio and trio are supported")  # noqa: TRY003
 
 
 class AsyncEffect[T](Effect[Awaitable[T]]):
