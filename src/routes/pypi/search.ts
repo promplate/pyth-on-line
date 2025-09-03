@@ -24,7 +24,7 @@ export async function search({ url: { searchParams } }: RequestEvent) {
     const q = query.toLowerCase();
     const a = A.name.toLowerCase();
     const b = B.name.toLowerCase();
-    return (Number(a.includes(q)) - Number(b.includes(q))) || (a.length - b.length);
+    return (Number(b.includes(q)) - Number(a.includes(q))) || (a.length - b.length);
   });
 
   return { query, total, page, npages: Math.ceil(total / per_page), results: sortedResults };
