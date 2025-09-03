@@ -7,4 +7,12 @@ export default defineConfig({
   plugins: [Unocss(), sveltekit(), dir2json({ include: ["**/*.py", "**/*.j2", "**/pyproject.toml", "**/README.md"] })],
   assetsInclude: ["src/python/**/*"],
   server: { allowedHosts: true },
+  optimizeDeps: {
+    entries: [
+      "index.html",
+      "**/*.svelte",
+      "src/routes/**/*.ts",
+      "!**/*server.ts",
+    ],
+  },
 });
