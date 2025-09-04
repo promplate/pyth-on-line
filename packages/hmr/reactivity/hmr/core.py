@@ -51,7 +51,7 @@ class NamespaceProxy(Proxy):
         # and if not found, try to get them as attributes from the module itself
         if key in STATIC_ATTRS:
             try:
-                return self.module._ReactiveModule__namespace[key]
+                return self.module._ReactiveModule__namespace[key]  # noqa: SLF001
             except KeyError:
                 # If not in namespace, try to get it as a module attribute
                 if hasattr(self.module, key):
