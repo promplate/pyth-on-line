@@ -159,15 +159,7 @@ class ReactiveModuleLoader(Loader):
     def create_module(self, spec: ModuleSpec):
         assert spec.origin is not None, "This loader can only load file-backed modules"
         path = Path(spec.origin)
-        namespace = {
-            "__file__": spec.origin,
-            "__spec__": spec,
-            "__loader__": self,
-            "__name__": spec.name,
-            "__package__": spec.parent,
-            "__cached__": None,
-            "__builtins__": __builtins__,
-        }
+        namespace = {"__file__": spec.origin, "__spec__": spec, "__loader__": self, "__name__": spec.name, "__package__": spec.parent, "__cached__": None}
         if spec.submodule_search_locations is not None:
             namespace["__path__"] = spec.submodule_search_locations[:] = [str(path.parent)]
         return ReactiveModule(path, namespace, spec.name)
