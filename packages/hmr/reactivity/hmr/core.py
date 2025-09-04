@@ -47,6 +47,18 @@ class NamespaceProxy(Proxy):
         return signal
 
     def __getitem__(self, key):
+        # For static attributes, try to get them from the module's namespace first,
+        # and if not found, try to get them as attributes from the module itself
+        if key in STATIC_ATTRS:
+            try:
+                return self.module._ReactiveModule__namespace[key]
+            except KeyError:
+                # If not in namespace, try to get it as a module attribute
+                if hasattr(self.module, key):
+                    return getattr(self.module, key)
+                # If still not found, raise the original KeyError
+                raise
+        
         try:
             return super().__getitem__(key)
         finally:
@@ -57,7 +69,7 @@ class NamespaceProxy(Proxy):
                 self.module.load.dependencies.remove(signal)
 
 
-STATIC_ATTRS = frozenset(("__path__", "__dict__", "__spec__", "__name__", "__file__", "__loader__", "__package__", "__cached__"))
+STATIC_ATTRS = frozenset(("__path__", "__dict__", "__spec__", "__name__", "__file__", "__loader__", "__package__", "__cached__", "__builtins__"))
 
 
 class ReactiveModule(ModuleType):
@@ -147,7 +159,15 @@ class ReactiveModuleLoader(Loader):
     def create_module(self, spec: ModuleSpec):
         assert spec.origin is not None, "This loader can only load file-backed modules"
         path = Path(spec.origin)
-        namespace = {"__file__": spec.origin, "__spec__": spec, "__loader__": self, "__name__": spec.name, "__package__": spec.parent, "__cached__": None}
+        namespace = {
+            "__file__": spec.origin, 
+            "__spec__": spec, 
+            "__loader__": self, 
+            "__name__": spec.name, 
+            "__package__": spec.parent, 
+            "__cached__": None,
+            "__builtins__": __builtins__,
+        }
         if spec.submodule_search_locations is not None:
             namespace["__path__"] = spec.submodule_search_locations[:] = [str(path.parent)]
         return ReactiveModule(path, namespace, spec.name)

@@ -396,3 +396,31 @@ def test_deep_imports():
             assert env.stdout_delta == "123\n"
             env["foo/bar.py"].replace("123", "234")
             assert env.stdout_delta == "234\n"
+
+
+def test_static_attrs_access_via_locals():
+    """Test that static attributes like __spec__, __builtins__ can be accessed via locals()."""
+    with environment() as env:
+        env["main.py"] = """
+# Simulate what asyncio.__main__.py does
+repl_locals = {}
+for key in {'__name__', '__package__', '__loader__', '__spec__', '__builtins__', '__file__'}:
+    try:
+        repl_locals[key] = locals()[key]
+        print(f"Successfully accessed {key}")
+    except KeyError as e:
+        print(f"KeyError accessing {key}: {e}")
+print("All static attributes checked")
+"""
+        with env.hmr("main.py"):
+            output = env.stdout_delta
+            # Should not see any KeyError messages
+            assert "KeyError" not in output
+            # Should see success messages for all attributes
+            assert "Successfully accessed __name__" in output
+            assert "Successfully accessed __spec__" in output
+            assert "Successfully accessed __builtins__" in output
+            assert "Successfully accessed __package__" in output
+            assert "Successfully accessed __loader__" in output
+            assert "Successfully accessed __file__" in output
+            assert "All static attributes checked" in output
