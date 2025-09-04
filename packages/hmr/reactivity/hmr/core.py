@@ -58,7 +58,7 @@ class NamespaceProxy(Proxy):
                     return getattr(self.module, key)
                 # If still not found, raise the original KeyError
                 raise
-        
+
         try:
             return super().__getitem__(key)
         finally:
@@ -160,11 +160,11 @@ class ReactiveModuleLoader(Loader):
         assert spec.origin is not None, "This loader can only load file-backed modules"
         path = Path(spec.origin)
         namespace = {
-            "__file__": spec.origin, 
-            "__spec__": spec, 
-            "__loader__": self, 
-            "__name__": spec.name, 
-            "__package__": spec.parent, 
+            "__file__": spec.origin,
+            "__spec__": spec,
+            "__loader__": self,
+            "__name__": spec.name,
+            "__package__": spec.parent,
             "__cached__": None,
             "__builtins__": __builtins__,
         }
