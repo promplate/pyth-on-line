@@ -4,7 +4,7 @@ from typing import assert_type
 from pytest import raises
 from reactivity import Reactive, State, batch, create_effect, create_memo, create_signal, memoized_method, memoized_property
 from reactivity.context import default_context, new_context
-from reactivity.helpers import MemoizedMethod, MemoizedProperty
+from reactivity.helpers import DerivedProperty, MemoizedMethod, MemoizedProperty
 from reactivity.hmr.proxy import Proxy
 from reactivity.primitives import Derived, Effect, Signal
 from utils import capture_stdout
@@ -854,3 +854,26 @@ def test_reactive_proxy():
 
         with raises(AssertionError):  # Because of https://github.com/python/cpython/issues/121306
             assert stdout.delta == "234\n", "(xfail)"
+
+
+def test_unhashable_class():
+    class Unhashable:
+        x = State(0)
+
+        @DerivedProperty
+        def y(self):
+            return self.x + 1
+
+        def __eq__(self, value):  # setting __eq__ disables the default __hash__
+            return self is value
+
+    u = Unhashable()
+
+    with raises(TypeError):
+        assert hash(u)
+
+    assert u.y == 1
+
+    u.x = 2
+
+    assert u.y == 3
