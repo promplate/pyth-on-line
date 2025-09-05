@@ -1,6 +1,6 @@
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Self, overload
-from weakref import WeakKeyDictionary
+from weakref import finalize
 
 from .context import Context
 from .primitives import BaseComputation, Derived, Subscribable
@@ -38,7 +38,7 @@ class MemoizedProperty[T, I]:
     def __init__(self, method: Callable[[I], T], *, context: Context | None = None):
         super().__init__()
         self.method = method
-        self.map = WeakKeyDictionary[I, Memoized[T]]()
+        self.map = dict[int, Memoized[T]]()
         self.context = context
 
     @overload
@@ -49,9 +49,10 @@ class MemoizedProperty[T, I]:
     def __get__(self, instance: I | None, owner):
         if instance is None:
             return self
-        if func := self.map.get(instance):
+        if func := self.map.get(instance_id := id(instance)):
             return func()
-        self.map[instance] = func = Memoized(self.method.__get__(instance, owner), context=self.context)
+        self.map[instance_id] = func = Memoized(self.method.__get__(instance, owner), context=self.context)
+        finalize(instance, self.map.pop, instance_id)
         return func()
 
 
@@ -59,7 +60,7 @@ class MemoizedMethod[T, I]:
     def __init__(self, method: Callable[[I], T], *, context: Context | None = None):
         super().__init__()
         self.method = method
-        self.map = WeakKeyDictionary[I, Memoized[T]]()
+        self.map = dict[int, Memoized[T]]()
         self.context = context
 
     @overload
@@ -70,9 +71,10 @@ class MemoizedMethod[T, I]:
     def __get__(self, instance: I | None, owner):
         if instance is None:
             return self
-        if memo := self.map.get(instance):
+        if memo := self.map.get(instance_id := id(instance)):
             return memo
-        self.map[instance] = memo = Memoized(self.method.__get__(instance, owner), context=self.context)
+        self.map[instance_id] = memo = Memoized(self.method.__get__(instance, owner), context=self.context)
+        finalize(instance, self.map.pop, instance_id)
         return memo
 
 
@@ -80,7 +82,7 @@ class DerivedProperty[T, I]:
     def __init__(self, method: Callable[[I], T], *, context: Context | None = None):
         super().__init__()
         self.method = method
-        self.map = WeakKeyDictionary[I, Derived[T]]()
+        self.map = dict[int, Derived[T]]()
         self.context = context
 
     @overload
@@ -91,9 +93,10 @@ class DerivedProperty[T, I]:
     def __get__(self, instance: I | None, owner):
         if instance is None:
             return self
-        if func := self.map.get(instance):
+        if func := self.map.get(instance_id := id(instance)):
             return func()
-        self.map[instance] = func = Derived(self.method.__get__(instance, owner), context=self.context)
+        self.map[instance_id] = func = Derived(self.method.__get__(instance, owner), context=self.context)
+        finalize(instance, self.map.pop, instance_id)
         return func()
 
 
@@ -102,7 +105,7 @@ class DerivedMethod[T, I]:
         super().__init__()
         self.method = method
         self.check_equality = check_equality
-        self.map = WeakKeyDictionary[I, Derived[T]]()
+        self.map = dict[int, Derived[T]]()
         self.context = context
 
     @overload
@@ -113,10 +116,10 @@ class DerivedMethod[T, I]:
     def __get__(self, instance: I | None, owner):
         if instance is None:
             return self
-        if func := self.map.get(instance):
+        if func := self.map.get(instance_id := id(instance)):
             return func
-
-        self.map[instance] = func = Derived(self.method.__get__(instance, owner), self.check_equality, context=self.context)
+        self.map[instance_id] = func = Derived(self.method.__get__(instance, owner), self.check_equality, context=self.context)
+        finalize(instance, self.map.pop, instance_id)
         return func
 
 
