@@ -79,9 +79,10 @@ class MemoizedMethod[T, I]:
 
 
 class DerivedProperty[T, I]:
-    def __init__(self, method: Callable[[I], T], *, context: Context | None = None):
+    def __init__(self, method: Callable[[I], T], check_equality=True, *, context: Context | None = None):
         super().__init__()
         self.method = method
+        self.check_equality = check_equality
         self.map = dict[int, Derived[T]]()
         self.context = context
 
@@ -95,7 +96,7 @@ class DerivedProperty[T, I]:
             return self
         if func := self.map.get(instance_id := id(instance)):
             return func()
-        self.map[instance_id] = func = Derived(self.method.__get__(instance, owner), context=self.context)
+        self.map[instance_id] = func = Derived(self.method.__get__(instance, owner), self.check_equality, context=self.context)
         finalize(instance, self.map.pop, instance_id)
         return func()
 
