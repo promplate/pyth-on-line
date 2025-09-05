@@ -33,8 +33,8 @@ class Memoized[T](Subscribable, BaseComputation[T]):
             self.notify()
 
 
-def _not_implemented(self, *_):
-    raise NotImplementedError(f"{self.__class__.__name__} is read-only")  # todo: support optimistic updates
+def _not_implemented(self, instance, *_):
+    raise NotImplementedError(f"{type(instance).__name__}.{self.name} is read-only")  # todo: support optimistic updates
 
 
 class MemoizedProperty[T, I]:

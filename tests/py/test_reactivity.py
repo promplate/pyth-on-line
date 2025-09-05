@@ -877,6 +877,11 @@ def test_unhashable_class():
     u.x = 2
     assert u.y == 3
 
+    with raises(NotImplementedError, match="Unhashable.y is read-only"):
+        del u.y
+    with raises(NotImplementedError, match="Unhashable.y is read-only"):
+        u.y = 5
+
     # ensure no memory leak
 
     d = u.__dict__["y"]
