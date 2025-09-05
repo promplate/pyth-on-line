@@ -1,6 +1,5 @@
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Self, overload
-from weakref import finalize
 
 from .context import Context
 from .primitives import BaseComputation, Derived, Subscribable
@@ -34,12 +33,18 @@ class Memoized[T](Subscribable, BaseComputation[T]):
             self.notify()
 
 
+def _not_implemented(self, *_):
+    raise NotImplementedError(f"{self.__class__.__name__} is read-only")  # todo: support optimistic updates
+
+
 class MemoizedProperty[T, I]:
     def __init__(self, method: Callable[[I], T], *, context: Context | None = None):
         super().__init__()
         self.method = method
-        self.map = dict[int, Memoized[T]]()
         self.context = context
+
+    def __set_name__(self, _, name: str):
+        self.name = name
 
     @overload
     def __get__(self, instance: None, owner: type[I]) -> Self: ...
@@ -49,19 +54,22 @@ class MemoizedProperty[T, I]:
     def __get__(self, instance: I | None, owner):
         if instance is None:
             return self
-        if func := self.map.get(instance_id := id(instance)):
-            return func()
-        self.map[instance_id] = func = Memoized(self.method.__get__(instance, owner), context=self.context)
-        finalize(instance, self.map.pop, instance_id)
-        return func()
+        if memo := instance.__dict__.get(self.name):
+            return memo()
+        instance.__dict__[self.name] = memo = Memoized(self.method.__get__(instance, owner), context=self.context)
+        return memo()
+
+    __delete__ = __set__ = _not_implemented
 
 
 class MemoizedMethod[T, I]:
     def __init__(self, method: Callable[[I], T], *, context: Context | None = None):
         super().__init__()
         self.method = method
-        self.map = dict[int, Memoized[T]]()
         self.context = context
+
+    def __set_name__(self, _, name: str):
+        self.name = name
 
     @overload
     def __get__(self, instance: None, owner: type[I]) -> Self: ...
@@ -71,11 +79,12 @@ class MemoizedMethod[T, I]:
     def __get__(self, instance: I | None, owner):
         if instance is None:
             return self
-        if memo := self.map.get(instance_id := id(instance)):
+        if memo := instance.__dict__.get(self.name):
             return memo
-        self.map[instance_id] = memo = Memoized(self.method.__get__(instance, owner), context=self.context)
-        finalize(instance, self.map.pop, instance_id)
+        instance.__dict__[self.name] = memo = Memoized(self.method.__get__(instance, owner), context=self.context)
         return memo
+
+    __delete__ = __set__ = _not_implemented
 
 
 class DerivedProperty[T, I]:
@@ -83,8 +92,10 @@ class DerivedProperty[T, I]:
         super().__init__()
         self.method = method
         self.check_equality = check_equality
-        self.map = dict[int, Derived[T]]()
         self.context = context
+
+    def __set_name__(self, _, name: str):
+        self.name = name
 
     @overload
     def __get__(self, instance: None, owner: type[I]) -> Self: ...
@@ -94,11 +105,12 @@ class DerivedProperty[T, I]:
     def __get__(self, instance: I | None, owner):
         if instance is None:
             return self
-        if func := self.map.get(instance_id := id(instance)):
-            return func()
-        self.map[instance_id] = func = Derived(self.method.__get__(instance, owner), self.check_equality, context=self.context)
-        finalize(instance, self.map.pop, instance_id)
-        return func()
+        if derived := instance.__dict__.get(self.name):
+            return derived()
+        instance.__dict__[self.name] = derived = Derived(self.method.__get__(instance, owner), self.check_equality, context=self.context)
+        return derived()
+
+    __delete__ = __set__ = _not_implemented
 
 
 class DerivedMethod[T, I]:
@@ -106,8 +118,10 @@ class DerivedMethod[T, I]:
         super().__init__()
         self.method = method
         self.check_equality = check_equality
-        self.map = dict[int, Derived[T]]()
         self.context = context
+
+    def __set_name__(self, _, name: str):
+        self.name = name
 
     @overload
     def __get__(self, instance: None, owner: type[I]) -> Self: ...
@@ -117,11 +131,12 @@ class DerivedMethod[T, I]:
     def __get__(self, instance: I | None, owner):
         if instance is None:
             return self
-        if func := self.map.get(instance_id := id(instance)):
-            return func
-        self.map[instance_id] = func = Derived(self.method.__get__(instance, owner), self.check_equality, context=self.context)
-        finalize(instance, self.map.pop, instance_id)
-        return func
+        if derived := instance.__dict__.get(self.name):
+            return derived
+        instance.__dict__[self.name] = derived = Derived(self.method.__get__(instance, owner), self.check_equality, context=self.context)
+        return derived
+
+    __delete__ = __set__ = _not_implemented
 
 
 if TYPE_CHECKING:

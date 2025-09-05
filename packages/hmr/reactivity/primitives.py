@@ -1,6 +1,6 @@
 from collections.abc import Callable
 from typing import Any, Self, overload
-from weakref import WeakSet, finalize
+from weakref import WeakSet
 
 from .context import Context, default_context
 
@@ -100,7 +100,9 @@ class State[T](Signal[T]):
         super().__init__(initial_value, check_equality, context=context)
         self._value = initial_value
         self._check_equality = check_equality
-        self.map = dict[int, Signal[T]]()
+
+    def __set_name__(self, _, name):
+        self.name = name
 
     @overload
     def __get__(self, instance: None, owner: type) -> Self: ...
@@ -110,21 +112,17 @@ class State[T](Signal[T]):
     def __get__(self, instance, owner):
         if instance is None:
             return self
-        instance_id = id(instance)
-        try:
-            return self.map[instance_id].get()
-        except KeyError:
-            self.map[instance_id] = state = Signal(self._value, self._check_equality, context=self.context)
-            finalize(instance, self.map.pop, instance_id)
-            return state.get()
+        if state := instance.__dict__.get(self.name):
+            pass
+        else:
+            instance.__dict__[self.name] = state = Signal(self._value, self._check_equality, context=self.context)
+        return state.get()
 
     def __set__(self, instance, value: T):
-        instance_id = id(instance)
-        try:
-            state = self.map[instance_id]
-        except KeyError:
-            self.map[instance_id] = state = Signal(self._value, self._check_equality, context=self.context)
-            finalize(instance, self.map.pop, instance_id)
+        if state := instance.__dict__.get(self.name):
+            pass
+        else:
+            instance.__dict__[self.name] = state = Signal(self._value, self._check_equality, context=self.context)
         state.set(value)
 
 
