@@ -134,9 +134,10 @@ class Reactive[K, V](Subscribable, MutableMapping[K, V]):
 
 
 class DerivedProperty[T, I]:
-    def __init__(self, method: Callable[[I], T], *, context: Context | None = None):
+    def __init__(self, method: Callable[[I], T], check_equality=True, *, context: Context | None = None):
         super().__init__()
         self.method = method
+        self.check_equality = check_equality
         self.map = WeakKeyDictionary[I, Derived[T]]()
         self.context = context
 
@@ -150,7 +151,7 @@ class DerivedProperty[T, I]:
             return self
         if func := self.map.get(instance):
             return func()
-        self.map[instance] = func = Derived(self.method.__get__(instance, owner), context=self.context)
+        self.map[instance] = func = Derived(self.method.__get__(instance, owner), self.check_equality, context=self.context)
         return func()
 
 
