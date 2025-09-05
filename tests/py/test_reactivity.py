@@ -1,5 +1,6 @@
 from inspect import ismethod
 from typing import assert_type
+from weakref import finalize
 
 from pytest import raises
 from reactivity import Reactive, State, batch, create_effect, create_memo, create_signal, memoized_method, memoized_property
@@ -870,10 +871,24 @@ def test_unhashable_class():
     u = Unhashable()
 
     with raises(TypeError):
-        assert hash(u)
+        hash(u)
 
     assert u.y == 1
-
     u.x = 2
-
     assert u.y == 3
+
+    # ensure no memory leak
+
+    d = u.__dict__["y"]
+    assert isinstance(d, Derived)
+
+    finalize(d, print, "derived died")
+
+    del u, d
+
+    with capture_stdout() as stdout:
+        import gc
+
+        gc.collect()
+
+    assert stdout == "derived died\n"
