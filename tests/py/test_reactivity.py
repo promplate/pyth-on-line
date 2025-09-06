@@ -897,3 +897,34 @@ def test_unhashable_class():
         gc.collect()
 
     assert stdout == "derived died\n"
+
+
+def test_descriptors_with_slots():
+    class A:
+        __slots__ = ()
+
+    class B: ...
+
+    with raises(TypeError) as e1:
+
+        class C(A, B):
+            x = State()
+
+    assert "C(A, B)" in e1.exconly()
+
+    with raises(TypeError) as e2:
+        exec("class C(A, B):\n    x = State()")
+
+    assert "C(A, B)" in e2.exconly(), e2.exconly()
+
+    class D(A, B):
+        x = State(1)
+
+        @DerivedProperty
+        def y(self):
+            return self.x + 1
+
+        __slots__ = DerivedProperty.SLOT_KEY
+
+    d = D()
+    assert d.y == 2

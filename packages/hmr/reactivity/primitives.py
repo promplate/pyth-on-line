@@ -95,14 +95,79 @@ class Signal[T](Subscribable):
         return False
 
 
-class State[T](Signal[T]):
+class DescriptorMixin[T]:
+    SLOT_KEY = "_reactive_descriptors_"
+
+    def __set_name__(self, owner: type, name: str):
+        self.name = name
+
+        if hasattr(owner, "__slots__") and __class__.SLOT_KEY not in (slots := owner.__slots__):
+            key = f"{self.__class__.__name__}.SLOT_KEY"
+            match slots:
+                case tuple() as slots:
+                    new_slots = f"({', '.join(slots)}, {key})" if slots else f"({key},)"
+                case str():
+                    new_slots = f"{slots}, {key}"
+                case set():
+                    new_slots = f"{{{', '.join(slots)}, {key}}}" if slots else f"{{{key}}}"
+                case _:
+                    new_slots = f"[{', '.join(slots)}, {key}]" if slots else f"[{key}]"
+
+            from inspect import getsource
+            from textwrap import dedent, indent
+
+            try:
+                selected = []
+                for line in dedent(getsource(owner)).splitlines():
+                    if line.startswith(("@", f"class {owner.__name__}")):
+                        selected.append(line)
+                    else:
+                        break
+                cls_def = "\n".join(selected)
+                # maybe source mismatch (usually during `exec`)
+                if f"class {owner.__name__}" not in selected:
+                    raise OSError  # noqa: TRY301
+            except (OSError, TypeError):
+                bases = [b.__name__ for b in owner.__bases__ if b is not object]
+                cls_def = f"class {owner.__name__}{f'({", ".join(bases)})' if bases else ''}:"
+
+            __tracebackhide__ = 1  # for pytest
+
+            msg = f"Missing {key} in slots definition for `{self.__class__.__name__}`.\n\n"
+            msg += indent(
+                "\n\n".join(
+                    (
+                        f"Please add `{key}` to your `__slots__`. You should change:",
+                        indent(f"{cls_def}\n    __slots__ = {slots!r}", "  "),
+                        "to:",
+                        indent(f"{cls_def}\n    __slots__ = {new_slots}", "  "),
+                    )
+                ),
+                "  ",
+            )
+            raise TypeError(msg + "\n")
+
+    def _new(self, instance) -> T: ...
+
+    def find(self, instance) -> T:
+        if hasattr(instance, "__dict__"):
+            if (obj := instance.__dict__.get(self.name)) is None:
+                instance.__dict__[self.name] = obj = self._new(instance)
+        else:
+            if map := getattr(instance, self.SLOT_KEY, None):
+                assert isinstance(map, dict)
+                if (obj := map.get(self.name)) is None:
+                    map[self.name] = obj = self._new(instance)
+            else:
+                setattr(instance, self.SLOT_KEY, {self.name: (obj := self._new(instance))})
+        return obj
+
+
+class State[T](Signal[T], DescriptorMixin[Signal[T]]):
     def __init__(self, initial_value: T = None, check_equality=True, *, context: Context | None = None):
         super().__init__(initial_value, check_equality, context=context)
         self._value = initial_value
         self._check_equality = check_equality
-
-    def __set_name__(self, _, name):
-        self.name = name
 
     @overload
     def __get__(self, instance: None, owner: type) -> Self: ...
@@ -112,18 +177,13 @@ class State[T](Signal[T]):
     def __get__(self, instance, owner):
         if instance is None:
             return self
-        if state := instance.__dict__.get(self.name):
-            pass
-        else:
-            instance.__dict__[self.name] = state = Signal(self._value, self._check_equality, context=self.context)
-        return state.get()
+        return self.find(instance).get()
 
     def __set__(self, instance, value: T):
-        if state := instance.__dict__.get(self.name):
-            pass
-        else:
-            instance.__dict__[self.name] = state = Signal(self._value, self._check_equality, context=self.context)
-        state.set(value)
+        self.find(instance).set(value)
+
+    def _new(self, instance):  # noqa: ARG002
+        return Signal(self._value, self._check_equality, context=self.context)
 
 
 class Effect[T](BaseComputation[T]):
