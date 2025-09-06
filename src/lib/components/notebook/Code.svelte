@@ -4,6 +4,7 @@
 
   import WithCodeActions from "../reusable/WithCodeActions.svelte";
   import CodeBlock from "$lib/components/CodeBlock.svelte";
+  import InteractiveCodeBlock from "$lib/components/InteractiveCodeBlock.svelte";
   import { patchSource } from "$lib/utils/formatSource";
 
   export let node: Node;
@@ -36,8 +37,13 @@
   }
 
   $: valid = isPython(pyNotebook, (node as Code).value);
+  $: isPythonCode = (node as Code).lang === "python" || valid;
 </script>
 
 <WithCodeActions {node} {run} runnable={valid} let:code>
-  <CodeBlock lang={code.lang ?? valid ? "python" : "text"} code={code.value} {items} />
+  {#if isPythonCode && pyNotebook}
+    <InteractiveCodeBlock lang="python" code={code.value} {items} {pyNotebook} />
+  {:else}
+    <CodeBlock lang={code.lang ?? valid ? "python" : "text"} code={code.value} {items} />
+  {/if}
 </WithCodeActions>
