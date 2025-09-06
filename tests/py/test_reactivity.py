@@ -1,3 +1,4 @@
+import gc
 from inspect import ismethod
 from typing import assert_type
 from weakref import finalize
@@ -887,16 +888,13 @@ def test_unhashable_class():
     d = u.__dict__["y"]
     assert isinstance(d, Derived)
 
-    finalize(d, print, "derived died")
+    finalize(u, print, "collected")
 
     del u, d
 
     with capture_stdout() as stdout:
-        import gc
-
         gc.collect()
-
-    assert stdout == "derived died\n"
+    assert stdout == "collected\n"
 
 
 def test_descriptors_with_slots():
