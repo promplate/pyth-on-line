@@ -3,20 +3,43 @@ name = "pyth-on-line"
 version = "0"
 requires-python = ">=3.13"
 dependencies = [
-    "ruff~=0.12.0",
+    # Core runtime dependencies that require Python >=3.13
     "webtypy~=0.1.7",
     "micropip~=0.10.0",
     "pyodide-py==0.28.2",
     "promplate-pyodide~=0.0.4.0",
-    "pre-commit~=4.3.0",
     "pure-eval~=0.2.3",
     "html2text2~=1.1.1",
-    "pytest~=8.4.0",
-    "pytest-asyncio~=1.1.0",
-    "hmr",
     "numpy~=2.2",
     "pandas~=2.2",
+]
+
+[dependency-groups]
+# HMR testing dependencies that can work with Python >=3.12
+# This allows testing HMR functionality without pyodide dependencies
+hmr-test = [
+    "hmr",
+    "pytest~=8.4.0",
+    "pytest-asyncio~=1.1.0",
     "trio~=0.30.0",
+    # Add minimal dependencies needed for HMR tests
+    "pure-eval~=0.2.3",  # needed by HMR
+    # Add numpy and pandas for reactivity equality testing
+    "numpy~=2.2",
+    "pandas~=2.2",
+]
+
+# Development tools that can work with Python >=3.12  
+dev = [
+    "ruff~=0.12.0",
+    "pre-commit~=4.3.0",
+]
+
+# Full test suite (requires Python >=3.13 because of pyodide dependencies)
+test = [
+    {include-group = "hmr-test"},
+    {include-group = "dev"},
+    # Add any additional test dependencies if needed
 ]
 
 [tool.pdm]
@@ -83,3 +106,13 @@ hmr = { workspace = true }
 
 [tool.uv.workspace]
 members = ["packages/*"]
+
+[tool.uv.dependency-groups]
+# HMR test group can run on Python >=3.12 
+# (no pyodide dependencies needed for HMR functionality testing)
+hmr-test = { requires-python = ">=3.12" }
+
+# Development tools can work with Python >=3.12
+dev = { requires-python = ">=3.12" }
+
+# Full test suite inherits the project's Python >=3.13 requirement
