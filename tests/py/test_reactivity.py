@@ -926,3 +926,11 @@ def test_descriptors_with_slots():
 
     d = D()
     assert d.y == 2
+
+    finalize(d, print, "collected")
+
+    del d
+
+    with capture_stdout() as stdout:
+        gc.collect()
+    assert stdout == "collected\n"
