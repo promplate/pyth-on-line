@@ -1,9 +1,9 @@
 from asyncio import Event, Task, TaskGroup, current_task, sleep
 from collections import defaultdict
-from contextvars import ContextVar
 from functools import partial
 
 from reactivity.async_primitives import AsyncDerived, AsyncFunction
+from reactivity.task_local import TaskContextVar
 
 
 class Clock(TaskGroup):
@@ -12,7 +12,7 @@ class Clock(TaskGroup):
         self.tasks: list[Task] = []
         self.steps: dict[int, Event] = defaultdict(Event)
         self.now = 0
-        self.used = ContextVar("used-time", default=0)
+        self.used = TaskContextVar("used-time", default=0)
 
     def task_factory[T](self, func: AsyncFunction[T]):
         self.tasks.append(task := self.create_task(func()))
