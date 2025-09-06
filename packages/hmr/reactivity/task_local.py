@@ -7,12 +7,9 @@ from __future__ import annotations
 
 import asyncio
 import weakref
-from typing import Generic, TypeVar
-
-T = TypeVar("T")
 
 
-class TaskContextVar(Generic[T]):
+class TaskContextVar[T]:
     """
     A task-local context variable that mimics contextvars.ContextVar behavior
     but uses asyncio task-local storage instead.
