@@ -396,3 +396,237 @@ def test_deep_imports():
             assert env.stdout_delta == "123\n"
             env["foo/bar.py"].replace("123", "234")
             assert env.stdout_delta == "234\n"
+
+
+def test_cache_across_reloads_gc_function_removal():
+    """Test that memos are garbage collected when functions are completely removed."""
+    from reactivity.hmr.utils import functions, memos
+
+    # Clear any existing state
+    memos.clear()
+    functions.clear()
+
+    with environment() as env:
+        env["main.py"] = """
+        from reactivity.hmr import cache_across_reloads
+
+        @cache_across_reloads
+        def f():
+            print("f called")
+            return "f"
+
+        @cache_across_reloads
+        def g():
+            print("g called")
+            return "g"
+
+        f()
+        g()
+        """
+
+        with env.hmr("main.py"):
+            assert env.stdout_delta == "f called\ng called\n"
+
+            # After initial execution, both functions should be in memos and functions
+            assert len(memos) == 2
+            assert len(functions) == 2
+
+            # Remove function f but keep g, add a new function h
+            env["main.py"] = """
+        from reactivity.hmr import cache_across_reloads
+
+        @cache_across_reloads
+        def g():
+            print("g called")
+            return "g"
+
+        @cache_across_reloads
+        def h():
+            print("h called")
+            return "h"
+
+        g()
+        h()
+        """
+
+            assert env.stdout_delta == "h called\n"
+
+            # After reload, memo for f should be garbage collected
+            # Only g and h should remain in both memos and functions
+            assert len(memos) == 2
+            assert len(functions) == 2
+
+            # Verify the specific functions
+            function_names = {key[1] for key in functions}
+            memo_names = {key[1] for key in memos}
+            assert function_names == {"g", "h"}
+            assert memo_names == {"g", "h"}
+
+
+def test_cache_across_reloads_gc_function_modification():
+    """Test that memos persist when functions are modified but not removed."""
+    from reactivity.hmr.utils import functions, memos
+
+    # Clear any existing state
+    memos.clear()
+    functions.clear()
+
+    with environment() as env:
+        env["main.py"] = """
+        from reactivity.hmr import cache_across_reloads
+
+        @cache_across_reloads
+        def f():
+            print("original f")
+            return "original"
+
+        f()
+        """
+
+        with env.hmr("main.py"):
+            assert env.stdout_delta == "original f\n"
+
+            # After initial execution, function should be in both dicts
+            assert len(memos) == 1
+            assert len(functions) == 1
+            original_memo_key = next(iter(memos.keys()))
+
+            # Modify the function content but keep the same name
+            env["main.py"].replace("original f", "modified f")
+
+            assert env.stdout_delta == "modified f\n"
+
+            # After modification, the function should still be in both dicts
+            # The memo should persist (same key) but be invalidated/updated
+            assert len(memos) == 1
+            assert len(functions) == 1
+            current_memo_key = next(iter(memos.keys()))
+            assert current_memo_key == original_memo_key  # Same key (path, qualname)
+
+
+def test_cache_across_reloads_gc_selective_removal():
+    """Test selective gc when some functions are removed but others remain."""
+    from reactivity.hmr.utils import functions, memos
+
+    # Clear any existing state
+    memos.clear()
+    functions.clear()
+
+    with environment() as env:
+        env["main.py"] = """
+        from reactivity.hmr import cache_across_reloads
+
+        @cache_across_reloads
+        def func_a():
+            print("a")
+            return "a"
+
+        @cache_across_reloads
+        def func_b():
+            print("b")
+            return "b"
+
+        @cache_across_reloads
+        def func_c():
+            print("c")
+            return "c"
+
+        func_a()
+        func_b()
+        func_c()
+        """
+
+        with env.hmr("main.py"):
+            assert env.stdout_delta == "a\nb\nc\n"
+
+            # All three functions should be present
+            assert len(memos) == 3
+            assert len(functions) == 3
+
+            # Remove func_a and func_c, keep only func_b
+            env["main.py"] = """
+        from reactivity.hmr import cache_across_reloads
+
+        @cache_across_reloads
+        def func_b():
+            print("b modified")
+            return "b"
+
+        func_b()
+        """
+
+            assert env.stdout_delta == "b modified\n"
+
+            # After reload, only func_b should remain in both dicts
+            assert len(memos) == 1
+            assert len(functions) == 1
+
+            remaining_function = next(iter(functions.keys()))[1]  # Get qualname
+            remaining_memo = next(iter(memos.keys()))[1]  # Get qualname
+            assert remaining_function == "func_b"
+            assert remaining_memo == "func_b"
+
+
+def test_cache_across_reloads_gc_across_modules():
+    """Test gc behavior when functions in different modules are removed."""
+    from reactivity.hmr.utils import functions, memos
+
+    # Clear any existing state
+    memos.clear()
+    functions.clear()
+
+    with environment() as env:
+        env["module_a.py"] = """
+        from reactivity.hmr import cache_across_reloads
+
+        @cache_across_reloads
+        def func_from_a():
+            print("from module a")
+            return "a"
+        """
+
+        env["module_b.py"] = """
+        from reactivity.hmr import cache_across_reloads
+
+        @cache_across_reloads
+        def func_from_b():
+            print("from module b")
+            return "b"
+        """
+
+        env["main.py"] = """
+        from module_a import func_from_a
+        from module_b import func_from_b
+
+        func_from_a()
+        func_from_b()
+        """
+
+        with env.hmr("main.py"):
+            assert env.stdout_delta == "from module a\nfrom module b\n"
+
+            # Both modules' functions should be present
+            assert len(memos) == 2
+            assert len(functions) == 2
+
+            # Verify functions are from different modules
+            module_paths = {key[0].name for key in memos}
+            assert "module_a.py" in module_paths
+            assert "module_b.py" in module_paths
+
+            # Remove function from module_a by emptying it
+            env["module_a.py"] = """
+        # Module A now has no cache_across_reloads functions
+        def regular_func():
+            pass
+        """
+
+            # Trigger reload by touching main.py
+            env["main.py"].touch()
+
+            # After reload, only module_b's function should remain
+            assert len(memos) == 1
+            assert len(functions) == 1
+
+            remaining_path = next(iter(memos.keys()))[0].name
+            assert remaining_path == "module_b.py"
