@@ -31,7 +31,7 @@
     const q = $query;
     // eslint-disable-next-line no-unmodified-loop-condition
     while (intersecting && !enough) {
-      const url = new URL(location.href);
+      const url = new URL(`${location.pathname}/~search${location.search}`, location.origin);
       url.searchParams.set("page", String(index + 1));
       const json = await fetch(url, { headers: { accept: "application/json" } }).then(res => res.json());
       if (q === $query) {
