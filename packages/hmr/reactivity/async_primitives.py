@@ -1,4 +1,5 @@
 from collections.abc import Awaitable, Callable, Coroutine
+from sys import platform
 from typing import Any, Protocol
 
 from .context import Context
@@ -12,6 +13,11 @@ class TaskFactory(Protocol):
 
 
 def default_task_factory[T](async_function: AsyncFunction[T]) -> Awaitable[T]:
+    if platform == "emscripten":
+        from asyncio import ensure_future
+
+        return ensure_future(async_function())
+
     from sniffio import AsyncLibraryNotFoundError, current_async_library
 
     match current_async_library():
