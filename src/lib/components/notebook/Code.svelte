@@ -39,5 +39,5 @@
 </script>
 
 <WithCodeActions {node} {run} runnable={valid} let:code>
-  <CodeBlock lang={code.lang ?? valid ? "python" : "text"} code={code.value} {items} />
+  <CodeBlock lang={code.lang ?? (valid ? "python" : "text")} code={code.value} {items} />
 </WithCodeActions>
