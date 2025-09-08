@@ -27,11 +27,11 @@
 <div class="m-4 w-[calc(100%-2rem)] row self-center 2xl:(m-14) lg:(m-10 max-w-4xl) md:(m-8 max-w-3xl w-[calc(100%-4rem)]) sm:(m-6 w-[calc(100%-3rem)]) xl:(m-12 max-w-5xl)">
 
   <div class="mr-0 bg-#121212 pl-100 pr-0 pt-100 -ml-100 -mt-100 <lg:hidden -translate-x-[calc(0.3rem+2.5vw)] 2xl:(pb-14 -mb-14) lg:(pb-10 -mb-10) xl:(pb-12 -mb-12)">
-    <div class="sticky w-21rem col overflow-y-scroll px-5 text-3.7 2xl:(top-14 h-[calc(100dvh-7rem)]) lg:(top-10 h-[calc(100dvh-5rem)]) xl:(top-12 h-[calc(100dvh-6rem)]) -ml-5">
+    <div class="sticky w-21rem col overflow-y-scroll px-5 text-sm 2xl:(top-14 h-[calc(100dvh-7rem)]) lg:(top-10 h-[calc(100dvh-5rem)]) xl:(top-12 h-[calc(100dvh-6rem)]) -ml-5">
       <div class="mb-4 max-w-xs shrink-0 text-xs">
         <CodeBlock lang="json" code={httpConfigStr} />
       </div>
-      <div class="col gap-1 text-neutral-4 [&>:where(button,a)]:(w-full row items-center gap-2 rounded-lg px-2 py-1.5 filter-grayscale -ml-2) [&>:where(button,a):hover]:(bg-white/5 text-white filter-none)">
+      <div class="col gap-0.7 text-neutral-4 [&>:where(button,a)]:(w-full row items-center gap-2 rounded-lg px-2 py-1.5 filter-grayscale -ml-2) [&>:where(button,a):hover]:(bg-white/7 text-white filter-none) [&>:where(button,a):focus-visible]:(outline-none ring-1.2 ring-neutral-2 ring-inset) ![&>:where(button,a):active]:(bg-neutral-2 text-neutral-8 shadow-lg shadow-neutral-2/20)">
         <UseCopy text={httpConfigStr} let:handleClick>
           <button on:click={handleClick}>
             <div class="i-si-copy-alt-fill size-4" />
@@ -64,7 +64,7 @@
       <div class="mb-4 max-w-xs shrink-0 text-xs">
         <CodeBlock lang="json" code={stdioConfigStr} />
       </div>
-      <div class="col gap-1 text-neutral-4 [&>:where(button,a)]:(w-full row items-center gap-2 rounded-lg px-2 py-1.5 filter-grayscale -ml-2) [&>:where(button,a):hover]:(bg-white/5 text-white filter-none)">
+      <div class="col gap-0.7 text-neutral-4 [&>:where(button,a)]:(w-full row items-center gap-2 rounded-lg px-2 py-1.5 filter-grayscale -ml-2) [&>:where(button,a):hover]:(bg-white/7 text-white filter-none) [&>:where(button,a):focus-visible]:(outline-none ring-1.2 ring-neutral-2 ring-inset) ![&>:where(button,a):active]:(bg-neutral-2 text-neutral-8 shadow-lg shadow-neutral-2/20)">
         <UseCopy text={stdioConfigStr} let:handleClick>
           <button on:click={handleClick}>
             <div class="i-si-copy-alt-fill size-4" />
