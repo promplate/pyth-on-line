@@ -3,10 +3,13 @@
 
   import GitHubUser from "$lib/components/GitHubUser.svelte";
   import { fromNow } from "$lib/date";
+  import { updateMetadata } from "$lib/seo";
 
   export let data: PageData;
 
   const { avatarUrl, name, login, total, gists } = data;
+
+  updateMetadata({ ogTitle: "Open Your GitHub Gists", ogDescription: "Explore and run GitHub gists as interactive Python workspaces in your browser." });
 </script>
 
 <div class="m-4 flex flex-col gap-3 sm:m-3vw sm:gap-4">

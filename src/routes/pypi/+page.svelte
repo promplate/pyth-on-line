@@ -5,8 +5,11 @@
   import { browser } from "$app/environment";
   import { afterNavigate, goto } from "$app/navigation";
   import { page } from "$app/stores";
+  import { updateMetadata } from "$lib/seo";
   import { Button } from "bits-ui";
   import { onMount } from "svelte";
+
+  updateMetadata({ ogTitle: "PyPI Explorer", ogDescription: "Search and explore Python packages from the PyPI directly in your browser." });
 
   export let data: PageData;
 

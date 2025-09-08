@@ -14,7 +14,7 @@
         <FeatureCard icon="i-lucide-folder-dot" href="/playground" title="Open a playground" description="Open an isolated workspace of this site's python sources" />
         <FeatureCard icon="i-solar-command-bold-duotone" on:click={() => $showMenu = true} title="Try the shortcut menu" description="Press Ctrl/Cmd + K to open it" />
         <FeatureCard icon="i-mdi-github-face" href="/github" title="Clone a GitHub repo" description="Open an isolated workspace from a specified GitHub repository" />
-        <FeatureCard icon="i-ph-terminal-window-duotone" href="/console" title="Start an immersive console" description="Run Python 3.12 in an interactive console directly in your browser without installation" />
+        <FeatureCard icon="i-ph-terminal-window-duotone" href="/console" title="Start an immersive console" description="Run Python 3.13 in an interactive console directly in your browser without installation" />
         <FeatureCard icon="i-hugeicons-hand-pointing-right-01" href="/about" title="Take a quick tour" description="Start a dedicated jupyter-like notebook to have a glance of our features" />
         <FeatureCard icon="i-hugeicons-package-search" href="/pypi" title="Explore PyPI" description="Search packages on PyPI" />
       </div>

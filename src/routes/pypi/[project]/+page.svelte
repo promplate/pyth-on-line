@@ -2,10 +2,13 @@
   import type { PageData } from "./$types";
 
   import BaseMarkdown from "$lib/components/markdown/BaseMarkdown.svelte";
+  import { updateMetadata } from "$lib/seo";
 
   export let data: PageData;
 
   const { name, version, description, updated, tags, readme } = data;
+
+  updateMetadata({ ogTitle: `${name} - PyPI Package`, ogDescription: description || `View details and documentation for ${name} on PyPI.` });
 </script>
 
 <div class="flex flex-col gap-2">
