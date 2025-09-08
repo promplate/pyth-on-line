@@ -36,8 +36,25 @@
   }
 
   $: valid = isPython(pyNotebook, (node as Code).value);
+
+  let lang: string;
+
+  $: {
+    const code = node as Code;
+    if (code.lang) {
+      lang = code.lang;
+    }
+    else {
+      try {
+        JSON.parse(code.value);
+      }
+      catch {
+        lang = valid ? "python" : "text";
+      }
+    }
+  }
 </script>
 
 <WithCodeActions {node} {run} runnable={valid} let:code>
-  <CodeBlock lang={code.lang ?? (valid ? "python" : "text")} code={code.value} {items} />
+  <CodeBlock {lang} code={code.value} {items} />
 </WithCodeActions>
