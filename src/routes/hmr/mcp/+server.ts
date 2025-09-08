@@ -40,6 +40,9 @@ const handler = createMcpHandler((server) => {
   });
 }, {}, { basePath: "/hmr", verboseLogs: true });
 
-export const GET: RequestHandler = async ({ request }) => handler(request);
 export const POST: RequestHandler = async ({ request }) => handler(request);
-export const DELETE: RequestHandler = async ({ request }) => handler(request);
+
+export const GET: RequestHandler = async ({ request, fetch }) => {
+  request.headers.set("Accept", "text/html");
+  return await fetch(request);
+};
