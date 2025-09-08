@@ -5,6 +5,10 @@ const config = defineConfig({
   extractors: [extractorSvelte()],
   transformers: [transformerVariantGroup(), transformerDirectives()],
   presets: [presetWind3({ preflight: "on-demand" }), presetWebFonts({ provider: "none", fonts: { mono: "Fira Code Variable", sans: "Inter Variable" } }), presetIcons(), presetTypography()],
+  shortcuts: {
+    row: "flex flex-row",
+    col: "flex flex-col",
+  },
 });
 
 export default config;
