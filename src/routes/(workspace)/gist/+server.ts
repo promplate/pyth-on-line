@@ -12,11 +12,16 @@ export interface GistMetadata {
   isPublic: boolean;
 }
 
-export const GET: RequestHandler = async ({ cookies }) => {
-  const token = cookies.get("access_token");
+export const GET: RequestHandler = async ({ cookies, url }) => {
+  // Prefer user-provided token from query param, then OAuth token
+  const userToken = url.searchParams.get("token");
+  const oauthToken = cookies.get("access_token");
+  const token = userToken || oauthToken;
+
   if (!token) {
     error(401, "Unauthorized");
   }
+
   const data: {
     viewer: {
       name: string | null;
