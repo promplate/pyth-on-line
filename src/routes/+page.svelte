@@ -1,7 +1,22 @@
 <script lang="ts">
+  import { page } from "$app/stores";
   import { show as showMenu } from "$lib/components/command/CmdK.svelte";
   import FeatureCard from "$lib/components/FeatureCard.svelte";
   import Hero from "$lib/components/Hero.svelte";
+  import { useMetadata } from "$lib/useMetadata";
+  import { onMount } from "svelte";
+
+  const { updateMetadata } = useMetadata();
+
+  onMount(() => {
+    // Set specific metadata for the home page
+    updateMetadata($page.url.pathname, {
+      title: "Python Online - Interactive Python in Your Browser",
+      description: "Run Python code directly in your browser with our interactive online Python environment. No installation required - powered by Pyodide.",
+      type: "website",
+      siteName: "Python Online",
+    });
+  });
 </script>
 
 <div class="grid min-h-screen place-items-center">
