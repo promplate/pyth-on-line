@@ -80,7 +80,7 @@ or
 claude mcp add --transport stdio hmr-docs npx mcp-remote {HOST}/hmr/mcp
 ```
 
-#### VS Code
+#### VS Code (GitHub Copilot)
 
 Direct links: [Install the remote server](vscode:mcp/install?{vscode-http}) or [Install the stdio proxy](vscode:mcp/install?{vscode-stdio}).
 

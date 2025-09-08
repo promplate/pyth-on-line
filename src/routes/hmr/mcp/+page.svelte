@@ -6,6 +6,7 @@
   import UseCopy from "$lib/components/console/UseCopy.svelte";
   import Router from "$lib/components/markdown/Router.svelte";
   import WithMarkdown from "$lib/components/reusable/WithMarkdown.svelte";
+  import { updateMetadata } from "$lib/seo";
   import { Separator } from "bits-ui";
 
   const url = `${$page.url.origin}/hmr/mcp`;
@@ -22,6 +23,8 @@
 
   const httpConfigStr = JSON.stringify({ type: "http", url }, null, 2);
   const stdioConfigStr = JSON.stringify({ type: "stdio", command: "npx", args: ["mcp-remote", url] }, null, 2);
+
+  updateMetadata({ ogTitle: "The MCP Server for HMR", ogDescription: "Use the MCP server to provide HMR knowledge to various clients like Cursor, Claude Code, and GitHub Copilot." });
 </script>
 
 <div class="m-4 w-[calc(100%-2rem)] row self-center 2xl:(m-14) lg:(m-10 max-w-4xl) md:(m-8 max-w-3xl w-[calc(100%-4rem)]) sm:(m-6 w-[calc(100%-3rem)]) xl:(m-12 max-w-5xl)">

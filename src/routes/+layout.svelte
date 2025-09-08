@@ -8,16 +8,19 @@
   import { page } from "$app/stores";
   import * as env from "$env/static/public";
   import CmdK from "$lib/components/command/CmdK.svelte";
+  import { initMetadataStore } from "$lib/seo";
   import { Toaster } from "svelte-sonner";
+
+  const metadata = initMetadataStore();
 
   // @ts-ignore
   const headScripts = atob(env.PUBLIC_HEAD_SCRIPTS ?? "");
   // @ts-ignore
   const originTrialToken = env.PUBLIC_ORIGIN_TRIAL_TOKEN;
 
-  const ogTitle = "Python Online";
+  $: ogTitle = $metadata.ogTitle;
   const ogImage = `${$page.url.origin.replace("http://sveltekit-prerender", "")}/og${$page.url.pathname}`;
-  const ogDescription = "A simple online python console";
+  $: ogDescription = $metadata.ogDescription; ;
 </script>
 
 <svelte:head>
