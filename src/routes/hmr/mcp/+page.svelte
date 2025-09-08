@@ -1,5 +1,6 @@
 <script lang="ts">
   import mcpDocs from "./MCP.md?raw";
+  import cursor from "@lobehub/icons-static-svg/icons/cursor.svg?raw";
   import { page } from "$app/stores";
   import CodeBlock from "$lib/components/CodeBlock.svelte";
   import UseCopy from "$lib/components/console/UseCopy.svelte";
@@ -26,11 +27,11 @@
 <div class="m-4 w-[calc(100%-2rem)] row self-center 2xl:(m-14) lg:(m-10 max-w-4xl) md:(m-8 max-w-3xl w-[calc(100%-4rem)]) sm:(m-6 w-[calc(100%-3rem)]) xl:(m-12 max-w-5xl)">
 
   <div class="mr-0 bg-#121212 pl-100 pr-0 pt-100 -ml-100 -mt-100 <lg:hidden -translate-x-[calc(0.3rem+2.5vw)] 2xl:(pb-14 -mb-14) lg:(pb-10 -mb-10) xl:(pb-12 -mb-12)">
-    <div class="sticky w-xs col overflow-y-scroll pr-5 text-3.7 2xl:(top-14 h-[calc(100dvh-7rem)]) lg:(top-10 h-[calc(100dvh-5rem)]) xl:(top-12 h-[calc(100dvh-6rem)])">
-      <div class="mb-4 max-w-xs shrink-0 overflow-x-scroll text-xs">
+    <div class="sticky w-21rem col overflow-y-scroll px-5 text-3.7 2xl:(top-14 h-[calc(100dvh-7rem)]) lg:(top-10 h-[calc(100dvh-5rem)]) xl:(top-12 h-[calc(100dvh-6rem)]) -ml-5">
+      <div class="mb-4 max-w-xs shrink-0 text-xs">
         <CodeBlock lang="json" code={httpConfigStr} />
       </div>
-      <div class="col gap-1 text-white/70 [&>:where(button,a)]:(w-full row items-center gap-2 rounded-lg px-2 py-1.5 filter-grayscale -ml-2) [&>:where(button,a):hover]:(bg-white/5 text-white filter-none)">
+      <div class="col gap-1 text-neutral-4 [&>:where(button,a)]:(w-full row items-center gap-2 rounded-lg px-2 py-1.5 filter-grayscale -ml-2) [&>:where(button,a):hover]:(bg-white/5 text-white filter-none)">
         <UseCopy text={httpConfigStr} let:handleClick>
           <button on:click={handleClick}>
             <div class="i-si-copy-alt-fill size-4" />
@@ -38,7 +39,7 @@
           </button>
         </UseCopy>
         <a target="_blank" href="https://cursor.com/en/install-mcp?name=hmr-docs&config={btoa(JSON.stringify({ url }))}">
-          <img class="size-4" src="https://cursor.com/assets/images/logo.svg" alt="Cursor">
+          {@html cursor.replaceAll("#000", "currentColor")}
           Install in Cursor
         </a>
         <UseCopy text="claude mcp add --transport http hmr-docs {url}" let:handleClick>
@@ -58,12 +59,12 @@
       </div>
 
       <Separator.Root class="h-3vh max-h-8 min-h-5" />
-      <div class="mb-5 text-white/40">Or use with <a class="text-white/70 hover:text-white/90" href="https://www.npmjs.com/package/mcp-remote" title="Learn more on NPM"><code class="font-mono">mcp-remote</code></a>:</div>
+      <div class="mb-5 text-neutral-6">Or use with <a class="text-neutral-4 hover:text-neutral-2" href="https://www.npmjs.com/package/mcp-remote" title="Learn more on NPM"><code class="mr-0.2 font-mono underline underline-(0.5 neutral-6 offset-2 dashed)">mcp-remote</code></a>:</div>
 
-      <div class="mb-4 max-w-xs shrink-0 overflow-x-scroll text-xs">
+      <div class="mb-4 max-w-xs shrink-0 text-xs">
         <CodeBlock lang="json" code={stdioConfigStr} />
       </div>
-      <div class="col gap-1 text-white/70 [&>:where(button,a)]:(w-full row items-center gap-2 rounded-lg px-2 py-1.5 filter-grayscale -ml-2) [&>:where(button,a):hover]:(bg-white/5 text-white filter-none)">
+      <div class="col gap-1 text-neutral-4 [&>:where(button,a)]:(w-full row items-center gap-2 rounded-lg px-2 py-1.5 filter-grayscale -ml-2) [&>:where(button,a):hover]:(bg-white/5 text-white filter-none)">
         <UseCopy text={stdioConfigStr} let:handleClick>
           <button on:click={handleClick}>
             <div class="i-si-copy-alt-fill size-4" />
@@ -92,7 +93,7 @@
 
       <div class="invisible grow" />
 
-      <a class="mt-5 row items-center gap-1.5 text-sm text-white/70 hover:text-white" href="/">
+      <a class="mt-5 row items-center gap-1.5 text-sm text-neutral-4 hover:text-white" href="/">
         <div class="i-material-symbols-arrow-insert-rounded" />
         Return home
       </a>
