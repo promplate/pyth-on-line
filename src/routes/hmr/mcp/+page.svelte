@@ -42,7 +42,7 @@
           </button>
         </UseCopy>
         <a target="_blank" href="https://cursor.com/en/install-mcp?name=hmr-docs&config={btoa(JSON.stringify({ url }))}">
-          {@html cursor.replaceAll("#000", "currentColor")}
+          <div class="size-4 translate-0.2 scale-110">{@html cursor.replace(/#\d{3}/g, "currentColor").replaceAll("lobe-icons-cursorundefined-fill", "fill1")}</div>
           Install in Cursor
         </a>
         <UseCopy text="claude mcp add --transport http hmr-docs {url}" let:handleClick>
@@ -75,7 +75,7 @@
           </button>
         </UseCopy>
         <a target="_blank" href="https://cursor.com/en/install-mcp?name=hmr-docs&config={btoa(JSON.stringify({ command: "npx", args: ["mcp-remote", url] }))}">
-          <img class="size-4" src="https://cursor.com/assets/images/logo.svg" alt="Cursor">
+          <div class="size-4 translate-0.2 scale-110">{@html cursor.replace(/#\d{3}/g, "currentColor").replaceAll("lobe-icons-cursorundefined-fill", "fill2")}</div>
           Install in Cursor (stdio)
         </a>
         <UseCopy text="claude mcp add --transport stdio hmr-docs npx mcp-remote {url}" let:handleClick>
