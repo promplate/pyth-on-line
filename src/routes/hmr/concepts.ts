@@ -56,4 +56,15 @@ In the promplate/hmr repository there are also code examples and integration lib
 You can use this library to use reactive programming in your Python applications (facing advanced use cases).
 Or everyone can benefit from the \`hmr\` CLI, which provides a drop-in replacement for the Python CLI and enables a smoother DX with hot reloading.
 
+## Usage
+
+After installing \`hmr\`, you can use \`from reactivity import ...\` to use the reactive primitives like \`Signal\`, \`Effect\` and \`Derived\`.
+FYI, \`State\` is the descriptor version of \`Signal\`, which is convenient to declare as class attributes and use as instance attributes (just like using \`@property\`).
+And there are also descriptor versions for \`Derived\` — \`DerivedProperty\` and \`DerivedMethod\`, which can be conveniently used as decorators.
+Hot-module-reloading-related code are under the submodule \`reactivity.hmr\`.
+
+This package is totally different from the \`python-hmr\` package on PyPI, which is an older, unmaintained, harder-to-use, coarse-grained and less-flexible. Don't get confused.
+
+For more detailed usage, please read the source files.
+
 `.trim();
