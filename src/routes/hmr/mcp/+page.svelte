@@ -103,7 +103,7 @@
     </div>
   </div>
 
-  <main class="max-w-full">
+  <main class="mt-1 max-w-full">
     <WithMarkdown let:parse>
       <Router node={parse(text)} />
     </WithMarkdown>
