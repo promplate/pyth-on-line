@@ -96,10 +96,14 @@
 
       <div class="invisible grow" />
 
-      <a class="mt-5 row items-center gap-1.5 text-sm text-neutral-4 hover:text-white" href="/">
-        <div class="i-material-symbols-arrow-insert-rounded" />
-        Return home
-      </a>
+      <nav class="[&>a]:before:i-material-symbols-arrow-insert-rounded col gap-3 [&>a]:(row items-center gap-1.5 text-sm text-neutral-4 before:content-['']) [&>a:hover]:text-white">
+        <a href="/hmr/llms.txt">
+          The llms.txt
+        </a>
+        <a href="/">
+          Return home
+        </a>
+      </nav>
     </div>
   </div>
 

@@ -4,7 +4,7 @@ import { defineConfig, presetIcons, presetTypography, presetWebFonts, presetWind
 const config = defineConfig({
   extractors: [extractorSvelte()],
   transformers: [transformerVariantGroup(), transformerDirectives()],
-  presets: [presetWind3({ preflight: "on-demand" }), presetWebFonts({ provider: "none", fonts: { mono: "Fira Code Variable", sans: "Inter Variable" } }), presetIcons(), presetTypography()],
+  presets: [presetWind3({ preflight: "on-demand" }), presetWebFonts({ provider: "none", fonts: { mono: "Fira Code Variable", jb: ["JetBrains Mono Variable", "monospace"], sans: "Inter Variable" } }), presetIcons(), presetTypography()],
   shortcuts: {
     row: "flex flex-row",
     col: "flex flex-col",
