@@ -47,11 +47,11 @@
 
 </script>
 
-<div class="m-4 w-[calc(100%-2rem)] row self-center 2xl:(m-14) lg:(m-10 max-w-4xl) md:(m-8 max-w-3xl w-[calc(100%-4rem)]) sm:(m-6 w-[calc(100%-3rem)]) xl:(m-12 max-w-5xl)">
+<div class="m-4 w-[calc(100%-2rem)] col self-center 2xl:(m-14) lg:(m-10 max-w-4xl) md:(m-8 w-[calc(100%-4rem)] row) sm:(m-6 w-[calc(100%-3rem)]) xl:(m-12 max-w-5xl) <md:gap-1">
 
-  <div class="mr-0 bg-#121212 pl-100 pr-0 pt-100 -ml-100 -mt-100 <lg:hidden -translate-x-[calc(0.3rem+2.5vw)] 2xl:(pb-14 -mb-14) lg:(pb-10 -mb-10) xl:(pb-12 -mb-12)">
-    <div class="sticky w-21rem col overflow-y-scroll px-5 text-sm 2xl:(top-14 h-[calc(100dvh-7rem)]) lg:(top-10 h-[calc(100dvh-5rem)]) xl:(top-12 h-[calc(100dvh-6rem)]) -ml-5 [&_p]:(text-xs text-neutral-5)">
-      <div class="mb-3 max-w-xs col shrink-0 gap-1.5 text-xs">
+  <div class="mr-0 pl-100 pr-0 pt-100 -ml-100 -mt-100 lg:(mr-0 pb-10 -mb-10 -translate-x-[calc(0.3rem+2.5vw)]) md:(mr-8 bg-#121212 pb-8 -mb-8) 2xl:(pb-14 -mb-14) xl:(pb-12 -mb-12)">
+    <div class="w-full col overflow-y-scroll text-sm md:(sticky top-10 h-[calc(100dvh-5rem)] w-17rem px-3 -ml-3) 2xl:(top-14 h-[calc(100dvh-7rem)]) xl:(top-12 h-[calc(100dvh-6rem)]) <md:(mb-3 mt-1 rounded-md p-7 ring-1.2 ring-neutral-8 ring-inset) lg:(w-21rem px-5 -ml-5) [&_p]:(text-xs text-neutral-5)">
+      <div class="mb-3 col shrink-0 gap-1.5 text-xs">
         <div class="row items-center gap-1.5">
           <h1 class="text-base text-neutral-2 font-semibold">LLM-Friendly Docs ✨</h1>
           <WithTooltip tips="about llms.txt spec" let:builder>
@@ -82,7 +82,7 @@
 
       <Separator.Root class="h-3vh max-h-8 min-h-5" />
 
-      <div class="mb-2 max-w-xs col shrink-0 gap-1.5 text-xs">
+      <div class="mb-2 col shrink-0 gap-1.5 text-xs">
         <h3 class="text-sm text-neutral-2 font-semibold">Display Mode</h3>
         <p>
           Choose how to display the markdown content.
@@ -104,7 +104,7 @@
 
       <Separator.Root class="h-3vh max-h-8 min-h-5" />
 
-      <div class="mb-2 max-w-xs col shrink-0 gap-1.5 text-xs">
+      <div class="mb-2 col shrink-0 gap-1.5 text-xs">
         <h3 class="text-sm text-neutral-2 font-semibold">Content Options</h3>
         <p>
           Choose the format and whether to include code examples in the output.
@@ -143,7 +143,7 @@
 
       <Separator.Root class="h-3vh max-h-8 min-h-5" />
 
-      <div class="mb-2 max-w-xs col shrink-0 gap-1.5 text-xs">
+      <div class="mb-2 col shrink-0 gap-1.5 text-xs">
         <h3 class="text-sm text-neutral-2 font-semibold">About llms.txt</h3>
         <p>
           llms.txt provides LLM-friendly documentation in a structured markdown format.
@@ -158,7 +158,7 @@
         </div>
       </div>
 
-      <div class="invisible grow" />
+      <Separator.Root class="invisible min-h-5 grow" />
 
       <nav class="[&>a]:before:i-material-symbols-arrow-insert-rounded col gap-3 [&>a]:(row items-center gap-1.5 text-sm text-neutral-4 before:content-['']) [&>a:hover]:text-white">
         <a href="/hmr/mcp" class="before:!i-octicon-mcp-24">
