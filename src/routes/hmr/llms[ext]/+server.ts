@@ -40,9 +40,7 @@ const testFilesMarkdown = `\
 ${packMarkdown(testFiles)}
 `;
 
-export const GET: RequestHandler = ({ request, params, fetch }) => {
-  const ext = params.ext || "";
-
+export const GET: RequestHandler = ({ params: { ext = "" } }) => {
   switch (ext) {
     case ".txt":
     case ".md":
@@ -54,9 +52,6 @@ export const GET: RequestHandler = ({ request, params, fetch }) => {
       return text(`<overview>\n${overview}</overview>\n\n<files description="core files">\n${packXML(rest)}\n</files>\n`, { headers: { "content-type": "application/xml" } });
     case "-full.xml":
       return text(`<overview>\n${overview}</overview>\n\n<files description="core files">\n${packXML(rest)}\n</files>\n\n<files description="unit test files">\n${packXML(testFiles)}\n</files>\n`, { headers: { "content-type": "application/xml" } });
-    case "":
-      request.headers.set("accept", "text/html");
-      return fetch(request);
     default:
       redirect(308, "/hmr/llms.txt");
   }
@@ -65,5 +60,5 @@ export const GET: RequestHandler = ({ request, params, fetch }) => {
 export const prerender = true;
 
 export const entries: EntryGenerator = () => {
-  return ["", ".md", ".txt", ".xml", "-full.md", "-full.txt", "-full.xml"].map(ext => ({ ext }));
+  return [".md", ".txt", ".xml", "-full.md", "-full.txt", "-full.xml"].map(ext => ({ ext }));
 };
