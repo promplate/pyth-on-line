@@ -13,20 +13,22 @@
   import { Label, Separator, Switch, Tabs } from "bits-ui";
   import { fly } from "svelte/transition";
 
-  updateMetadata({ ogTitle: "LLMs.txt for HMR", ogDescription: "HMR library documentation in llms.txt format for AI assistants" });
+  updateMetadata({ ogTitle: "LLM-Friendly Docs for HMR", ogDescription: "HMR library documentation in llms.txt format for AI assistants" });
 
   let content = "";
   let loading = true;
   let viewMode: "raw" | "rendered" = "raw";
   let includeTests = false;
+  let xml = false;
 
-  const baseUrl = `${$page.url.origin}/hmr/llms.txt`;
+  $: url = `${$page.url.origin}/hmr/llms${includeTests ? "-full" : ""}${xml ? ".xml" : ".txt"}`;
 
-  $: url = includeTests ? `${baseUrl}?tests=1` : baseUrl;
+  $: if (xml && viewMode === "rendered")
+    viewMode = "raw";
 
   $: {
     loading = true;
-    browser && fetch(url, { headers: { Accept: "text/markdown" } }).then(r => r.text()).then((text) => {
+    browser && fetch(url, { headers: { accept: xml ? "application/xml" : "text/markdown" } }).then(r => r.text()).then((text) => {
       content = text;
     }).catch((error) => {
       content = String(error);
@@ -43,7 +45,7 @@
     <div class="sticky w-21rem col overflow-y-scroll px-5 text-sm 2xl:(top-14 h-[calc(100dvh-7rem)]) lg:(top-10 h-[calc(100dvh-5rem)]) xl:(top-12 h-[calc(100dvh-6rem)]) -ml-5 [&_p]:(text-xs text-neutral-5)">
       <div class="mb-3 max-w-xs col shrink-0 gap-1.5 text-xs">
         <div class="row items-center gap-1.5">
-          <h1 class="text-sm text-neutral-2 font-semibold">Preview llms.txt</h1>
+          <h1 class="text-base text-neutral-2 font-semibold">LLM-Friendly Docs ✨</h1>
           <WithTooltip tips="about llms.txt spec" let:builder>
             <a href="https://llmstxt.org/" target="_blank" class="" {...builder} use:builder.action>
               <div class="i-mdi-help-circle-outline mb-0.1 size-4 text-neutral-6 hover:text-neutral-3" />
@@ -51,7 +53,7 @@
           </WithTooltip>
         </div>
         <p>
-          Access the HMR documentation in llms.txt format for AI assistants. Feed this to your LLM agents to enhance their understanding of the HMR library.
+          Copy the HMR documentation in llm-friendly formats. Feed this to your LLM agents to enhance their understanding of the HMR library.
         </p>
       </div>
 
@@ -75,19 +77,19 @@
       <div class="mb-2 max-w-xs col shrink-0 gap-1.5 text-xs">
         <h3 class="text-sm text-neutral-2 font-semibold">Display Mode</h3>
         <p>
-          Choose how to display the llms.txt content.
+          Choose how to display the markdown content.
         </p>
       </div>
 
       <Tabs.Root bind:value={viewMode}>
         <Tabs.List class="grid cols-2 w-full gap-0.7 rounded-lg bg-white/2 p-0.5 [&>*]:(row items-center justify-center gap-1 rounded-md px-2 py-1.5 text-xs text-neutral-4)">
-          <Tabs.Trigger value="rendered" class="hover:(bg-white/7 text-neutral-1) focus-visible:(outline-none ring-1.2 ring-neutral-2 ring-inset) !data-[state=active]:(bg-neutral-2 text-neutral-7)">
-            <div class="i-mdi-file-document-outline size-4 -translate-y-0.21" />
+          <Tabs.Trigger value="rendered" disabled={xml} class="data-[disabled]:(cursor-not-allowed opacity-50) hover:(bg-white/7 text-neutral-1) focus-visible:(outline-none ring-1.2 ring-neutral-2 ring-inset) !data-[state=active]:(bg-neutral-2 text-neutral-7)">
+            <div class="i-mdi-file-document size-4 -translate-y-0.21" />
             Rendered
           </Tabs.Trigger>
           <Tabs.Trigger value="raw" class="hover:(bg-white/7 text-neutral-1) focus-visible:(outline-none ring-1.2 ring-neutral-2 ring-inset) !data-[state=active]:(bg-neutral-2 text-neutral-7)">
-            <div class="i-mdi-code-braces size-4 -translate-y-0.1" />
-            Markdown
+            <div class="{xml ? "i-lucide-code-xml -translate-y-0.1" : "i-mdi-file-document-outline -translate-y-0.21"} size-4" />
+            {xml ? "XML" : "Markdown"}
           </Tabs.Trigger>
         </Tabs.List>
       </Tabs.Root>
@@ -97,7 +99,7 @@
       <div class="mb-2 max-w-xs col shrink-0 gap-1.5 text-xs">
         <h3 class="text-sm text-neutral-2 font-semibold">Content Options</h3>
         <p>
-          Choose whether to include unit tests in the documentation.
+          Choose the format and whether to include code examples in the output.
         </p>
       </div>
 
@@ -113,6 +115,20 @@
           </div>
           <p>
             When enabled, unit tests will be included in the documentation to provide usage examples. Token cost may increase a lot.
+          </p>
+        </div>
+
+        <div class="col gap-1">
+          <div class="row items-center justify-between">
+            <Label.Root for="format-toggle" class="text-sm text-neutral-3">
+              Output in XML
+            </Label.Root>
+            <Switch.Root bind:checked={xml} id="format-toggle" class="peer h-4.5 w-9 inline-flex shrink-0 cursor-pointer items-center rounded-full bg-neutral-8 data-[state=checked]:bg-neutral-5 focus-visible:(outline-none ring-1.2 ring-neutral-2 ring-inset)">
+              <Switch.Thumb class="pointer-events-none block size-3.5 shrink-0 rounded-full bg-white data-[state=checked]:translate-x-5 data-[state=unchecked]:translate-x-0.5" />
+            </Switch.Root>
+          </div>
+          <p>
+            Some LLMs may prefer XML format for better understanding.
           </p>
         </div>
       </div>

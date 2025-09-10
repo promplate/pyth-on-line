@@ -3,11 +3,8 @@ import type { RequestHandler } from "./$types";
 import coreFiles from "../../../../packages/hmr";
 import testFiles from "../../../../tests/py";
 import concepts from "../concepts";
+import { packXML } from "$lib/utils/pack";
 import { createMcpHandler } from "mcp-handler";
-
-function pack(files: Record<string, string>) {
-  return Object.entries(files).map(([path, content]) => `<file path="${path}">\n${content.replaceAll("\r", "").trimEnd()}\n</file>`).join("\n\n");
-}
 
 const docs = `\
 # Hot Module Reload for Python (https://pypi.org/project/hmr/)
@@ -38,7 +35,7 @@ const entrypoints = [
     ].join(" "),
   },
   {
-    content: `# Files under <https://github.com/promplate/pyth-on-line/packages/hmr>:\n\n${pack(coreFiles)}`,
+    content: `# Files under <https://github.com/promplate/pyth-on-line/packages/hmr>:\n\n${packXML(coreFiles)}`,
     uri: "hmr-docs://core-files",
     tool: "view-hmr-core-sources",
     title: "HMR Sources",
@@ -52,7 +49,7 @@ const entrypoints = [
     ].join(" "),
   },
   {
-    content: `# Files under <https://github.com/promplate/pyth-on-line/tests/py>:\n\n${pack(testFiles)}`,
+    content: `# Files under <https://github.com/promplate/pyth-on-line/tests/py>:\n\n${packXML(testFiles)}`,
     uri: "hmr-docs://test-files",
     tool: "view-hmr-unit-tests",
     title: "HMR Unit Tests",
