@@ -13,7 +13,7 @@
 <section class="not-prose relative overflow-y-scroll rounded-md [&>pre]:!line-height-relaxed">
   {#key code}
     {#await highlight(lang, code)}
-      <pre class="text-white/70">{code}</pre>
+      <pre class="bg-#121212"><code class="!text-#cdcabe">{code}</code></pre>
     {:then code}
       {@html code}
     {/await}
