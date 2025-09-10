@@ -1,4 +1,6 @@
 <script lang="ts">
+  import type { PageData } from "./$types";
+
   import "@fontsource-variable/jetbrains-mono/wght.css";
   import "@fontsource-variable/jetbrains-mono/wght-italic.css";
 
@@ -15,7 +17,10 @@
 
   updateMetadata({ ogTitle: "LLM-Friendly Docs for HMR", ogDescription: "HMR library documentation in llms.txt format for AI assistants" });
 
+  export let data: PageData;
+
   let content = "";
+  let mounted = false;
   let loading = true;
   let viewMode: "raw" | "rendered" = "raw";
   let includeTests = false;
@@ -26,13 +31,16 @@
   $: if (xml && viewMode === "rendered")
     viewMode = "raw";
 
+  const getMounted = () => mounted; // no tracking
+
   $: {
     loading = true;
-    browser && fetch(url, { headers: { accept: xml ? "application/xml" : "text/markdown" } }).then(r => r.text()).then((text) => {
+    browser && (!getMounted() ? data.html : fetch(url, { headers: { accept: xml ? "application/xml" : "text/markdown" } }).then(r => r.text())).then((text) => {
       content = text;
     }).catch((error) => {
       content = String(error);
     }).finally(() => {
+      mounted = true;
       loading = false;
     });
   }
