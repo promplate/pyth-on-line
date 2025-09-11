@@ -1,3 +1,4 @@
+import builtins
 import sys
 from ast import get_docstring, parse
 from collections.abc import Iterable, MutableMapping, Sequence
@@ -5,7 +6,6 @@ from contextlib import suppress
 from functools import cached_property, partial
 from importlib.abc import Loader, MetaPathFinder
 from importlib.machinery import ModuleSpec
-from importlib.util import spec_from_loader
 from inspect import currentframe, ismethod
 from os import getenv
 from pathlib import Path
@@ -141,7 +141,7 @@ class ReactiveModuleLoader(Loader):
     def create_module(self, spec: ModuleSpec):
         assert spec.origin is not None, "This loader can only load file-backed modules"
         path = Path(spec.origin)
-        namespace = {"__file__": spec.origin, "__spec__": spec, "__loader__": self, "__name__": spec.name, "__package__": spec.parent, "__cached__": None}
+        namespace = {"__file__": spec.origin, "__spec__": spec, "__loader__": self, "__name__": spec.name, "__package__": spec.parent, "__cached__": None, "__builtins__": __builtins__}
         if spec.submodule_search_locations is not None:
             namespace["__path__"] = spec.submodule_search_locations[:] = [str(path.parent)]
         return ReactiveModule(path, namespace, spec.name)
@@ -204,10 +204,10 @@ class ReactiveModuleFinder(MetaPathFinder):
         for directory in self.search_paths:
             file = directory / f"{fullname.replace('.', '/')}.py"
             if self._accept(file) and (paths is None or is_relative_to_any(file, paths)):
-                return spec_from_loader(fullname, _loader, origin=str(file))
+                return ModuleSpec(fullname, _loader, origin=str(file))
             file = directory / f"{fullname.replace('.', '/')}/__init__.py"
             if self._accept(file) and (paths is None or is_relative_to_any(file, paths)):
-                return spec_from_loader(fullname, _loader, origin=str(file), is_package=True)
+                return ModuleSpec(fullname, _loader, origin=str(file), is_package=True)
 
 
 def is_relative_to_any(path: Path, paths: Iterable[str | Path]):
@@ -264,7 +264,9 @@ class BaseReloader:
 
     @cached_property
     def entry_module(self):
-        namespace = {"__file__": self.entry, "__name__": "__main__"}
+        spec = ModuleSpec("__main__", _loader, origin=self.entry)
+        assert spec is not None
+        namespace = {"__file__": self.entry, "__name__": "__main__", "__spec__": spec, "__loader__": _loader, "__package__": spec.parent, "__cached__": None, "__builtins__": builtins}
         return ReactiveModule(Path(self.entry), namespace, "__main__")
 
     def run_entry_file(self):
