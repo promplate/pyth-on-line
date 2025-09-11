@@ -55,7 +55,7 @@ def run_module(module_name: str, args: list[str]):
     if spec is None:
         raise ModuleNotFoundError(f"No module named '{module_name}'")  # noqa: TRY003
 
-    if spec.submodule_search_locations:
+    if spec.submodule_search_locations is not None:
         # It's a package, look for __main__.py
         spec = find_spec(f"{module_name}.__main__")
         if spec and spec.origin:
