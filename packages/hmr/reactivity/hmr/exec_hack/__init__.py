@@ -14,7 +14,7 @@ def fix_class_name_resolution[T: ast.AST](mod: T, lineno_offset=0, col_offset=0)
 
 def _increment_col_offset[T: ast.AST](tree: T, n: int) -> T:
     for node in ast.walk(tree):
-        if isinstance(node, (ast.stmt, ast.expr)):  # noqa: UP038
+        if isinstance(node, (ast.stmt, ast.expr)):
             node.col_offset += n
             if isinstance(node.end_col_offset, int):
                 node.end_col_offset += n
