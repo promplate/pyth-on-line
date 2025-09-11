@@ -19,6 +19,7 @@ start_watching = SyncReloader.start_watching
 
 def test_entry_module():
     with environment() as env, mock_reloader():
+        env["a/b/__init__.py"].touch()
         env["a/b/__main__.py"] = "if __name__ == '__main__': print(123)"
         assert cli(["-m", "a.b"]) == 0
         assert env.stdout_delta == "123\n"
