@@ -1,3 +1,4 @@
+import builtins
 import sys
 from pathlib import Path
 
@@ -18,9 +19,7 @@ def run_path(entry: str, args: list[str]):
     entry = str(path)
     sys.path.insert(0, str(path.parent))
 
-    from importlib.machinery import ModuleSpec
-
-    from .core import SyncReloader, _loader
+    from .core import SyncReloader
 
     _argv = sys.argv[:]
     sys.argv[:] = args
@@ -28,13 +27,8 @@ def run_path(entry: str, args: list[str]):
     try:
         reloader = SyncReloader(entry)
         sys.modules["__main__"] = mod = reloader.entry_module
-        mod.__dict__.update(
-            {
-                "__loader__": _loader,
-                "__package__": parent,
-                "__spec__": None if parent is None else ModuleSpec("__main__", _loader, origin=entry),
-            }
-        )
+        ns: dict = mod._ReactiveModule__namespace  # noqa: SLF001
+        ns.update({"__package__": parent, "__spec__": None if parent is None else mod.__spec__})
         reloader.keep_watching_until_interrupt()
     finally:
         sys.argv[:] = _argv
@@ -47,7 +41,7 @@ def run_module(module_name: str, args: list[str]):
 
     from importlib.util import find_spec
 
-    from .core import SyncReloader, patch_meta_path
+    from .core import ReactiveModule, SyncReloader, _loader, patch_meta_path
 
     patch_meta_path()
 
@@ -74,8 +68,10 @@ def run_module(module_name: str, args: list[str]):
     _main = sys.modules["__main__"]
     try:
         reloader = SyncReloader(entry)
-        sys.modules["__main__"] = mod = reloader.entry_module
-        mod.__dict__.update({"__spec__": spec, "__loader__": spec.loader, "__package__": spec.parent})
+        if spec.loader is not _loader:
+            spec.loader = _loader  # make it reactive
+        namespace = {"__file__": entry, "__name__": "__main__", "__spec__": spec, "__loader__": _loader, "__package__": spec.parent, "__cached__": None, "__builtins__": builtins}
+        sys.modules["__main__"] = reloader.entry_module = ReactiveModule(Path(entry), namespace, "__main__")
         reloader.keep_watching_until_interrupt()
     finally:
         sys.argv[:] = _argv
