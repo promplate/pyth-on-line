@@ -47,7 +47,7 @@
 
 </script>
 
-<div class="m-4 w-[calc(100%-2rem)] col self-center 2xl:(m-14) lg:(m-10 max-w-4xl) md:(m-8 w-[calc(100%-4rem)] row) sm:(m-6 w-[calc(100%-3rem)]) xl:(m-12 max-w-5xl) <md:gap-1">
+<div id="llms-page-root" class="m-4 w-[calc(100%-2rem)] col self-center 2xl:(m-14) lg:(m-10 max-w-4xl) md:(m-8 w-[calc(100%-4rem)] row) sm:(m-6 w-[calc(100%-3rem)]) xl:(m-12 max-w-5xl) <md:gap-1">
 
   <div class="mr-0 pl-100 pr-0 pt-100 -ml-100 -mt-100 lg:(mr-0 pb-10 -mb-10 -translate-x-[calc(0.3rem+2.5vw)]) md:(mr-8 bg-#121212 pb-8 -mb-8) 2xl:(pb-14 -mb-14) xl:(pb-12 -mb-12)">
     <div class="w-full col overflow-y-scroll text-sm md:(sticky top-8 h-[calc(100dvh-4rem)] w-17rem px-3 -ml-3) 2xl:(top-14 h-[calc(100dvh-7rem)]) lg:(top-8 h-[calc(100dvh-4rem)] w-21rem px-5 -ml-5) xl:(top-12 h-[calc(100dvh-6rem)]) <md:(mb-3 mt-1 rounded-md p-7 ring-1.2 ring-neutral-8 ring-inset) [&_p]:(text-xs text-neutral-5)">
@@ -164,8 +164,8 @@
         <a href="/hmr/mcp" class="before:!i-octicon-mcp-24">
           MCP server
         </a>
-        <a href="/">
-          Return home
+        <a href="/hmr">
+          Back
         </a>
       </nav>
     </div>
@@ -190,7 +190,7 @@
 </div>
 
 <style>
-  :global(html) {
+  :global(html):has(#llms-page-root) {
     scrollbar-gutter: stable;
   }
   section :global([style="color:#5D99A9"]) {

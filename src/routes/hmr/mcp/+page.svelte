@@ -100,8 +100,8 @@
         <a href="/hmr/llms">
           The llms.txt
         </a>
-        <a href="/">
-          Return home
+        <a href="/hmr">
+          Back
         </a>
       </nav>
     </div>
