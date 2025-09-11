@@ -95,7 +95,7 @@ class AsyncDerived[T](BaseDerived[Awaitable[T]]):
         if self._check_equality:
             if _equal(value, self._value):
                 return
-            elif self._value is self.UNSET:  # do not notify on first set
+            if self._value is self.UNSET:  # do not notify on first set
                 self._value = value
                 return
         self._value = value
