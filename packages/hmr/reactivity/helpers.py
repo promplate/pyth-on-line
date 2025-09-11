@@ -128,7 +128,7 @@ class DerivedMethod[T, I](DescriptorMixin[Derived[T]]):
 
 
 if TYPE_CHECKING:
-    from typing_extensions import deprecated  # noqa: UP035
+    from typing_extensions import deprecated
 
     from .collections import ReactiveMapping
 

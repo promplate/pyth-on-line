@@ -38,7 +38,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu, windows, macos]
-        py: [3.13]
+        py: [3.12, 3.13]
     runs-on: ${{ matrix.os }}-latest
     steps:
       - uses: actions/checkout@v5
@@ -49,10 +49,22 @@ jobs:
           activate-environment: true
       - name: Install dependencies
         run: |
-          uv pip install -r pyproject.toml --color always ${{ matrix.os == 'windows' && 'pytest-rerunfailures' || '' }}
+          # Install test dependencies for Python 3.12, all dependencies plus test group for Python 3.13
+          if [ "${{ matrix.py }}" = "3.12" ]; then
+            uv sync --only-group test --color always ${{ matrix.os == 'windows' && '--extra pytest-rerunfailures' || '' }}
+          else
+            uv sync --color always ${{ matrix.os == 'windows' && '--extra pytest-rerunfailures' || '' }}
+          fi
+        shell: bash
       - name: Run tests
         run: |
-          pytest -v --color=yes ${{ matrix.os == 'windows' && '--reruns 500' || '' }}
+          # Run HMR tests for Python 3.12, all tests for Python 3.13
+          if [ "${{ matrix.py }}" = "3.12" ]; then
+            uv run pytest tests/py/test_hmr.py -v --color=yes ${{ matrix.os == 'windows' && '--reruns 500' || '' }}
+          else
+            uv run pytest -v --color=yes ${{ matrix.os == 'windows' && '--reruns 500' || '' }}
+          fi
+        shell: bash
   publish-hmr:
     needs: [test, check]
     runs-on: ubuntu-latest
