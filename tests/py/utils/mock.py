@@ -28,7 +28,7 @@ class MockReloader(LifecycleMixin, FsUtils):
         self.started = True
         try:
             self.run_with_hooks()
-            yield
+            yield self.entry_module
         finally:
             self.clean_up()
             del self.started

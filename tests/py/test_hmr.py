@@ -1,3 +1,4 @@
+import builtins
 from importlib import import_module
 from inspect import getsource
 from pathlib import Path
@@ -310,8 +311,11 @@ def test_cache_across_reloads_traceback():
 def test_module_metadata():
     with environment() as env:
         env["main.py"] = "'abc'; print(__doc__)"
-        with env.hmr("main.py"):
+        with env.hmr("main.py") as __main__:
             assert env.stdout_delta == "abc\n"
+            # Python CLI sets the entry module's __builtins__ to a module object instead of a dict
+            assert __main__.__builtins__ is builtins
+            # but imported modules do get a dict
             assert import_module("main").__builtins__ is __builtins__
 
             env["a/b/__init__.py"].touch()
