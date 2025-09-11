@@ -1,13 +1,18 @@
 <script lang="ts">
   import FancyButton from "./FancyButton.svelte";
   import SparklesText from "./SparklesText.svelte";
-  import { browser } from "$app/environment";
+  import { navigating } from "$app/stores";
   import { updateMetadata } from "$lib/seo";
+  import { onMount } from "svelte";
+  import { get } from "svelte/store";
 
   updateMetadata({
     ogTitle: "HMR - Hot Module Reload for Python",
     ogDescription: "Next-generation hot module replacement for Python development",
   });
+
+  let highlighted = !get(navigating)?.from;
+  highlighted && onMount(() => setTimeout(() => highlighted = false, 500));
 </script>
 
 <div class="grid h-100dvh place-items-center">
@@ -30,7 +35,7 @@
               On-demand hot reloading. Only Python can do. Powered by fine-grained push-pull reactivity.
             </h2>
             <h3 class="mt-7 flex items-center justify-center">
-              <FancyButton href="/hmr/llms" text="use llms.txt" highlighted={!browser} />
+              <FancyButton href="/hmr/llms" text="use llms.txt" {highlighted} />
             </h3>
           </div>
         </div>

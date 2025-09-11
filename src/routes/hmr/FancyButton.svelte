@@ -2,15 +2,16 @@
   export let href: string;
   export let text: string;
   export let highlighted: boolean = false;
+  let first = highlighted;
 </script>
 
-<a {href} class="fancy-button group" class:highlighted={highlighted}>
+<a {href} class="fancy-button group" class:highlighted class:first>
   <span class="fancy-button-text">{text}</span>
   <div class="fancy-button-overlay">
     <span>{text}</span>
     <div class="i-lucide-arrow-right size-4 -translate-y-0.1" />
   </div>
-  <div class="fancy-button-particle" />
+  <div class="fancy-button-particle" on:transitionend|once={() => (first = false)} />
 </a>
 
 <style>
@@ -46,5 +47,9 @@
   .highlighted .fancy-button-particle,
   .fancy-button:focus-visible .fancy-button-particle {
     --uno: left-0 top-0 size-full scale-120 bg-white ease-out;
+  }
+
+  .first * {
+    --uno: duration-450;
   }
 </style>
