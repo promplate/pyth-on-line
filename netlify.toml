@@ -1,0 +1,2 @@
+[build]
+edge_functions = "src/netlify/edge-functions"
