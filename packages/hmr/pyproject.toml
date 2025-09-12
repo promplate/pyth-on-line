@@ -9,16 +9,19 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Typing :: Typed",
 ]
-keywords = ["reactive-programming", "reload", "signals", "hmr"]
+keywords = ["reactive-programming", "hot-module-reload", "signals", "hmr"]
 requires-python = ">=3.12"
-description = "Hot Module Reload for Python"
+description = "Hot Module Reload and Fine-grained Reactive Programming for Python"
 dependencies = ["watchfiles>=0.21,<2 ; sys_platform != 'emscripten'"]
 
 [project.scripts]
 hmr = "reactivity.hmr.run:main"
 
 [project.urls]
-repository = "https://github.com/promplate/pyth-on-line/tree/main/packages/hmr"
+Homepage = "https://pyth-on-line.promplate.dev/hmr"
+Documentation = "https://pyth-on-line.promplate.dev/hmr/llms.txt"
+Repository = "https://github.com/promplate/hmr"
+Changelog = "https://github.com/promplate/pyth-on-line/commits/main/packages/hmr"
 
 [build-system]
 requires = ["pdm-backend"]
