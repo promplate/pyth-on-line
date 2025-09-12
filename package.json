@@ -26,7 +26,7 @@
     "@modelcontextprotocol/sdk": "^1.18.0",
     "@neodrag/svelte": "^2.3.3",
     "@shikijs/monaco": "^3.12.2",
-    "@sveltejs/adapter-netlify": "^5.2.3",
+    "@sveltejs/adapter-auto": "^6.1.0",
     "@sveltejs/kit": "^2.38.1",
     "@sveltejs/vite-plugin-svelte": "^3.1.2",
     "@unocss/extractor-svelte": "~66.4.2",
