@@ -40,18 +40,20 @@ const testFilesMarkdown = `\
 ${packMarkdown(testFiles)}
 `;
 
+const headers = { "content-type": "text/markdown" };
+
 export const GET: RequestHandler = ({ params: { ext = "" } }) => {
   switch (ext) {
     case ".txt":
     case ".md":
-      return text(overview + coreFilesMarkdown, { headers: { "content-type": "text/markdown" } });
+      return text(overview + coreFilesMarkdown, { headers });
     case "-full.txt":
     case "-full.md":
-      return text(overview + coreFilesMarkdown + testFilesMarkdown, { headers: { "content-type": "text/markdown" } });
+      return text(overview + coreFilesMarkdown + testFilesMarkdown, { headers });
     case ".xml":
-      return text(`<overview>\n${overview}</overview>\n\n<files description="core files">\n${packXML(rest)}\n</files>\n`, { headers: { "content-type": "application/xml" } });
+      return text(`<overview>\n${overview}</overview>\n\n<files description="core files">\n${packXML(rest)}\n</files>\n`, { headers });
     case "-full.xml":
-      return text(`<overview>\n${overview}</overview>\n\n<files description="core files">\n${packXML(rest)}\n</files>\n\n<files description="unit test files">\n${packXML(testFiles)}\n</files>\n`, { headers: { "content-type": "application/xml" } });
+      return text(`<overview>\n${overview}</overview>\n\n<files description="core files">\n${packXML(rest)}\n</files>\n\n<files description="unit test files">\n${packXML(testFiles)}\n</files>\n`, { headers });
     default:
       redirect(308, "/hmr/llms.txt");
   }
