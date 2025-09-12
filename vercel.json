@@ -10,6 +10,13 @@
           "value": ".*text/html.*"
         }
       ],
+      "missing": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(ai|bot).*"
+        }
+      ],
       "destination": "/hmr/llms",
       "permanent": false
     }

@@ -60,6 +60,7 @@
     "svelte-sonner": "0.3.28",
     "tailwind-merge": "^3.3.1",
     "turndown": "^7.2.1",
+    "ua-parser-js": "^2.0.5",
     "unocss": "~66.4.2",
     "unzipit": "^1.4.3",
     "vite": "^5.4.20"
