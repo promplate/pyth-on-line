@@ -374,4 +374,4 @@ else:
     from .run import cli  # noqa: F401
 
 
-__version__ = "0.6.6.2"
+__version__ = "0.6.6.3"
