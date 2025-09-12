@@ -83,7 +83,7 @@ def cli(args: list[str] | None = None):
         args = sys.argv[1:]
 
     try:
-        if len(args) < 1 or "--help" in args or "-h" in args:
+        if len(args) < 1 or args[0] in ("--help", "-h"):
             print("\n Usage:")
             print("   hmr <entry file>, just like python <entry file>")
             print("   hmr -m <module>, just like python -m <module>\n")
