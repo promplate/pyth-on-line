@@ -46,15 +46,16 @@ def default_task_factory[T](async_function: AsyncFunction[T]) -> Awaitable[T]:
 
             class Future:  # An awaitable that can be awaited multiple times
                 def __await__(self):
-                    yield from evt.wait().__await__()
+                    if not evt.is_set():
+                        yield from evt.wait().__await__()
                     if exc is not None:
                         raise exc
                     return res  # noqa: F821
 
             return Future()
 
-        case _:
-            raise AsyncLibraryNotFoundError("Only asyncio and trio are supported")  # noqa: TRY003
+        case _ as other:
+            raise AsyncLibraryNotFoundError(f"Only asyncio and trio are supported, not {other}")  # noqa: TRY003
 
 
 class AsyncEffect[T](Effect[Awaitable[T]]):
