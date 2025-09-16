@@ -132,7 +132,7 @@ if TYPE_CHECKING:
 
     from .collections import ReactiveMapping
 
-    @deprecated("Use `ReactiveMapping` instead")
+    @deprecated("Use `reactive` with an initial value or `ReactiveMapping` instead")
     class Reactive[K, V](ReactiveMapping[K, V]): ...
 
 else:

@@ -1,5 +1,5 @@
 from collections import defaultdict
-from collections.abc import Iterable, Mapping, MutableMapping, MutableSequence, MutableSet, Sequence
+from collections.abc import Iterable, Mapping, MutableMapping, MutableSequence, MutableSet, Sequence, Set
 from typing import overload
 
 from .context import Context, default_context
@@ -109,7 +109,7 @@ class ReactiveSetProxy[T](MutableSet[T]):
 
 
 class ReactiveSet[T](ReactiveSetProxy[T]):
-    def __init__(self, initial: set[T] | None = None, *, context: Context | None = None):
+    def __init__(self, initial: Set[T] | None = None, *, context: Context | None = None):
         super().__init__({*initial} if initial is not None else set(), context=context)
 
 
@@ -307,3 +307,24 @@ class ReactiveSequence[T](ReactiveSequenceProxy[T]):
 
 
 # TODO: use WeakKeyDictionary to avoid memory leaks
+
+
+@overload
+def reactive[K, V](value: Mapping[K, V]) -> ReactiveMapping[K, V]: ...
+@overload
+def reactive[T](value: Set[T]) -> ReactiveSet[T]: ...
+@overload
+def reactive[T](value: Sequence[T]) -> ReactiveSequence[T]: ...
+
+
+def reactive(value: Mapping | Set | Sequence, *, context: Context | None = None):
+    match value:
+        case MutableMapping():
+            return ReactiveMapping(value, context=context)
+        case MutableSet():
+            return ReactiveSet(value, context=context)
+        case MutableSequence():
+            return ReactiveSequence(value, context=context)
+
+
+# TODO: implement deep_reactive, lazy_reactive, etc.

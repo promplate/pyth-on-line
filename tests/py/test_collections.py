@@ -1,6 +1,6 @@
 from pytest import raises
 from reactivity import create_effect
-from reactivity.collections import ReactiveMappingProxy, ReactiveSequenceProxy, ReactiveSetProxy
+from reactivity.collections import ReactiveMappingProxy, ReactiveSequenceProxy, ReactiveSetProxy, reactive
 from utils import capture_stdout
 
 
@@ -113,3 +113,9 @@ def test_reactive_sequence_slice_operations():
         assert stdout.delta == "[20]\n"
         seq[-3] = 200
         assert stdout.delta == "[200]\n"
+
+
+def tset_reactive_router():
+    assert isinstance(reactive({}), ReactiveMappingProxy)
+    assert isinstance(reactive(set()), ReactiveSetProxy)
+    assert isinstance(reactive([]), ReactiveSequenceProxy)
