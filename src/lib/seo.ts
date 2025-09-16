@@ -14,6 +14,10 @@ export function initMetadataStore() {
   return setContext("seo-metadata", writable(defaultMetadata));
 }
 
+export function resetMetadata(store: Writable<SEOMetadata>) {
+  store.set(defaultMetadata);
+}
+
 export function updateMetadata(metadata: Partial<SEOMetadata>) {
   const store = getContext<Writable<SEOMetadata>>("seo-metadata");
   store.update(current => ({ ...current, ...metadata }));

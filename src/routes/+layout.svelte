@@ -1,17 +1,19 @@
-<script>
+<script lang="ts">
   import "@unocss/reset/tailwind.css";
   import "uno.css";
   import "@fontsource-variable/fira-code";
   import "@fontsource-variable/inter";
 
   import { dev } from "$app/environment";
+  import { onNavigate } from "$app/navigation";
   import { page } from "$app/stores";
   import * as env from "$env/static/public";
   import CmdK from "$lib/components/command/CmdK.svelte";
-  import { initMetadataStore } from "$lib/seo";
+  import { initMetadataStore, resetMetadata } from "$lib/seo";
   import { Toaster } from "svelte-sonner";
 
   const metadata = initMetadataStore();
+  onNavigate(() => resetMetadata(metadata));
 
   // @ts-ignore
   const headScripts = atob(env.PUBLIC_HEAD_SCRIPTS ?? "");
