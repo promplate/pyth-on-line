@@ -74,9 +74,6 @@ reportUnnecessaryTypeIgnoreComment = true
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "session"
-# Handle trio tests separately from asyncio tests  
-addopts = "--strict-markers"
-markers = ["trio: mark test to run with trio backend instead of asyncio"]
 
 [tool.uv.sources]
 hmr = { workspace = true }
