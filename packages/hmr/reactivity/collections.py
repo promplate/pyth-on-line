@@ -115,7 +115,7 @@ class ReactiveSet[T](ReactiveSetProxy[T]):
 
 class ReactiveSequenceProxy[T](MutableSequence[T]):
     def _signal(self):
-        return Signal(context=self.context)
+        return Subscribable(context=self.context)
 
     def __init__(self, initial: MutableSequence[T], check_equality=True, *, context: Context | None = None):
         self.context = context or default_context
@@ -139,12 +139,12 @@ class ReactiveSequenceProxy[T](MutableSequence[T]):
             if step != 1:
                 raise NotImplementedError  # TODO
             for i in range(start, stop):
-                self._keys[i].get()
+                self._keys[i].track()
             return self._data[start:stop]
 
         else:
             # Handle integer indices
-            self._keys[key].get()
+            self._keys[key].track()
             if -self._length <= key < self._length:
                 return self._data[key]
             raise IndexError(key)
