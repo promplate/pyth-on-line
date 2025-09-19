@@ -166,6 +166,20 @@ def test_reactive_object_proxy_accessing_properties():
         assert stdout.delta == "200\n"
 
 
+def test_reactive_object_proxy_classattr():
+    class Ref:
+        value = 1
+
+    obj = reactive_object_proxy(Ref())
+
+    with capture_stdout() as stdout, create_effect(lambda: print(obj.value)):
+        assert stdout.delta == "1\n"
+        obj.value = 2
+        assert stdout.delta == "2\n"
+        del obj.value
+        assert stdout.delta == "1\n"
+
+
 def test_reactive_router():
     assert isinstance(reactive({}), ReactiveMappingProxy)
     assert isinstance(reactive(set()), ReactiveSetProxy)
