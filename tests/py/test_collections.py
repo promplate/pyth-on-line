@@ -51,6 +51,21 @@ def test_reactive_set_proxy():
         assert stdout.delta == ""
 
 
+def test_reactive_set_no_equality_check():
+    s = reactive(set(), check_equality=False)
+    with capture_stdout() as stdout, create_effect(lambda: print(s)):
+        assert stdout.delta == "set()\n"
+        s.add(1)
+        assert stdout.delta == "{1}\n"
+        s.add(1)
+        assert stdout.delta == "{1}\n"
+        s.pop()
+        assert stdout.delta == "set()\n"
+        with raises(KeyError):
+            s.pop()
+        assert stdout.delta == ""
+
+
 def test_reactive_mapping_repr():
     assert repr(ReactiveMappingProxy({"a": 1})) == "{'a': 1}"
 
