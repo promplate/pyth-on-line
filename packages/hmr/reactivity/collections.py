@@ -1,5 +1,7 @@
 from collections import defaultdict
 from collections.abc import Iterable, Mapping, MutableMapping, MutableSequence, MutableSet, Sequence, Set
+from functools import update_wrapper
+from inspect import ismethod
 from typing import overload
 
 from .context import Context, default_context
@@ -307,6 +309,57 @@ class ReactiveSequence[T](ReactiveSequenceProxy[T]):
 
 
 # TODO: use WeakKeyDictionary to avoid memory leaks
+
+
+def reactive_object_proxy[T](initial: T, check_equality=True, *, context: Context | None = None) -> T:
+    context = context or default_context
+
+    names = ReactiveMappingProxy(initial.__dict__, check_equality, context=context)
+    _iter = names._iter  # noqa: SLF001
+    _keys: defaultdict[str, Signal[bool | None]] = names._keys  # noqa: SLF001  # type: ignore
+    # true for instance attributes, false for non-existent attributes, None for class attributes
+    # only instance attributes are visible in `__dict__`
+    # TODO: accessing non-data descriptors should be treated as getting `Derived` instead of `Signal`
+    CLASS_ATTR = None  # sentinel for class attributes  # noqa: N806
+
+    class Proxy(initial.__class__):
+        def __getattribute__(self, key):
+            if key == "__dict__":
+                return names
+            if _keys[key].get():
+                res = getattr(initial, key)
+                if ismethod(res):
+                    return res.__func__.__get__(self)
+                return res
+            return super().__getattribute__(key)
+
+        def __setattr__(self, key: str, value):
+            if _keys[key]._value is not False:  # noqa: SLF001
+                should_notify = not check_equality or not _equal(getattr(initial, key), value)
+                setattr(initial, key, value)
+                if should_notify:
+                    _keys[key].notify()
+            else:
+                setattr(initial, key, value)
+                with context.batch(force_flush=False):
+                    _keys[key].set(True if key in initial.__dict__ else CLASS_ATTR)  # non-instance attributes are tracked but not visible in `__dict__`
+                    _iter.notify()
+
+        def __delattr__(self, key):
+            if not _keys[key]._value:  # noqa: SLF001
+                raise AttributeError(key)
+            delattr(initial, key)
+            with context.batch(force_flush=False):
+                _keys[key].set(False)
+                _iter.notify()
+
+        def __dir__(self):
+            _iter.track()
+            return dir(initial)
+
+    update_wrapper(Proxy, initial.__class__, updated=())
+
+    return Proxy()  # type: ignore
 
 
 @overload

@@ -1,6 +1,6 @@
 from pytest import raises
 from reactivity import create_effect
-from reactivity.collections import ReactiveMappingProxy, ReactiveSequenceProxy, ReactiveSetProxy, reactive
+from reactivity.collections import ReactiveMappingProxy, ReactiveSequenceProxy, ReactiveSetProxy, reactive, reactive_object_proxy
 from utils import capture_stdout
 
 
@@ -115,7 +115,58 @@ def test_reactive_sequence_slice_operations():
         assert stdout.delta == "[200]\n"
 
 
-def tset_reactive_router():
+def test_reactive_object_proxy():
+    from argparse import Namespace
+
+    obj = reactive_object_proxy(raw := Namespace(foo=1))
+
+    with capture_stdout() as stdout, create_effect(lambda: print(obj.foo)):
+        assert stdout.delta == "1\n"
+        obj.foo = 10
+        assert stdout.delta == "10\n"
+        obj.__dict__["foo"] = 100
+        assert stdout.delta == "100\n"
+
+    assert str(obj) == str(raw)
+
+
+def test_reactive_object_proxy_accessing_properties():
+    class Rect:
+        def __init__(self):
+            self._a = 1
+            self._b = 2
+
+        @property
+        def a(self):
+            return self._a
+
+        @a.setter
+        def a(self, value: int):
+            self._a = value
+
+        @property
+        def b(self):
+            return self._b
+
+        @b.setter
+        def b(self, value: int):
+            self._b = value
+
+        @property
+        def size(self):
+            return self.a * self.b
+
+    rect = reactive_object_proxy(Rect())
+
+    with capture_stdout() as stdout, create_effect(lambda: print(rect.size)):
+        assert stdout.delta == "2\n"
+        rect.a = 10
+        assert stdout.delta == "20\n"
+        rect.b = 20
+        assert stdout.delta == "200\n"
+
+
+def test_reactive_router():
     assert isinstance(reactive({}), ReactiveMappingProxy)
     assert isinstance(reactive(set()), ReactiveSetProxy)
     assert isinstance(reactive([]), ReactiveSequenceProxy)
