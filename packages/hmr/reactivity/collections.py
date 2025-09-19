@@ -315,7 +315,7 @@ class ReactiveSequence[T](ReactiveSequenceProxy[T]):
 def reactive_object_proxy[T](initial: T, check_equality=True, *, context: Context | None = None) -> T:
     context = context or default_context
 
-    names = ReactiveMappingProxy(initial.__dict__, check_equality, context=context)
+    names = ReactiveMappingProxy(initial.__dict__, check_equality, context=context)  # TODO: support classes with `__slots__`
     _iter = names._iter  # noqa: SLF001
     _keys: defaultdict[str, Signal[bool | None]] = names._keys  # noqa: SLF001  # type: ignore
     # true for instance attributes, false for non-existent attributes, None for class attributes
@@ -323,7 +323,10 @@ def reactive_object_proxy[T](initial: T, check_equality=True, *, context: Contex
     # TODO: accessing non-data descriptors should be treated as getting `Derived` instead of `Signal`
     CLASS_ATTR = None  # sentinel for class attributes  # noqa: N806
 
-    class Proxy(initial.__class__, metaclass=type(initial.__class__)):
+    cls = initial.__class__
+    meta: type[type[T]] = type(cls)
+
+    class Proxy(cls, metaclass=meta):
         def __getattribute__(self, key):
             if key == "__dict__":
                 return names
@@ -359,10 +362,11 @@ def reactive_object_proxy[T](initial: T, check_equality=True, *, context: Contex
             return dir(initial)
 
         if isclass(initial):
+            __new__ = meta.__new__
 
             def __call__(self, *args, **kwargs):
                 # TODO: refactor this because making a new class whenever constructing a new instance is wasteful
-                return reactive_object_proxy(initial(*args, **kwargs), check_equality, context=context)  # type: ignore
+                return reactive(initial(*args, **kwargs), check_equality, context=context)  # type: ignore
 
             # it seems that __str__ and __repr__ are not looked up on the class, so we have to define them here
             # note that this do loses reactivity but probably nobody needs reactive stringifying of classes themselves
@@ -373,10 +377,10 @@ def reactive_object_proxy[T](initial: T, check_equality=True, *, context: Contex
             def __repr__(self):
                 return repr(initial)
 
-    update_wrapper(Proxy, initial.__class__, updated=())
+    update_wrapper(Proxy, cls, updated=())
 
     if isclass(initial):
-        return Proxy(initial.__name__, initial.__mro__, {})  # type: ignore
+        return Proxy(initial.__name__, (initial,), {**initial.__dict__})  # type: ignore
 
     return Proxy()  # type: ignore
 

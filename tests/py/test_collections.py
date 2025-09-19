@@ -1,3 +1,6 @@
+from collections import UserList
+from typing import TypedDict
+
 from pytest import raises
 from reactivity import create_effect
 from reactivity.collections import ReactiveMappingProxy, ReactiveSequenceProxy, ReactiveSetProxy, reactive, reactive_object_proxy
@@ -207,3 +210,26 @@ def test_reactive_router():
     assert isinstance(reactive({}), ReactiveMappingProxy)
     assert isinstance(reactive(set()), ReactiveSetProxy)
     assert isinstance(reactive([]), ReactiveSequenceProxy)
+
+    class A: ...
+
+    assert reactive(A) is not A
+    assert reactive(a := A()) is not a
+
+    class B(TypedDict): ...
+
+    assert isinstance(reactive(B)(), ReactiveMappingProxy)
+
+    class C(UserList): ...
+
+    assert isinstance(reactive(C)(), ReactiveSequenceProxy)
+
+    class D(UserList): ...
+
+    assert isinstance(reactive(D()), ReactiveSequenceProxy)
+
+    class E(set):
+        def __new__(cls):
+            return super().__new__(cls)
+
+    assert isinstance(reactive(E()), ReactiveSetProxy)
