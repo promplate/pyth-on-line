@@ -377,6 +377,17 @@ def reactive_object_proxy[T](initial: T, check_equality=True, *, context: Contex
             def __repr__(self):
                 return repr(initial)
 
+        else:
+
+            def __init__(self, *args, **kwargs):
+                nonlocal bypassed
+                if bypassed:
+                    bypassed = False
+                    return
+                super().__init__(*args, **kwargs)
+
+    bypassed = True
+
     update_wrapper(Proxy, cls, updated=())
 
     if isclass(initial):
