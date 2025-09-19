@@ -4,11 +4,11 @@ from typing import assert_type
 from weakref import finalize
 
 from pytest import raises
-from reactivity import Reactive, State, batch, create_effect, create_memo, create_signal, memoized_method, memoized_property
+from reactivity import Reactive, batch, create_signal, effect, memoized, memoized_method, memoized_property
 from reactivity.context import default_context, new_context
 from reactivity.helpers import DerivedProperty, MemoizedMethod, MemoizedProperty
 from reactivity.hmr.proxy import Proxy
-from reactivity.primitives import Derived, Effect, Signal
+from reactivity.primitives import Derived, Effect, Signal, State
 from utils import capture_stdout
 
 
@@ -28,7 +28,7 @@ def test_state_notify():
 
     s = 0
 
-    @create_effect
+    @effect
     def _():
         nonlocal s
         s = get_s()
@@ -47,14 +47,14 @@ def test_state_dispose():
 
     results = []
 
-    with create_effect(lambda: results.append(get_s())):
+    with effect(lambda: results.append(get_s())):
         set_s(1)
         assert results == [0, 1]
 
     set_s(2)
     assert results == [0, 1]
 
-    with create_effect(results.clear, call_immediately=False):
+    with effect(results.clear, call_immediately=False):
         set_s(3)
         assert results == [0, 1]
 
@@ -71,14 +71,14 @@ def test_state_descriptor():
 
     results = []
 
-    with create_effect(lambda: results.append(obj.s)):
+    with effect(lambda: results.append(obj.s)):
         assert results == [0]
         obj.s = 1
         assert results == [0, 1]
 
     results = []
 
-    with create_effect(lambda: results.append(obj.v)):
+    with effect(lambda: results.append(obj.v)):
         assert results == [0]
         obj.v = 1
         assert results == [0]
@@ -96,14 +96,14 @@ def test_state_class_attribute():
 
     results = []
 
-    with create_effect(lambda: results.append(B.s1.get())):
+    with effect(lambda: results.append(B.s1.get())):
         assert results == [0]
         B.s1.set(1)
         assert results == [0, 1]
 
     results = []
 
-    with create_effect(lambda: results.append(B.s2.get())):
+    with effect(lambda: results.append(B.s2.get())):
         assert results == [0]
         B.s2.set(1)
         assert results == [0, 1]
@@ -136,7 +136,7 @@ def test_memo():
 
     count = 0
 
-    @create_memo
+    @memoized
     def doubled():
         nonlocal count
         count += 1
@@ -239,16 +239,16 @@ def test_memo_class_attribute():
 
 
 def test_nested_memo():
-    @create_memo
+    @memoized
     def f():
         print("f")
 
-    @create_memo
+    @memoized
     def g():
         f()
         print("g")
 
-    @create_memo
+    @memoized
     def h():
         g()
         print("h")
@@ -350,7 +350,7 @@ def test_nested_derived():
         assert h() == 0
         assert stdout == "f\ng\nh\n"
 
-    with capture_stdout() as stdout, create_effect(lambda: print(h())):
+    with capture_stdout() as stdout, effect(lambda: print(h())):
         assert stdout.delta == "0\n"
         set_s(3)
         assert stdout.delta == "f\ng\n"
@@ -370,7 +370,7 @@ def test_batch():
 
     history = []
 
-    @create_effect
+    @effect
     def _():
         history.append(obj.value)
 
@@ -400,7 +400,7 @@ def test_nested_batch():
     def increment():
         set_s(get_s() + 1)
 
-    with capture_stdout() as stdout, create_effect(lambda: print(get_s())):
+    with capture_stdout() as stdout, effect(lambda: print(get_s())):
         assert stdout == "0\n"
         with batch():
             increment()
@@ -421,7 +421,7 @@ def test_reactive():
 
     size_history = []
 
-    @create_effect
+    @effect
     def _():
         size_history.append(obj["x"] * obj["y"])
 
@@ -444,7 +444,7 @@ def test_reactive_spread():
 def test_reactive_tracking():
     obj = Reactive()
 
-    with create_effect(lambda: [*obj]):
+    with effect(lambda: [*obj]):
         """
 
         Evaluating `list(obj)` or `[*obj]` will invoke `__iter__` and `__len__` (I don't know why)
@@ -469,21 +469,21 @@ def test_reactive_lazy_track():
     obj = Reactive()
 
     with capture_stdout() as stdout:
-        with create_effect(lambda: [*obj, print(123)]):
+        with effect(lambda: [*obj, print(123)]):
             obj[1] = 2
             assert stdout.delta == "123\n123\n"
-        with create_effect(lambda: [*obj.keys(), print(123)]):
+        with effect(lambda: [*obj.keys(), print(123)]):
             obj[2] = 3
             assert stdout.delta == "123\n123\n"
-        with create_effect(lambda: [*obj.values(), print(123)]):
+        with effect(lambda: [*obj.values(), print(123)]):
             obj[3] = 4
             assert stdout.delta == "123\n123\n"
-        with create_effect(lambda: [*obj.items(), print(123)]):
+        with effect(lambda: [*obj.items(), print(123)]):
             obj[4] = 5
             assert stdout.delta == "123\n123\n"
 
         # views don't track iteration until actually consumed (e.g., by next() or unpacking)
-        with create_effect(lambda: [obj.keys(), obj.values(), obj.items(), print(123)]):
+        with effect(lambda: [obj.keys(), obj.values(), obj.items(), print(123)]):
             obj[5] = 6
             assert stdout.delta == "123\n"
 
@@ -491,7 +491,7 @@ def test_reactive_lazy_track():
 def test_reactive_lazy_notify():
     obj = Reactive({1: 2})
 
-    with capture_stdout() as stdout, create_effect(lambda: print(obj)):
+    with capture_stdout() as stdout, effect(lambda: print(obj)):
         assert stdout.delta == f"{ {1: 2} }\n"
         obj[1] = 2
         assert stdout.delta == ""
@@ -504,7 +504,7 @@ def test_fine_grained_reactive():
 
     a, b, c = [], [], []
 
-    with create_effect(lambda: a.append(obj[1])), create_effect(lambda: b.append(list(obj))), create_effect(lambda: c.append(str(obj))):
+    with effect(lambda: a.append(obj[1])), effect(lambda: b.append(list(obj))), effect(lambda: c.append(str(obj))):
         obj[1] = 20
 
     assert a == [2, 20]
@@ -515,7 +515,7 @@ def test_fine_grained_reactive():
 def test_error_handling():
     get_s, set_s = create_signal(0)
 
-    @create_memo
+    @memoized
     def should_raise():
         raise ValueError(get_s())
 
@@ -528,7 +528,7 @@ def test_error_handling():
 
     with raises(ValueError, match="0"):
 
-        @create_effect
+        @effect
         def _():
             raise ValueError(get_s())
 
@@ -551,7 +551,7 @@ def test_context_enter_dependency_restore():
         else:
             raise RuntimeError
 
-    with capture_stdout() as stdout, create_effect(f):
+    with capture_stdout() as stdout, effect(f):
         assert stdout.delta == "0\n"
         s.set(1)
         assert stdout.delta == "1\n"
@@ -571,7 +571,7 @@ def test_exec_inside_reactive_namespace():
 
     with raises(NameError):
 
-        @create_effect
+        @effect
         def _():
             exec("print(a)", None, context)
 
@@ -608,12 +608,12 @@ def test_complex_exec():
         assert stdout.delta == "2\n"
         assert {**namespace} == {"a": 1, "b": 2}
 
-        with create_effect(lambda: run("a = 1; b = a + 1; print(b)")):
+        with effect(lambda: run("a = 1; b = a + 1; print(b)")):
             assert stdout.delta == "2\n"
             namespace["a"] = 2
             assert stdout.delta == "2\n"
 
-        with create_effect(lambda: run("print(b)")):
+        with effect(lambda: run("print(b)")):
             assert stdout.delta == "2\n"
             namespace["a"] = 3
             assert stdout.delta == ""
@@ -621,26 +621,26 @@ def test_complex_exec():
 
 def test_equality_checks():
     get_s, set_s = create_signal(0)
-    with capture_stdout() as stdout, create_effect(lambda: print(get_s())):
+    with capture_stdout() as stdout, effect(lambda: print(get_s())):
         assert stdout == "0\n"
         set_s(0)
         assert stdout == "0\n"
 
     get_s, set_s = create_signal(0, False)
-    with capture_stdout() as stdout, create_effect(lambda: print(get_s())):
+    with capture_stdout() as stdout, effect(lambda: print(get_s())):
         assert stdout == "0\n"
         set_s(0)
         assert stdout == "0\n0\n"
 
     context = Reactive()
-    with capture_stdout() as stdout, create_effect(lambda: print(context.get(0))):
+    with capture_stdout() as stdout, effect(lambda: print(context.get(0))):
         context[0] = None
         assert stdout == "None\nNone\n"
         context[0] = None
         assert stdout == "None\nNone\n"
 
     context = Reactive(check_equality=False)
-    with capture_stdout() as stdout, create_effect(lambda: print(context.get(0))):
+    with capture_stdout() as stdout, effect(lambda: print(context.get(0))):
         context[0] = None
         assert stdout == "None\nNone\n"
         context[0] = None
@@ -651,7 +651,7 @@ def test_reactive_initial_value():
     context = Reactive({1: 2})
     assert context[1] == 2
 
-    with capture_stdout() as stdout, create_effect(lambda: print(context[1])):
+    with capture_stdout() as stdout, effect(lambda: print(context[1])):
         context[1] = 3
         assert stdout == "2\n3\n"
 
@@ -662,11 +662,11 @@ def test_fine_grained_reactivity():
     logs_1 = []
     logs_2 = []
 
-    @create_effect
+    @effect
     def _():
         logs_1.append({**context})
 
-    @create_effect
+    @effect
     def _():
         logs_2.append(context[1])
 
@@ -680,7 +680,7 @@ def test_reactive_inside_batch():
     context = Reactive()
     logs = []
 
-    @create_effect
+    @effect
     def _():
         logs.append({**context})
 
@@ -694,7 +694,7 @@ def test_reactive_inside_batch():
 def test_get_without_tracking():
     get_s, set_s = create_signal(0)
 
-    with capture_stdout() as stdout, create_effect(lambda: print(get_s(track=False))):
+    with capture_stdout() as stdout, effect(lambda: print(get_s(track=False))):
         set_s(1)
         assert get_s() == 1
         assert stdout == "0\n"
@@ -737,15 +737,15 @@ def test_memo_property_no_leak():
 def test_effect_with_memo():
     get_s, set_s = create_signal(0)
 
-    @create_memo
+    @memoized
     def f():
         return get_s() * 2
 
-    @create_memo
+    @memoized
     def g():
         return get_s() * 3
 
-    with capture_stdout() as stdout, create_effect(lambda: print(f() + g())):
+    with capture_stdout() as stdout, effect(lambda: print(f() + g())):
         assert stdout == "0\n"
         set_s(1)
         assert f() + g() == 2 + 3
@@ -759,7 +759,7 @@ def test_memo_as_hard_puller():
     def f():
         return get_s() + 1
 
-    @create_memo
+    @memoized
     def g():
         return f() + 1
 
@@ -775,7 +775,7 @@ def test_no_notify_on_first_set():
     def f():
         return [get_s()]
 
-    with capture_stdout() as stdout, create_effect(lambda: print(f())):
+    with capture_stdout() as stdout, effect(lambda: print(f())):
         assert stdout == "[0]\n"
         set_s(1)
         assert stdout == "[0]\n[1]\n"
@@ -788,7 +788,7 @@ def test_equality_check_among_arrays():
 
     get_arr, set_arr = create_signal(np.array([[[0, 1]]]))
 
-    with capture_stdout() as stdout, create_effect(lambda: print(get_arr())):
+    with capture_stdout() as stdout, effect(lambda: print(get_arr())):
         assert stdout.delta == "[[[0 1]]]\n"
         set_arr(np.array([[[0, 1]]]))
         assert stdout.delta == ""
@@ -800,7 +800,7 @@ def test_equality_check_among_dataframes():
     import pandas as pd
 
     get_df, set_df = create_signal(pd.DataFrame({"a": [0], "b": [1]}))
-    with capture_stdout() as stdout, create_effect(lambda: print(get_df())):
+    with capture_stdout() as stdout, effect(lambda: print(get_df())):
         assert stdout.delta == "   a  b\n0  0  1\n"
         set_df(pd.DataFrame({"a": [0], "b": [1]}))
         assert stdout.delta == ""
@@ -836,7 +836,7 @@ def test_context_usage_with_reactive_namespace():
 
     with capture_stdout() as stdout:
 
-        @c.effect
+        @effect(context=c)
         def _():
             try:
                 print(dct[1])
@@ -850,7 +850,7 @@ def test_context_usage_with_reactive_namespace():
 
 def test_reactive_proxy():
     context = Proxy({"a": 123})
-    with capture_stdout() as stdout, create_effect(lambda: exec("""class _: print(a)""", context.raw, context)):
+    with capture_stdout() as stdout, effect(lambda: exec("""class _: print(a)""", context.raw, context)):
         assert stdout.delta == "123\n"
         context["a"] = 234
 

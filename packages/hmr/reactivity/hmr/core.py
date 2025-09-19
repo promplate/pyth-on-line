@@ -3,7 +3,7 @@ import sys
 from ast import get_docstring, parse
 from collections.abc import Callable, Iterable, MutableMapping, Sequence
 from contextlib import suppress
-from functools import cached_property, partial
+from functools import cached_property
 from importlib.abc import Loader, MetaPathFinder
 from importlib.machinery import ModuleSpec
 from inspect import ismethod
@@ -15,8 +15,8 @@ from types import ModuleType, TracebackType
 from typing import Any, Self
 from weakref import WeakValueDictionary
 
+from .. import derived_method
 from ..context import Context
-from ..helpers import DerivedMethod
 from ..primitives import BaseDerived, Derived, Signal
 from ._common import HMR_CONTEXT
 from .fs import notify, setup_fs_audithook
@@ -88,7 +88,7 @@ class ReactiveModule(ModuleType):
             return self.__hooks.append
         raise AttributeError("register_dispose_callback")
 
-    @partial(DerivedMethod, context=HMR_CONTEXT)
+    @derived_method(context=HMR_CONTEXT)
     def __load(self):
         try:
             file = self.__file

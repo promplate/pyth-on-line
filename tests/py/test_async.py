@@ -1,7 +1,8 @@
 from asyncio import TaskGroup, gather, sleep, timeout
-from functools import partial, wraps
+from functools import wraps
 
 from pytest import raises
+from reactivity import async_derived
 from reactivity.async_primitives import AsyncDerived, AsyncEffect
 from reactivity.primitives import Derived, Signal
 from utils import Clock, capture_stdout, create_trio_task_factory, run_trio_in_asyncio
@@ -142,17 +143,17 @@ async def test_trio_nested_derived():
 
         s = Signal(0)
 
-        @partial(AsyncDerived, task_factory=factory)  # a mixture
+        @async_derived(task_factory=factory)  # a mixture
         async def f():
             print("f")
             return s.get()
 
-        @AsyncDerived
+        @async_derived
         async def g():
             print("g")
             return await f() // 2
 
-        @AsyncDerived
+        @async_derived
         async def h():
             print("h")
             return await g() // 2
