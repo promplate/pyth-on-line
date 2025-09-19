@@ -3,13 +3,13 @@ from collections import defaultdict
 from functools import cache
 from pathlib import Path
 
-from ..primitives import Signal
+from ..primitives import Subscribable
 from ._common import HMR_CONTEXT
 
 
 @defaultdict
 def fs_signals():
-    return Signal(context=HMR_CONTEXT)
+    return Subscribable(context=HMR_CONTEXT)
 
 
 @cache
