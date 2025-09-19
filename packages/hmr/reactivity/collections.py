@@ -1,8 +1,8 @@
 from collections import defaultdict
 from collections.abc import Iterable, Mapping, MutableMapping, MutableSequence, MutableSet, Sequence, Set
 from functools import update_wrapper
-from inspect import ismethod
-from typing import overload
+from inspect import isclass, ismethod
+from typing import Any, overload
 
 from .context import Context, default_context
 from .primitives import Signal, Subscribable, _equal
@@ -322,7 +322,7 @@ def reactive_object_proxy[T](initial: T, check_equality=True, *, context: Contex
     # TODO: accessing non-data descriptors should be treated as getting `Derived` instead of `Signal`
     CLASS_ATTR = None  # sentinel for class attributes  # noqa: N806
 
-    class Proxy(initial.__class__):
+    class Proxy(initial.__class__, metaclass=type(initial.__class__)):
         def __getattribute__(self, key):
             if key == "__dict__":
                 return names
@@ -357,7 +357,25 @@ def reactive_object_proxy[T](initial: T, check_equality=True, *, context: Contex
             _iter.track()
             return dir(initial)
 
+        if isclass(initial):
+
+            def __call__(self, *args, **kwargs):
+                # TODO: refactor this because making a new class whenever constructing a new instance is wasteful
+                return reactive_object_proxy(initial(*args, **kwargs), check_equality, context=context)  # type: ignore
+
+            # it seems that __str__ and __repr__ are not looked up on the class, so we have to define them here
+            # note that this do loses reactivity but probably nobody needs reactive stringifying of classes themselves
+
+            def __str__(self):
+                return str(initial)
+
+            def __repr__(self):
+                return repr(initial)
+
     update_wrapper(Proxy, initial.__class__, updated=())
+
+    if isclass(initial):
+        return Proxy(initial.__name__, initial.__mro__, {})  # type: ignore
 
     return Proxy()  # type: ignore
 
@@ -368,9 +386,11 @@ def reactive[K, V](value: Mapping[K, V]) -> ReactiveMapping[K, V]: ...
 def reactive[T](value: Set[T]) -> ReactiveSet[T]: ...
 @overload
 def reactive[T](value: Sequence[T]) -> ReactiveSequence[T]: ...
+@overload
+def reactive[T](value: T) -> T: ...
 
 
-def reactive(value: Mapping | Set | Sequence, *, context: Context | None = None):
+def reactive(value: Mapping | Set | Sequence | Any, *, context: Context | None = None):
     match value:
         case MutableMapping():
             return ReactiveMapping(value, context=context)
@@ -378,6 +398,8 @@ def reactive(value: Mapping | Set | Sequence, *, context: Context | None = None)
             return ReactiveSet(value, context=context)
         case MutableSequence():
             return ReactiveSequence(value, context=context)
+        case _:
+            return reactive_object_proxy(value, context=context)
 
 
 # TODO: implement deep_reactive, lazy_reactive, etc.

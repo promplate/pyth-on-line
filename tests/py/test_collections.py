@@ -166,18 +166,26 @@ def test_reactive_object_proxy_accessing_properties():
         assert stdout.delta == "200\n"
 
 
-def test_reactive_object_proxy_classattr():
+def test_reactive_class_proxy():
+    @reactive
     class Ref:
         value = 1
 
-    obj = reactive_object_proxy(Ref())
+    assert repr(Ref) == str(Ref) == "<class 'test_collections.test_reactive_class_proxy.<locals>.Ref'>"
+
+    with capture_stdout() as stdout, create_effect(lambda: print(Ref.value)):
+        assert stdout.delta == "1\n"
+        Ref.value = 2
+        assert stdout.delta == "2\n"
+
+    obj = Ref()
 
     with capture_stdout() as stdout, create_effect(lambda: print(obj.value)):
-        assert stdout.delta == "1\n"
-        obj.value = 2
         assert stdout.delta == "2\n"
+        obj.value = 3
+        assert stdout.delta == "3\n"
         del obj.value
-        assert stdout.delta == "1\n"
+        assert stdout.delta == "2\n"
 
 
 def test_reactive_router():
