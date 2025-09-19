@@ -386,9 +386,15 @@ def reactive_object_proxy[T](initial: T, check_equality=True, *, context: Contex
 
 
 @overload
+def reactive[K, V](value: MutableMapping[K, V], check_equality=True, *, context: Context | None = None) -> ReactiveMappingProxy[K, V]: ...  # type: ignore
+@overload
 def reactive[K, V](value: Mapping[K, V], check_equality=True, *, context: Context | None = None) -> ReactiveMapping[K, V]: ...
 @overload
+def reactive[T](value: MutableSet[T], check_equality=True, *, context: Context | None = None) -> ReactiveSetProxy[T]: ...  # type: ignore
+@overload
 def reactive[T](value: Set[T], check_equality=True, *, context: Context | None = None) -> ReactiveSet[T]: ...
+@overload
+def reactive[T](value: MutableSequence[T], check_equality=True, *, context: Context | None = None) -> ReactiveSequenceProxy[T]: ...  # type: ignore
 @overload
 def reactive[T](value: Sequence[T], check_equality=True, *, context: Context | None = None) -> ReactiveSequence[T]: ...
 @overload
@@ -398,10 +404,16 @@ def reactive[T](value: T, check_equality=True, *, context: Context | None = None
 def reactive(value: Mapping | Set | Sequence | Any, check_equality=True, *, context: Context | None = None):
     match value:
         case MutableMapping():
+            return ReactiveMappingProxy(value, check_equality, context=context)
+        case Mapping():
             return ReactiveMapping(value, check_equality, context=context)
         case MutableSet():
+            return ReactiveSetProxy(value, check_equality, context=context)
+        case Set():
             return ReactiveSet(value, check_equality, context=context)
         case MutableSequence():
+            return ReactiveSequenceProxy(value, check_equality, context=context)
+        case Sequence():
             return ReactiveSequence(value, check_equality, context=context)
         case _:
             return reactive_object_proxy(value, check_equality, context=context)
