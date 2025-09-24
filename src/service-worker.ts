@@ -30,19 +30,6 @@ const allAssets = [...websiteAssets, ...pyodideAssets];
 
 const baseURL = indexURL ? indexURL?.replace(/\/$/, "") : "";
 
-function isPyodideRequest(url: URL) {
-  // Cache-first for:
-  // - Known pyodide core asset filenames
-  // - Any request to the pyodide base indexURL (CDN/local mirror)
-  // - Any Python wheel files ('.whl') used by pyodide
-  const pathname = url.pathname;
-  const filename = pathname.split("/").pop() ?? "";
-  const isKnownCoreAsset = pyodideAssets.includes(filename);
-  const isFromPyodideBase = baseURL && String(url).startsWith(baseURL);
-  const isWheel = pathname.endsWith(".whl");
-  return Boolean(isKnownCoreAsset || isFromPyodideBase || isWheel);
-}
-
 // Create a new cache and add all files to it
 async function addFilesToCache() {
   const cache = await caches.open(CACHE);
@@ -105,28 +92,8 @@ sw.addEventListener("fetch", (event) => {
     const url = new URL(event.request.url);
     const cache = await caches.open(CACHE);
 
-    // Cache-first for pyodide core assets, any request under indexURL, and .whl files
-    if (isPyodideRequest(url)) {
-      const cached = await cache.match(event.request);
-      if (cached) {
-        return cached;
-      }
-
-      try {
-        const networkResponse = await fetchWithProxy(event.request.clone());
-        if (networkResponse instanceof Response && networkResponse.status === 200) {
-          cache.put(event.request, networkResponse.clone());
-        }
-        return networkResponse;
-      }
-      catch (err) {
-        if (cached) return cached;
-        throw err;
-      }
-    }
-
     // immutable assets always be served from the cache
-    if (allAssets.includes(url.pathname) || String(url).startsWith(indexURL)) {
+    if (allAssets.includes(url.pathname) || String(url).startsWith(indexURL) || url.pathname.endsWith(".whl")) {
       const response = await cache.match(event.request);
 
       if (response) {
