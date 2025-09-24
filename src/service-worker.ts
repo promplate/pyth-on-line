@@ -80,7 +80,6 @@ async function fetchWithProxy(request: Request) {
   }
 }
 
-
 sw.addEventListener("fetch", (event) => {
   if (!event.request.url.startsWith("http"))
     return;
@@ -94,7 +93,7 @@ sw.addEventListener("fetch", (event) => {
     const cache = await caches.open(CACHE);
 
     // immutable assets and pyodide assets always be served from the cache
-    if (allAssets.includes(url.pathname) || String(url).startsWith(indexURL) || url.pathname.endsWith('.whl')) {
+    if (allAssets.includes(url.pathname) || String(url).startsWith(indexURL) || url.pathname.endsWith(".whl")) {
       const response = await cache.match(event.request);
 
       if (response) {
