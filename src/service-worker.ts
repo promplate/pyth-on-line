@@ -32,7 +32,7 @@ const baseURL = indexURL ? indexURL?.replace(/\/$/, "") : "";
 
 // Helper function to check if URL is a Pyodide wheel
 function isPyodideWheel(url: string): boolean {
-  return url.includes('.whl') && (url.includes('/pyodide/') || url.includes('cdn.jsdelivr.net/pyodide'));
+  return url.includes(".whl") && (url.includes("/pyodide/") || url.includes("cdn.jsdelivr.net/pyodide"));
 }
 
 // Create a new cache and add all files to it
