@@ -30,6 +30,37 @@ const allAssets = [...websiteAssets, ...pyodideAssets];
 
 const baseURL = indexURL ? indexURL?.replace(/\/$/, "") : "";
 
+// Helper function to determine if a URL is a Pyodide asset
+function isPyodideAsset(url: string): boolean {
+  return pyodideAssets.some(asset => url.includes(asset));
+}
+
+// Helper function to determine if a URL is a Pyodide wheel/package
+function isPyodideWheel(url: string): boolean {
+  // Check if URL contains Pyodide base URL and is a wheel or package
+  if (baseURL && url.includes(`${baseURL}/`)) {
+    return url.includes('.whl') || url.includes('/packages/');
+  }
+
+  // Also check for common Pyodide wheel patterns
+  return url.includes('.whl') &&
+         (url.includes('/pyodide/') || url.includes('cdn.jsdelivr.net/pyodide'));
+}
+
+// Helper function to determine if a URL is from Pyodide CDN
+function isPyodideCDN(url: string): boolean {
+  if (baseURL && url.includes(`${baseURL}/`)) {
+    return true;
+  }
+  return url.startsWith('https://cdn.jsdelivr.net/pyodide/') ||
+         (url.includes('/pyodide/') && url.includes('.whl'));
+}
+
+// Helper function to determine if a request should use cache-first strategy
+function shouldUseCacheFirst(url: string): boolean {
+  return isPyodideAsset(url) || isPyodideWheel(url) || isPyodideCDN(url) || allAssets.includes(url);
+}
+
 // Create a new cache and add all files to it
 async function addFilesToCache() {
   const cache = await caches.open(CACHE);
@@ -80,6 +111,68 @@ async function fetchWithProxy(request: Request) {
   }
 }
 
+// Cache-first strategy for Pyodide assets and wheels
+async function handleCacheFirstRequest(request: Request, cache: Cache): Promise<Response> {
+  const url = new URL(request.url);
+
+  // First, try to serve from cache
+  const cachedResponse = await cache.match(request);
+  if (cachedResponse) {
+    return cachedResponse;
+  }
+
+  // If not in cache, fetch from network
+  try {
+    const response = await fetchWithProxy(request.clone());
+
+    // Validate response
+    if (!(response instanceof Response)) {
+      throw new TypeError("invalid response from fetch");
+    }
+
+    if (response.status === 200) {
+      // Cache the response for future use
+      cache.put(request, response.clone());
+    }
+
+    return response;
+  }
+  catch (err) {
+    // If network fails and we can't find it in cache, throw error
+    throw err;
+  }
+}
+
+// Network-first strategy for other requests
+async function handleNetworkFirstRequest(request: Request, cache: Cache): Promise<Response> {
+  try {
+    const response = await fetchWithProxy(request.clone());
+
+    // Validate response
+    if (!(response instanceof Response)) {
+      throw new TypeError("invalid response from fetch");
+    }
+
+    if (response.status === 200) {
+      // Cache the response for future use
+      cache.put(request, response.clone());
+    }
+
+    return response;
+  }
+  catch (err) {
+    // Fall back to cache if network fails
+    const cachedResponse = await cache.match(request);
+
+    if (cachedResponse) {
+      return cachedResponse;
+    }
+
+    // If no cache and network fails, throw error
+    throw err;
+  }
+}
+
 sw.addEventListener("fetch", (event) => {
   if (!event.request.url.startsWith("http"))
     return;
@@ -92,43 +185,13 @@ sw.addEventListener("fetch", (event) => {
     const url = new URL(event.request.url);
     const cache = await caches.open(CACHE);
 
-    // immutable assets always be served from the cache
-    if (allAssets.includes(url.pathname) || String(url).startsWith(indexURL)) {
-      const response = await cache.match(event.request);
-
-      if (response) {
-        return response;
-      }
+    // Use cache-first strategy for Pyodide assets and wheels
+    if (shouldUseCacheFirst(url.pathname) || String(url).startsWith(indexURL)) {
+      return await handleCacheFirstRequest(event.request, cache);
     }
 
-    // for everything else, try the network first, but
-    // fall back to the cache if we're offline
-    try {
-      const response = await fetchWithProxy(event.request.clone()); // Clone the request before first attempt to avoid "Body is already used" error
-
-      // if we're offline, fetch can return a value that is not a Response
-      // instead of throwing - and we can't pass this non-Response to respondWith
-      if (!(response instanceof Response)) {
-        throw new TypeError("invalid response from fetch");
-      }
-
-      if (response.status === 200) {
-        cache.put(event.request, response.clone());
-      }
-
-      return response;
-    }
-    catch (err) {
-      const response = await cache.match(event.request);
-
-      if (response) {
-        return response;
-      }
-
-      // if there's no cache, then just error out
-      // as there is nothing we can do to respond to this request
-      throw err;
-    }
+    // Use network-first strategy for other requests
+    return await handleNetworkFirstRequest(event.request, cache);
   }
 
   event.respondWith(respond());
