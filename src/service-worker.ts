@@ -92,34 +92,15 @@ sw.addEventListener("fetch", (event) => {
     const url = new URL(event.request.url);
     const cache = await caches.open(CACHE);
 
-    // Helper: identify pyodide-related requests (runtime assets, CDN content, wheels)
-    const isPyodideRequest = (() => {
-      // direct pyodide runtime files
-      if (allAssets.includes(url.pathname)) return true;
-      // anything under the pyodide CDN/base index
-      if (String(url).startsWith(indexURL)) return true;
-      // wheel requests, including via proxy
-      if (url.pathname.endsWith(".whl")) return true;
-      const proxied = url.searchParams.get("url");
-      if (proxied && /\.whl($|\?)/.test(proxied)) return true;
-      return false;
-    })();
+    // immutable assets always be served from the cache
+    // extend to cover pyodide wheels (including via proxy parameter)
+    const proxiedTarget = url.searchParams.get("url");
+    const isWheel = url.pathname.endsWith(".whl") || (proxiedTarget?.endsWith(".whl") ?? false);
+    if (allAssets.includes(url.pathname) || String(url).startsWith(indexURL) || isWheel) {
+      const response = await cache.match(event.request);
 
-    // For all pyodide assets and wheels: cache-first, then network, then cache the result
-    if (isPyodideRequest) {
-      const cached = await cache.match(event.request);
-      if (cached) return cached;
-      try {
-        const networkResponse = await fetchWithProxy(event.request.clone());
-        if (networkResponse instanceof Response && networkResponse.status === 200) {
-          cache.put(event.request, networkResponse.clone());
-        }
-        return networkResponse;
-      }
-      catch (err) {
-        const fallback = await cache.match(event.request);
-        if (fallback) return fallback;
-        throw err;
+      if (response) {
+        return response;
       }
     }
 
