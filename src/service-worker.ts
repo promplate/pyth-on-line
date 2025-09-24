@@ -80,38 +80,6 @@ async function fetchWithProxy(request: Request) {
   }
 }
 
-/**
- * Check if a URL is for a pyodide asset or wheel that should be cached first
- */
-function isPyodideAsset(url: URL): boolean {
-  const urlString = url.toString();
-  const pathname = url.pathname;
-  
-  // Check if it's a pyodide CDN URL
-  if (urlString.includes('cdn.jsdelivr.net/pyodide/') || urlString.startsWith(indexURL)) {
-    return true;
-  }
-  
-  // Check if it's a wheel file
-  if (pathname.endsWith('.whl')) {
-    return true;
-  }
-  
-  // Check if it's a common pyodide asset
-  if (pyodideAssets.some(asset => pathname.includes(asset))) {
-    return true;
-  }
-  
-  // Check for pyodide-related files (packages, standard library, etc.)
-  if (pathname.includes('pyodide') || 
-      pathname.endsWith('.zip') || 
-      pathname.endsWith('.tar.gz') ||
-      pathname.endsWith('pyodide-lock.json')) {
-    return true;
-  }
-  
-  return false;
-}
 
 sw.addEventListener("fetch", (event) => {
   if (!event.request.url.startsWith("http"))
@@ -125,35 +93,8 @@ sw.addEventListener("fetch", (event) => {
     const url = new URL(event.request.url);
     const cache = await caches.open(CACHE);
 
-    // Cache-first strategy for pyodide assets and wheels
-    if (isPyodideAsset(url)) {
-      const cachedResponse = await cache.match(event.request);
-      
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-      
-      // If not in cache, fetch and cache for next time
-      try {
-        const response = await fetchWithProxy(event.request.clone());
-        
-        if (!(response instanceof Response)) {
-          throw new TypeError("invalid response from fetch");
-        }
-        
-        if (response.status === 200) {
-          cache.put(event.request, response.clone());
-        }
-        
-        return response;
-      } catch (err) {
-        // If network fails and we don't have it cached, throw the error
-        throw err;
-      }
-    }
-
-    // immutable assets always be served from the cache
-    if (allAssets.includes(url.pathname) || String(url).startsWith(indexURL)) {
+    // immutable assets and pyodide assets always be served from the cache
+    if (allAssets.includes(url.pathname) || String(url).startsWith(indexURL) || url.pathname.endsWith('.whl')) {
       const response = await cache.match(event.request);
 
       if (response) {
