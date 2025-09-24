@@ -28,7 +28,7 @@ const pyodideAssets = [
 
 const allAssets = [...websiteAssets, ...pyodideAssets];
 
-const baseURL = indexURL ? indexURL?.replace(/\/$/, "") : "";
+const baseURL = String(new URL(indexURL?.replace(/\/$/, ""), location.href));
 
 // Create a new cache and add all files to it
 async function addFilesToCache() {
@@ -49,7 +49,7 @@ async function addFilesToCache() {
   }
   await cache.addAll([...getUrls(preloadPackages)].map(url => `${baseURL}/${url}`));
 
-  await cache.addAll(websiteAssets);
+  cache.addAll(websiteAssets);
 }
 
 sw.addEventListener("install", (event) => {
@@ -93,7 +93,7 @@ sw.addEventListener("fetch", (event) => {
     const cache = await caches.open(CACHE);
 
     // immutable assets always be served from the cache
-    if (allAssets.includes(url.pathname) || String(url).startsWith(indexURL)) {
+    if (allAssets.includes(url.pathname) || String(url).startsWith(baseURL)) {
       const response = await cache.match(event.request);
 
       if (response) {
