@@ -14,14 +14,12 @@ def fs_signals():
 
 @cache
 def setup_fs_audithook():
-    current_computations = HMR_CONTEXT.current_computations
-
     @sys.addaudithook
     def _(event: str, args: tuple):
         if event == "open":
             file, _, flags = args
 
-            if (flags % 2 == 0) and current_computations and isinstance(file, str):
+            if (flags % 2 == 0) and HMR_CONTEXT.leaf.current_computations and isinstance(file, str):
                 track(file)
 
 
