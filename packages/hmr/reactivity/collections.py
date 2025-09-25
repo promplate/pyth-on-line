@@ -51,6 +51,7 @@ class ReactiveMappingProxy[K, V](MutableMapping[K, V]):
                 yield key
 
     def __len__(self):
+        self._iter.track()
         return sum(i._value for i in self._keys.values())  # noqa: SLF001
 
     def __repr__(self):
@@ -105,6 +106,7 @@ class ReactiveSetProxy[T](MutableSet[T]):
                 yield item
 
     def __len__(self):
+        self._iter.track()
         return sum(i._value for i in self._items.values())  # noqa: SLF001
 
     def __repr__(self):
