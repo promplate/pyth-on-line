@@ -157,6 +157,7 @@ class ReactiveSequenceProxy[T](MutableSequence[T]):
             if not self._check_equality:
                 self._iter.track()
                 return self._data[start:stop]
+            # The following implementation is inefficient but works. TODO: refactor this
             return _weak_derived(lambda: (self._iter.track(), self._data[slice(*key.indices(self._length))])[1])()
 
         else:
