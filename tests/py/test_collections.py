@@ -123,6 +123,17 @@ def test_reactive_sequence_negative_index():
         assert stdout.delta == ""
 
 
+def test_reactive_sequence_negative_indices():
+    seq = ReactiveSequenceProxy([0, 1])
+    with capture_stdout() as stdout, effect(lambda: print(seq[-3:-1])):
+        seq.append(2)
+        seq.append(2)
+        seq.append(2)
+        assert stdout.delta == "[0]\n[0, 1]\n[1, 2]\n[2, 2]\n"
+        seq.append(2)
+        assert stdout.delta == ""
+
+
 def test_reactive_sequence_slice_operations():
     seq = ReactiveSequenceProxy([1, 2, 3, 4])
     with capture_stdout() as stdout, effect(lambda: print(seq[1:2])):
