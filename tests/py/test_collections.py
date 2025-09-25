@@ -73,6 +73,23 @@ def test_reactive_mapping_repr():
     assert repr(ReactiveMappingProxy({"a": 1})) == "{'a': 1}"
 
 
+def test_reactive_length():
+    m = reactive({1: 2})
+    with capture_stdout() as stdout, effect(lambda: print(len(m))):
+        assert stdout.delta == "1\n"
+        m[1] = 3
+        assert stdout.delta == ""
+        m[2] = 3
+        assert stdout.delta == "2\n"
+
+    s = reactive({3})
+    with capture_stdout() as stdout, effect(lambda: print(len(s))):
+        s.add(4)
+        assert stdout.delta == "1\n2\n"
+        s.add(4)
+        assert stdout.delta == ""
+
+
 def test_reactive_sequence_length():
     seq = ReactiveSequenceProxy([1, 2, 3])
     with capture_stdout() as stdout, effect(lambda: print(len(seq))):
