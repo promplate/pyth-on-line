@@ -4,7 +4,7 @@ from collections.abc import Callable
 from inspect import cleandoc, getsource, getsourcefile
 
 from pytest import raises
-from reactivity import Reactive, create_effect
+from reactivity import effect, reactive
 from reactivity.hmr.exec_hack import dedent, fix_class_name_resolution
 from utils import capture_stdout
 
@@ -24,7 +24,7 @@ def call_with_hack[**P, T](func: Callable[P, T], globals=None, locals=None, *arg
 
 
 def test_exec_within_chainmap():
-    r = Reactive({"a": 0})
+    r = reactive({"a": 0})
     map = type("ChainMap", (ChainMap, dict), {})(r)
 
     source = """
@@ -48,7 +48,7 @@ def test_exec_within_chainmap():
         A().f(a)
     """
 
-    with capture_stdout() as stdout, create_effect(lambda: exec_with_hack(source, map)):
+    with capture_stdout() as stdout, effect(lambda: exec_with_hack(source, map)):
         assert stdout.delta == "0abc\n0\n"
         r["a"] = 1
         assert stdout.delta == "1abc\n1\n"

@@ -2,14 +2,14 @@ from collections import UserList
 from typing import TypedDict
 
 from pytest import raises
-from reactivity import create_effect
+from reactivity import effect
 from reactivity.collections import ReactiveMappingProxy, ReactiveSequenceProxy, ReactiveSetProxy, reactive, reactive_object_proxy
 from utils import capture_stdout
 
 
 def test_reactive_mapping_equality_check():
     proxy = ReactiveMappingProxy({}, check_equality=True)
-    with capture_stdout() as stdout, create_effect(lambda: print(proxy.get("key", 0))):
+    with capture_stdout() as stdout, effect(lambda: print(proxy.get("key", 0))):
         assert stdout.delta == "0\n"
         proxy["key"] = 1
         assert stdout.delta == "1\n"
@@ -21,7 +21,7 @@ def test_reactive_mapping_equality_check():
 
 def test_reactive_mapping_no_equality_check():
     proxy = ReactiveMappingProxy({}, check_equality=False)
-    with capture_stdout() as stdout, create_effect(lambda: print(proxy.get("key", 0))):
+    with capture_stdout() as stdout, effect(lambda: print(proxy.get("key", 0))):
         assert stdout.delta == "0\n"
         proxy["key"] = 1
         assert stdout.delta == "1\n"
@@ -42,7 +42,7 @@ def test_reactive_set_proxy():
     proxy.add(3)
     assert len(proxy) == 4
 
-    with capture_stdout() as stdout, create_effect(lambda: print(sorted(proxy))):
+    with capture_stdout() as stdout, effect(lambda: print(sorted(proxy))):
         assert stdout.delta == "[1, 2, 3, 4]\n"
         proxy.add(4)
         assert stdout.delta == ""
@@ -56,7 +56,7 @@ def test_reactive_set_proxy():
 
 def test_reactive_set_no_equality_check():
     s = reactive(set(), check_equality=False)
-    with capture_stdout() as stdout, create_effect(lambda: print(s)):
+    with capture_stdout() as stdout, effect(lambda: print(s)):
         assert stdout.delta == "set()\n"
         s.add(1)
         assert stdout.delta == "{1}\n"
@@ -75,7 +75,7 @@ def test_reactive_mapping_repr():
 
 def test_reactive_sequence_length():
     seq = ReactiveSequenceProxy([1, 2, 3])
-    with capture_stdout() as stdout, create_effect(lambda: print(len(seq))):
+    with capture_stdout() as stdout, effect(lambda: print(len(seq))):
         assert stdout.delta == "3\n"
         del seq[:]
         assert stdout.delta == "0\n"
@@ -95,7 +95,7 @@ def test_reactive_sequence_length():
 
 def test_reactive_sequence_setitem():
     seq = ReactiveSequenceProxy([0, 0], check_equality=True)
-    with capture_stdout() as stdout, create_effect(lambda: print(seq[1])):
+    with capture_stdout() as stdout, effect(lambda: print(seq[1])):
         assert stdout.delta == "0\n"
         seq.insert(0, 1)
         assert stdout.delta == ""
@@ -109,7 +109,7 @@ def test_reactive_sequence_setitem():
 
 def test_reactive_sequence_negative_index():
     seq = ReactiveSequenceProxy([0])
-    with capture_stdout() as stdout, create_effect(lambda: print(seq[-1])):
+    with capture_stdout() as stdout, effect(lambda: print(seq[-1])):
         assert stdout.delta == "0\n"
         seq.append(1)
         assert stdout.delta == "1\n"
@@ -125,7 +125,7 @@ def test_reactive_sequence_negative_index():
 
 def test_reactive_sequence_slice_operations():
     seq = ReactiveSequenceProxy([1, 2, 3, 4])
-    with capture_stdout() as stdout, create_effect(lambda: print(seq[1:2])):
+    with capture_stdout() as stdout, effect(lambda: print(seq[1:2])):
         assert stdout.delta == "[2]\n"
         seq[-3:-1] = [20, 30]
         assert stdout.delta == "[20]\n"
@@ -138,7 +138,7 @@ def test_reactive_object_proxy():
 
     obj = reactive_object_proxy(raw := Namespace(foo=1))
 
-    with capture_stdout() as stdout, create_effect(lambda: print(obj.foo)):
+    with capture_stdout() as stdout, effect(lambda: print(obj.foo)):
         assert stdout.delta == "1\n"
         obj.foo = 10
         assert stdout.delta == "10\n"
@@ -176,7 +176,7 @@ def test_reactive_object_proxy_accessing_properties():
 
     rect = reactive_object_proxy(Rect())
 
-    with capture_stdout() as stdout, create_effect(lambda: print(rect.size)):
+    with capture_stdout() as stdout, effect(lambda: print(rect.size)):
         assert stdout.delta == "2\n"
         rect.a = 10
         assert stdout.delta == "20\n"
@@ -191,14 +191,14 @@ def test_reactive_class_proxy():
 
     assert repr(Ref) == str(Ref) == "<class 'test_collections.test_reactive_class_proxy.<locals>.Ref'>"
 
-    with capture_stdout() as stdout, create_effect(lambda: print(Ref.value)):
+    with capture_stdout() as stdout, effect(lambda: print(Ref.value)):
         assert stdout.delta == "1\n"
         Ref.value = 2
         assert stdout.delta == "2\n"
 
     obj = Ref()
 
-    with capture_stdout() as stdout, create_effect(lambda: print(obj.value)):
+    with capture_stdout() as stdout, effect(lambda: print(obj.value)):
         assert stdout.delta == "2\n"
         obj.value = 3
         assert stdout.delta == "3\n"
