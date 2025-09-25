@@ -132,6 +132,10 @@ def test_reactive_sequence_negative_indices():
         assert stdout.delta == "[0]\n[0, 1]\n[1, 2]\n[2, 2]\n"
         seq.append(2)
         assert stdout.delta == ""
+    seq = ReactiveSequenceProxy([0, 0], check_equality=False)
+    with capture_stdout() as stdout, effect(lambda: print(seq[-2:])):
+        seq.append(0)
+        assert stdout == "[0, 0]\n[0, 0]\n"
 
 
 def test_reactive_sequence_slice_operations():

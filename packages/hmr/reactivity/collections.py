@@ -143,6 +143,9 @@ class ReactiveSequenceProxy[T](MutableSequence[T]):
                 raise NotImplementedError  # TODO
             for i in range(start, stop):
                 self._keys[i].track()
+            if not self._check_equality:
+                self._iter.track()
+                return self._data[start:stop]
             return Derived(lambda: (self._iter.track(), self._data[slice(*key.indices(self._length))])[1])()
 
         else:
