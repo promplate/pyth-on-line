@@ -7,5 +7,5 @@ export const load = (async ({ url, fetch }) => {
     return { query, total: null, page: 0, npages: 0, results: [] };
   }
   const searchUrl = new URL(`${url.pathname}/~search${url.search}`, url);
-  return await fetch(searchUrl).then(res => res.json()) as ReturnType<typeof search>;
+  return await fetch(searchUrl, { headers: { accept: "application/json" } }).then(res => res.json()) as ReturnType<typeof search>;
 }) satisfies PageLoad;
