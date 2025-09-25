@@ -5,7 +5,7 @@ from inspect import isclass, ismethod
 from typing import Any, overload
 
 from .context import Context, default_context
-from .primitives import Signal, Subscribable, _equal
+from .primitives import Derived, Signal, Subscribable, _equal
 
 
 class ReactiveMappingProxy[K, V](MutableMapping[K, V]):
@@ -143,7 +143,7 @@ class ReactiveSequenceProxy[T](MutableSequence[T]):
                 raise NotImplementedError  # TODO
             for i in range(start, stop):
                 self._keys[i].track()
-            return self._data[start:stop]
+            return Derived(lambda: (self._iter.track(), self._data[slice(*key.indices(self._length))])[1])()
 
         else:
             # Handle integer indices
