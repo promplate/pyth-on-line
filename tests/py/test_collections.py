@@ -4,6 +4,7 @@ from typing import TypedDict
 from pytest import raises
 from reactivity import effect
 from reactivity.collections import ReactiveMappingProxy, ReactiveSequenceProxy, ReactiveSetProxy, reactive, reactive_object_proxy
+from reactivity.primitives import Derived
 from utils import capture_stdout
 
 
@@ -163,6 +164,14 @@ def test_reactive_sequence_slice_operations():
         assert stdout.delta == "[20]\n"
         seq[-3] = 200
         assert stdout.delta == "[200]\n"
+
+
+def test_reactive_sequence_derived_no_memory_leak():
+    seq = ReactiveSequenceProxy([0])
+    with effect(lambda: seq[:]):
+        [d] = seq._iter.subscribers  # noqa: SLF001
+        assert isinstance(d, Derived)
+    assert not seq._iter.subscribers  # noqa: SLF001
 
 
 def test_reactive_object_proxy():
