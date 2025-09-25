@@ -1,11 +1,11 @@
 from collections import defaultdict
-from collections.abc import Iterable, Mapping, MutableMapping, MutableSequence, MutableSet, Sequence, Set
+from collections.abc import Callable, Iterable, Mapping, MutableMapping, MutableSequence, MutableSet, Sequence, Set
 from functools import update_wrapper
 from inspect import isclass, ismethod
 from typing import Any, overload
 
 from .context import Context, default_context
-from .primitives import Derived, Signal, Subscribable, _equal
+from .primitives import Derived, Effect, Signal, Subscribable, _equal
 
 
 class ReactiveMappingProxy[K, V](MutableMapping[K, V]):
@@ -118,6 +118,15 @@ class ReactiveSet[T](ReactiveSetProxy[T]):
         super().__init__({*initial} if initial is not None else set(), check_equality, context=context)
 
 
+def _weak_derived[T](fn: Callable[[], T], check_equality=True, *, context: Context | None = None):
+    d = Derived(fn, check_equality, context=context)
+    s = d.subscribers = ReactiveSetProxy(d.subscribers)
+    e = Effect(lambda: not s and d.dispose(), False)  # when `subscribers` is empty, gc it
+    s._iter.subscribers.add(e)  # noqa: SLF001
+    e.dependencies.add(s._iter)  # noqa: SLF001
+    return d
+
+
 class ReactiveSequenceProxy[T](MutableSequence[T]):
     def _signal(self):
         return Subscribable(context=self.context)
@@ -148,7 +157,7 @@ class ReactiveSequenceProxy[T](MutableSequence[T]):
             if not self._check_equality:
                 self._iter.track()
                 return self._data[start:stop]
-            return Derived(lambda: (self._iter.track(), self._data[slice(*key.indices(self._length))])[1])()
+            return _weak_derived(lambda: (self._iter.track(), self._data[slice(*key.indices(self._length))])[1])()
 
         else:
             # Handle integer indices
