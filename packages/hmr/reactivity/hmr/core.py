@@ -18,7 +18,7 @@ from weakref import WeakValueDictionary
 from .. import derived_method
 from ..context import Context
 from ..primitives import BaseDerived, Derived, Signal
-from ._common import HMR_CONTEXT
+from ._common import HMR_CONTEXT, MODULE_ORDER_TRACKER
 from .fs import notify, setup_fs_audithook
 from .hooks import call_post_reload_hooks, call_pre_reload_hooks
 from .proxy import Proxy
@@ -90,6 +90,9 @@ class ReactiveModule(ModuleType):
 
     @derived_method(context=HMR_CONTEXT)
     def __load(self):
+        # Register this module's loading order for consistent cyclic dependency handling
+        MODULE_ORDER_TRACKER.register_module_load(self)
+
         try:
             file = self.__file
             ast = parse(file.read_text("utf-8"), str(file))
