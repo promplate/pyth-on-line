@@ -49,7 +49,7 @@
     "micromark": "^4.0.2",
     "micromark-extension-gfm": "^3.0.0",
     "monaco-editor-core": "^0.53.0",
-    "openai": "^5.23.2",
+    "openai": "^6.0.1",
     "paneforge": "^0.0.6",
     "pyodide": "0.28.3",
     "rollup-plugin-flatten-dir": "^1.0.1",
