@@ -48,7 +48,7 @@
     "mdast-util-to-markdown": "^2.1.2",
     "micromark": "^4.0.2",
     "micromark-extension-gfm": "^3.0.0",
-    "monaco-editor-core": "^0.53.0",
+    "monaco-editor-core": "^0.54.0",
     "openai": "^6.2.0",
     "paneforge": "^0.0.6",
     "pyodide": "0.28.3",
