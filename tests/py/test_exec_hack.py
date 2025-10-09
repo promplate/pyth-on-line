@@ -5,20 +5,20 @@ from inspect import cleandoc, getsource, getsourcefile
 
 from pytest import raises
 from reactivity import effect, reactive
-from reactivity.hmr.exec_hack import dedent, fix_class_name_resolution
+from reactivity.hmr.exec_hack import ABOVE_3_14, dedent, fix_class_name_resolution
 from utils import capture_stdout
 
 
 def exec_with_hack(source: str, globals=None, locals=None):
     tree = fix_class_name_resolution(parse(cleandoc(source)))
-    code = compile(tree, "<string>", "exec")
+    code = compile(tree, "<string>", "exec", dont_inherit=True)
     exec(code, globals, locals)
 
 
 def call_with_hack[**P, T](func: Callable[P, T], globals=None, locals=None, *args: P.args, **kwargs: P.kwargs) -> T:
     source, col_offset = dedent(getsource(func))
     tree = fix_class_name_resolution(parse(source), func.__code__.co_firstlineno - 1, col_offset)
-    code = compile(tree, getsourcefile(func), "exec")  # type: ignore
+    code = compile(tree, getsourcefile(func), "exec", dont_inherit=True)  # type: ignore
     exec(code, globals, (ns := {} if locals is None else locals))
     return ns[func.__name__](*args, **kwargs)  # type: ignore
 
@@ -68,7 +68,7 @@ def test_exec_within_default_dict():
     with capture_stdout() as stdout:
         exec_with_hack(source, DefaultDict())
 
-    assert stdout == "d\ng\nb\nf\nh\n"  # defaults and annotations printed in order
+    assert stdout == "d\ng\n" if ABOVE_3_14 else "d\ng\nb\nf\nh\n"  # defaults and annotations printed in order
 
 
 def test_no_parent_frame_namespace_leak():

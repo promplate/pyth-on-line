@@ -1,11 +1,17 @@
 import ast
+from sys import version_info
 from typing import override
+
+ABOVE_3_14 = version_info >= (3, 14)
 
 
 class ClassTransformer(ast.NodeTransformer):
+    def __init__(self, skip_annotations=ABOVE_3_14):
+        self.skip_annotations = skip_annotations
+
     @override
     def visit_ClassDef(self, node: ast.ClassDef):
-        traverser = ClassBodyTransformer()
+        traverser = ClassBodyTransformer(self.skip_annotations)
         has_docstring = node.body and isinstance(node.body[0], ast.Expr) and isinstance(node.body[0].value, ast.Constant) and isinstance(node.body[0].value.value, str)
         node.body[has_docstring:] = [
             *def_name_lookup().body,
@@ -17,7 +23,8 @@ class ClassTransformer(ast.NodeTransformer):
 
 
 class ClassBodyTransformer(ast.NodeTransformer):
-    def __init__(self):
+    def __init__(self, skip_annotations: bool):
+        self.skip_annotations = skip_annotations
         self.names: dict[str, None] = {}  # to keep order for better readability
 
     @override
@@ -28,10 +35,16 @@ class ClassBodyTransformer(ast.NodeTransformer):
         return node
 
     @override
+    def visit_arg(self, node: ast.arg):
+        if not self.skip_annotations and node.annotation:
+            node.annotation = self.visit(node.annotation)
+        return node
+
+    @override
     def visit_FunctionDef(self, node: ast.FunctionDef):
         node.decorator_list = [self.visit(d) for d in node.decorator_list]
         self.visit(node.args)
-        if node.returns:
+        if not self.skip_annotations and node.returns:
             node.returns = self.visit(node.returns)
         return node
 

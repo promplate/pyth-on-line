@@ -94,6 +94,7 @@ class ReactiveModule(ModuleType):
             file = self.__file
             ast = parse(file.read_text("utf-8"), str(file))
             code = compile(ast, str(file), "exec", dont_inherit=True)
+            self.__flags = code.co_flags
         except SyntaxError as e:
             sys.excepthook(type(e), e, e.__traceback__)
         else:
@@ -363,4 +364,4 @@ class AsyncReloader(BaseReloader):
             await self.start_watching()
 
 
-__version__ = "0.7.0.2"
+__version__ = "0.7.1"

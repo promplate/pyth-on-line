@@ -8,7 +8,7 @@ from types import FunctionType
 
 from ..helpers import Derived
 from .core import HMR_CONTEXT, NamespaceProxy, ReactiveModule
-from .exec_hack import dedent, fix_class_name_resolution
+from .exec_hack import ABOVE_3_14, dedent, fix_class_name_resolution, is_future_annotations_enabled
 from .hooks import on_dispose, post_reload
 
 memos: dict[tuple[Path, str], tuple[Callable, str]] = {}  # (path, __qualname__) -> (memo, source)
@@ -39,13 +39,15 @@ def cache_across_reloads[T](func: Callable[[], T]) -> Callable[[], T]:
     key = (path, func.__qualname__)
 
     proxy: NamespaceProxy = module._ReactiveModule__namespace_proxy  # type: ignore  # noqa: SLF001
+    flags: int = module._ReactiveModule__flags  # type: ignore  # noqa: SLF001
+    skip_annotations = ABOVE_3_14 or is_future_annotations_enabled(flags)
 
     global _cache_decorator_phase
     _cache_decorator_phase = not _cache_decorator_phase
     if _cache_decorator_phase:  # this function will be called twice: once transforming ast and once re-executing the patched source
         on_dispose(lambda: functions.pop(key), file)
         try:
-            exec(compile(fix_class_name_resolution(parse(source), func.__code__.co_firstlineno - 1, col_offset), file, "exec"), DictProxy(proxy))
+            exec(compile(fix_class_name_resolution(parse(source), func.__code__.co_firstlineno - 1, col_offset, skip_annotations), file, "exec", flags, dont_inherit=True), DictProxy(proxy))
         except _Return as e:
             # If this function is used as a decorator, it will raise an `_Return` exception in the second phase.
             return e.value

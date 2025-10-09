@@ -13,7 +13,7 @@ jobs:
       - name: Set up python
         uses: astral-sh/setup-uv@v6
         with:
-          python-version: 3.13
+          python-version: 3.14
           activate-environment: true
       - name: Install dependencies
         run: |
@@ -38,7 +38,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu, windows, macos]
-        py: [3.13]
+        py: [3.13, 3.14]
     runs-on: ${{ matrix.os }}-latest
     steps:
       - uses: actions/checkout@v5
@@ -66,7 +66,7 @@ jobs:
       - name: Set up python
         uses: astral-sh/setup-uv@v6
         with:
-          python-version: 3.13
+          python-version: 3.14
           activate-environment: true
       - name: Remove admonitions from READMEs
         run: |
