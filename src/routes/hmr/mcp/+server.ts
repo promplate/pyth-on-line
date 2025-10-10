@@ -72,11 +72,20 @@ const handler = createMcpHandler((server) => {
   }
 }, {}, { basePath: "/hmr", verboseLogs: true });
 
-export const POST: RequestHandler = async ({ request }) => handler(request);
+function withCors(res: Response) {
+  const { headers } = res;
+  headers.set("Access-Control-Allow-Origin", "*");
+  headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  headers.set("Access-Control-Allow-Headers", "*");
+  headers.set("Access-Control-Max-Age", "86400");
+  return res;
+}
+
+export const POST: RequestHandler = async ({ request }) => withCors(await handler(request));
 
 export const GET: RequestHandler = async ({ request, fetch }) => {
   request.headers.set("Accept", "text/html");
-  return await fetch(request);
+  return withCors(await fetch(request));
 };
 
 export const OPTIONS: RequestHandler = metadataCorsOptionsRequestHandler();
