@@ -4,7 +4,7 @@ import coreFiles from "../../../../packages/hmr";
 import testFiles from "../../../../tests/py";
 import concepts from "../concepts";
 import { packXML } from "$lib/utils/pack";
-import { createMcpHandler } from "mcp-handler";
+import { createMcpHandler, metadataCorsOptionsRequestHandler } from "mcp-handler";
 
 const docs = `\
 # Hot Module Reload for Python (https://pypi.org/project/hmr/)
@@ -78,3 +78,5 @@ export const GET: RequestHandler = async ({ request, fetch }) => {
   request.headers.set("Accept", "text/html");
   return await fetch(request);
 };
+
+export const OPTIONS: RequestHandler = metadataCorsOptionsRequestHandler();
