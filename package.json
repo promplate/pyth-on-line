@@ -70,7 +70,7 @@
     "@netlify/edge-functions": "^2.19.0",
     "@types/emscripten": "^1.41.2",
     "@types/mdast": "^4.0.4",
-    "@types/node": "^24.7.1",
+    "@types/node": "^24.7.2",
     "@types/turndown": "^5.0.5",
     "@unocss/eslint-config": "~66.4.2",
     "eslint": "^9.37.0",
