@@ -73,9 +73,9 @@ jobs:
           find . -type f -name "README.md" -exec sed -i -E '/^> \[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]$/d' {} +
       - name: Remove all noqa comments
         run: |
-          uvx ruff check --select RUF100 --show-fixes --fix packages/hmr --wheel
+          uvx ruff check --select RUF100 --show-fixes --fix packages/hmr
       - name: Build package
-        run: uv build packages/hmr
+        run: uv build packages/hmr --wheel
       - name: Publish to PyPI
         continue-on-error: true
         run: uv publish
