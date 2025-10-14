@@ -242,12 +242,17 @@ class ErrorFilter:
         self.exclude_filenames = set(exclude_filenames)
 
     def __call__(self, tb: TracebackType):
-        current = tb
+        current = last = tb
+        first = None
         while current is not None:
             if current.tb_frame.f_code.co_filename not in self.exclude_filenames:
-                return current
+                if first is None:
+                    first = current
+                else:
+                    last.tb_next = current
+                last = current
             current = current.tb_next
-        return tb
+        return first or tb
 
     def __enter__(self):
         return self
@@ -267,7 +272,7 @@ class BaseReloader:
         self.includes = includes
         self.excludes = excludes
         patch_meta_path(includes, excludes)
-        self.error_filter = ErrorFilter(*map(str, Path(__file__, "../..").resolve().glob("**/*.py")))
+        self.error_filter = ErrorFilter(*map(str, Path(__file__, "../..").resolve().glob("**/*.py")), "<frozen importlib._bootstrap>")
         setup_fs_audithook()
 
     @cached_property
@@ -364,4 +369,4 @@ class AsyncReloader(BaseReloader):
             await self.start_watching()
 
 
-__version__ = "0.7.1"
+__version__ = "0.7.2"
