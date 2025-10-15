@@ -19,7 +19,7 @@ from .. import derived_method
 from ..context import Context
 from ..primitives import BaseDerived, Derived, Signal
 from ._common import HMR_CONTEXT
-from .fs import notify, setup_fs_audithook
+from .fs import add_filter, notify, setup_fs_audithook
 from .hooks import call_post_reload_hooks, call_pre_reload_hooks
 from .proxy import Proxy
 
@@ -175,6 +175,8 @@ class ReactiveModuleFinder(MetaPathFinder):
         builtins = map(get_paths().__getitem__, ("stdlib", "platstdlib", "platlib", "purelib"))
         self.includes = _deduplicate(includes)
         self.excludes = _deduplicate((getenv("VIRTUAL_ENV"), *getsitepackages(), getusersitepackages(), *builtins, *excludes))
+        setup_fs_audithook()
+        add_filter(lambda path: not is_relative_to_any(path, self.excludes) and is_relative_to_any(path, self.includes))
 
         self._last_sys_path: list[str] = []
         self._last_cwd: Path = Path()
@@ -273,7 +275,6 @@ class BaseReloader:
         self.excludes = excludes
         patch_meta_path(includes, excludes)
         self.error_filter = ErrorFilter(*map(str, Path(__file__, "../..").resolve().glob("**/*.py")), "<frozen importlib._bootstrap>")
-        setup_fs_audithook()
 
     @cached_property
     def entry_module(self):
@@ -369,4 +370,4 @@ class AsyncReloader(BaseReloader):
             await self.start_watching()
 
 
-__version__ = "0.7.2"
+__version__ = "0.7.3"
