@@ -300,13 +300,12 @@ class BaseReloader:
 
         call_pre_reload_hooks()
 
-        with HMR_CONTEXT.batch():
+        with self.error_filter, HMR_CONTEXT.batch():
             for path in files:
-                with self.error_filter:
-                    if module := path2module.get(path):
-                        module.load.invalidate()
-                    else:
-                        notify(path)
+                if module := path2module.get(path):
+                    module.load.invalidate()
+                else:
+                    notify(path)
 
         call_post_reload_hooks()
 
