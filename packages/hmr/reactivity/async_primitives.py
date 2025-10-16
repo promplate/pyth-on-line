@@ -90,9 +90,11 @@ class AsyncDerived[T](BaseDerived[Awaitable[T]]):
             return await self.fn()
 
     async def recompute(self):
-        value = await self._run_in_context()
-        if self._call_task is not None:
-            self.dirty = False  # If invalidated before this run completes, stay dirty.
+        try:
+            value = await self._run_in_context()
+        finally:
+            if self._call_task is not None:
+                self.dirty = False  # If invalidated before this run completes, stay dirty.
         if self._check_equality:
             if _equal(value, self._value):
                 return

@@ -255,8 +255,10 @@ class Derived[T](BaseDerived[T]):
 
     def recompute(self):
         with self._enter():
-            value = self.fn()
-            self.dirty = False
+            try:
+                value = self.fn()
+            finally:
+                self.dirty = False
             if self._check_equality:
                 if _equal(value, self._value):
                     return
