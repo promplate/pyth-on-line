@@ -27,7 +27,7 @@
     "@neodrag/svelte": "^2.3.3",
     "@shikijs/monaco": "^3.13.0",
     "@sveltejs/adapter-auto": "^6.1.1",
-    "@sveltejs/kit": "^2.46.5",
+    "@sveltejs/kit": "^2.47.0",
     "@sveltejs/vite-plugin-svelte": "^3.1.2",
     "@unocss/extractor-svelte": "~66.4.2",
     "@unocss/reset": "~66.4.2",
@@ -68,7 +68,7 @@
   "devDependencies": {
     "@antfu/eslint-config": "^5.4.1",
     "@netlify/edge-functions": "^2.19.0",
-    "@types/emscripten": "^1.41.2",
+    "@types/emscripten": "^1.41.3",
     "@types/mdast": "^4.0.4",
     "@types/node": "^24.7.2",
     "@types/turndown": "^5.0.5",
