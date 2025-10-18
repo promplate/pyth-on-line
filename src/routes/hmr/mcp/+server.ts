@@ -1,10 +1,12 @@
 import type { RequestHandler } from "./$types";
+import type { JSONSchema7 } from "json-schema";
 
 import coreFiles from "../../../../packages/hmr";
 import testFiles from "../../../../tests/py";
 import concepts from "../concepts";
+import { HttpTransport } from "@tmcp/transport-http";
 import { packXML } from "$lib/utils/pack";
-import { createMcpHandler, metadataCorsOptionsRequestHandler } from "mcp-handler";
+import { McpServer } from "tmcp";
 
 const docs = `\
 # Hot Module Reload for Python (https://pypi.org/project/hmr/)
@@ -63,29 +65,46 @@ const entrypoints = [
   },
 ];
 
-const handler = createMcpHandler((server) => {
-  for (const { content, uri, tool, title, description, hint } of entrypoints) {
-    const resource = { text: content, uri };
-    server.tool(tool, `${description}\n\n${hint}`, { readonlyHint: true }, () => ({ content: [{ type: "resource", resource }] }));
-    server.resource(title, uri, { description }, () => ({ contents: [resource] }));
-    server.prompt(tool, () => ({ description, messages: [{ role: "user", content: { type: "resource", resource } }] }));
-  }
-}, {}, { basePath: "/hmr", verboseLogs: true });
+const server = new McpServer(
+  {
+    name: "hmr-docs",
+    version: "1.0.0",
+    description: "Docs for the HMR library for Python (python modules `reactivity` and `reactivity.hmr`).",
+  },
+  {
+    adapter: {
+      async toJsonSchema(): Promise<JSONSchema7> {
+        // minimal adapter since we don't use any schemas
+        return { type: "object", properties: {} };
+      },
+    },
+    capabilities: {
+      tools: {},
+      prompts: {},
+      resources: {},
+    },
+  },
+);
 
-function withCors(res: Response) {
-  const { headers } = res;
-  headers.set("Access-Control-Allow-Origin", "*");
-  headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  headers.set("Access-Control-Allow-Headers", "*");
-  headers.set("Access-Control-Max-Age", "86400");
-  return res;
+for (const { content, uri, tool, title, description, hint } of entrypoints) {
+  const resource = { text: content, uri };
+  server.tool({ name: tool, description: `${description}\n\n${hint}`, annotations: { readOnlyHint: true } }, () => ({ content: [{ type: "resource", resource }] }),
+  );
+  server.resource({ name: title, description, uri }, () => ({ contents: [resource] }));
+  server.prompt({ name: tool, description }, () => ({ description, messages: [{ role: "user", content: { type: "resource", resource } }] }));
 }
 
-export const POST: RequestHandler = async ({ request }) => withCors(await handler(request));
+const transport = new HttpTransport(server, {
+  path: "/hmr/mcp",
+  cors: true,
+});
 
-export const GET: RequestHandler = async ({ request, fetch }) => {
-  request.headers.set("Accept", "text/html");
-  return withCors(await fetch(request));
+const handler: RequestHandler = async ({ request }) => {
+  const response = await transport.respond(request);
+  return response ?? new Response("Not Found", { status: 404 });
 };
 
-export const OPTIONS: RequestHandler = metadataCorsOptionsRequestHandler();
+export const GET = handler;
+export const POST = handler;
+export const DELETE = handler;
+export const OPTIONS = handler;
