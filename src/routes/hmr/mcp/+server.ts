@@ -73,9 +73,8 @@ const server = new McpServer(
   },
   {
     adapter: {
-      async toJsonSchema(): Promise<JSONSchema7> {
-        // minimal adapter since we don't use any schemas
-        return { type: "object", properties: {} };
+      async toJsonSchema() {
+        return {} as JSONSchema7; // minimal adapter since we don't use any schemas
       },
     },
     capabilities: {
@@ -88,9 +87,8 @@ const server = new McpServer(
 
 for (const { content, uri, tool, title, description, hint } of entrypoints) {
   const resource = { text: content, uri };
-  server.tool({ name: tool, description: `${description}\n\n${hint}`, annotations: { readOnlyHint: true } }, () => ({ content: [{ type: "resource", resource }] }),
-  );
-  server.resource({ name: title, description, uri }, () => ({ contents: [resource] }));
+  server.tool({ name: tool, title: tool, description: `${description}\n\n${hint}`, annotations: { readOnlyHint: true } }, () => ({ content: [{ type: "resource", resource }] }));
+  server.resource({ name: title, title, description, uri }, () => ({ contents: [resource] }));
   server.prompt({ name: tool, description }, () => ({ description, messages: [{ role: "user", content: { type: "resource", resource } }] }));
 }
 
