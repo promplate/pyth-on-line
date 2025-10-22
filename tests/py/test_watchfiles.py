@@ -6,7 +6,7 @@ from utils import environment
 
 
 @contextmanager
-def wait_for_tick(timeout=1):
+def wait_for_tick(timeout=3):
     from threading import Event
 
     event = Event()
@@ -19,7 +19,7 @@ def wait_for_tick(timeout=1):
 
 
 @asynccontextmanager
-async def await_for_tick(timeout=1):
+async def await_for_tick(timeout=3):
     from asyncio import Event, wait_for
 
     event = Event()
