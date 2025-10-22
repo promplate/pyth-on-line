@@ -87,8 +87,11 @@ class AsyncReloaderAPI(AsyncReloader, LifecycleMixin):
             async def start_with_ready(*, task_status=TASK_STATUS_IGNORED):
                 from watchfiles import awatch
                 
+                ready_signaled = False
                 async for events in awatch(self.entry, *self.includes, stop_event=self._stop_event):
-                    task_status.started()
+                    if not ready_signaled:
+                        task_status.started()
+                        ready_signaled = True
                     self.on_events(events)
 
             self._tg = create_task_group()
