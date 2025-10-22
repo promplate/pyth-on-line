@@ -49,20 +49,24 @@ class SyncReloaderAPI(SyncReloader, LifecycleMixin):
 
 class AsyncReloaderAPI(AsyncReloader, LifecycleMixin):
     def __enter__(self):
-        from asyncio import run
+        import anyio
         from threading import Event, Thread
 
         self.run_with_hooks()
 
-        e = Event()
+        ready = Event()
 
-        async def task():
-            e.set()
-            await self.start_watching()
+        def task():
+            async def run():
+                await anyio.sleep(0)
+                ready.set()
+                await self.start_watching()
 
-        self.thread = Thread(target=lambda: run(task()))
+            anyio.run(run)
+
+        self.thread = Thread(target=task)
         self.thread.start()
-        e.wait()
+        ready.wait()
         return super()
 
     def __exit__(self, *_):
@@ -71,14 +75,24 @@ class AsyncReloaderAPI(AsyncReloader, LifecycleMixin):
         self.clean_up()
 
     async def __aenter__(self):
-        from asyncio import ensure_future, sleep, to_thread
+        import anyio
 
-        await to_thread(self.run_with_hooks)
-        self.future = ensure_future(self.start_watching())
-        await sleep(0)
+        await anyio.to_thread.run_sync(self.run_with_hooks)
+        
+        ready = anyio.Event()
+        self.tg = anyio.create_task_group()
+        await self.tg.__aenter__()
+        
+        async def start_and_signal():
+            await anyio.sleep(0)
+            ready.set()
+            await self.start_watching()
+        
+        self.tg.start_soon(start_and_signal)
+        await ready.wait()
         return super()
 
     async def __aexit__(self, *_):
         self.stop_watching()
-        await self.future
+        await self.tg.__aexit__(None, None, None)
         self.clean_up()
