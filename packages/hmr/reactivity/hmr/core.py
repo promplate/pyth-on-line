@@ -347,11 +347,7 @@ class SyncReloader(BaseReloader):
 class AsyncReloader(BaseReloader):
     @cached_property
     def _stop_event(self):
-        if sys.platform == "emscripten":
-            from asyncio import Event
-        else:
-            from anyio import Event
-        return Event()
+        return _SimpleEvent()
 
     def stop_watching(self):
         self._stop_event.set()
@@ -359,7 +355,7 @@ class AsyncReloader(BaseReloader):
     async def start_watching(self):
         from watchfiles import awatch
 
-        async for events in awatch(self.entry, *self.includes, stop_event=self._stop_event):
+        async for events in awatch(self.entry, *self.includes, stop_event=self._stop_event):  # type: ignore
             self.on_events(events)
 
         del self._stop_event
