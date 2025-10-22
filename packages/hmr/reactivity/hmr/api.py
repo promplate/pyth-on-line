@@ -71,14 +71,36 @@ class AsyncReloaderAPI(AsyncReloader, LifecycleMixin):
         self.clean_up()
 
     async def __aenter__(self):
-        from asyncio import ensure_future, sleep, to_thread
+        import sys
+        
+        if sys.platform == "emscripten":
+            from asyncio import create_task, sleep, to_thread
+            
+            await to_thread(self.run_with_hooks)
+            self.future = create_task(self.start_watching())
+            await sleep(0)
+        else:
+            from anyio import TASK_STATUS_IGNORED, create_task_group, to_thread
+            
+            await to_thread.run_sync(self.run_with_hooks)
 
-        await to_thread(self.run_with_hooks)
-        self.future = ensure_future(self.start_watching())
-        await sleep(0)
+            async def start_with_ready(*, task_status=TASK_STATUS_IGNORED):
+                from watchfiles import awatch
+                
+                async for events in awatch(self.entry, *self.includes, stop_event=self._stop_event):
+                    task_status.started()
+                    self.on_events(events)
+
+            self._tg = create_task_group()
+            await self._tg.__aenter__()
+            await self._tg.start(start_with_ready)
+        
         return super()
 
     async def __aexit__(self, *_):
         self.stop_watching()
-        await self.future
+        if hasattr(self, '_tg'):
+            await self._tg.__aexit__(None, None, None)
+        elif hasattr(self, 'future'):
+            await self.future
         self.clean_up()
