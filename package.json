@@ -27,7 +27,7 @@
     "@neodrag/svelte": "^2.3.3",
     "@shikijs/monaco": "^3.13.0",
     "@sveltejs/adapter-auto": "^7.0.0",
-    "@sveltejs/kit": "^2.47.2",
+    "@sveltejs/kit": "^2.47.3",
     "@sveltejs/vite-plugin-svelte": "^3.1.2",
     "@tmcp/transport-http": "^0.7.0",
     "@unocss/extractor-svelte": "~66.4.2",
