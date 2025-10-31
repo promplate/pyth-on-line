@@ -6,7 +6,7 @@ dependencies = [
     "ruff~=0.14.0",
     "webtypy~=0.1.7",
     "micropip~=0.10.0",
-    "pyodide-py==0.28.3",
+    "pyodide-py==0.29.0",
     "promplate-pyodide~=0.0.4.0",
     "pre-commit~=4.3.0",
     "pure-eval~=0.2.3",
