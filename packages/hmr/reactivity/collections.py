@@ -8,10 +8,18 @@ from .context import Context, default_context
 from .primitives import Derived, Effect, Signal, Subscribable, _equal
 
 
-class ReactiveMappingProxy[K, V](MutableMapping[K, V]):
-    def _signal(self, value=False):
-        return Signal(value, context=self.context)  # False for unset
+class _ReactiveCollectionMixin:
+    """Mixin class for reactive collections that use Signal-based tracking."""
 
+    context: Context
+    _check_equality: bool
+
+    def _signal(self, value=False):
+        """Create a Signal for tracking collection elements."""
+        return Signal(value, self._check_equality, context=self.context)  # False for unset
+
+
+class ReactiveMappingProxy[K, V](_ReactiveCollectionMixin, MutableMapping[K, V]):
     def __init__(self, initial: MutableMapping[K, V], check_equality=True, *, context: Context | None = None):
         self.context = context or default_context
         self._check_equality = check_equality
@@ -63,10 +71,7 @@ class ReactiveMapping[K, V](ReactiveMappingProxy[K, V]):
         super().__init__({**initial} if initial is not None else {}, check_equality, context=context)
 
 
-class ReactiveSetProxy[T](MutableSet[T]):
-    def _signal(self, value=False):
-        return Signal(value, self._check_equality, context=self.context)  # False for unset
-
+class ReactiveSetProxy[T](_ReactiveCollectionMixin, MutableSet[T]):
     def __init__(self, initial: MutableSet[T], check_equality=True, *, context: Context | None = None):
         self.context = context or default_context
         self._check_equality = check_equality
