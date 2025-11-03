@@ -164,15 +164,14 @@ _loader = ReactiveModuleLoader()  # This is a singleton loader instance used by 
 def _deduplicate(input_paths: Iterable[str | Path | None]):
     paths = [*{Path(p).resolve(): None for p in input_paths if p is not None}]  # dicts preserve insertion order
     # Filter out paths that are subdirectories of other paths
-    # Sort by path depth (longest first) to efficiently check parent relationships
-    sorted_paths = sorted(paths, key=lambda p: len(p.parts), reverse=True)
-    result = []
-    for p in sorted_paths:
-        # Only keep paths that aren't relative to any already-added path
-        if not any(p.is_relative_to(existing) for existing in result):
-            result.append(p)
-    # Restore original order
-    return [p for p in paths if p in result]
+    # Use set for O(1) lookup instead of repeated list.remove() which is O(n)
+    sorted_paths = sorted(paths, reverse=True)
+    to_remove = set()
+    for i, p in enumerate(sorted_paths[:-1], start=1):
+        if is_relative_to_any(p, sorted_paths[i:]):
+            to_remove.add(p)
+    # Return paths in original order, excluding ones marked for removal
+    return [p for p in paths if p not in to_remove]
 
 
 class ReactiveModuleFinder(MetaPathFinder):
