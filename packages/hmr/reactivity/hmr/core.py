@@ -167,8 +167,8 @@ def _deduplicate(input_paths: Iterable[str | Path | None]):
     # Use set for O(1) lookup instead of repeated list.remove() which is O(n)
     sorted_paths = sorted(paths, reverse=True)
     to_remove = set()
-    for i, p in enumerate(sorted_paths[:-1], start=1):
-        if is_relative_to_any(p, sorted_paths[i:]):
+    for i, p in enumerate(sorted_paths):
+        if is_relative_to_any(p, sorted_paths[i + 1 :]):
             to_remove.add(p)
     # Return paths in original order, excluding ones marked for removal
     return [p for p in paths if p not in to_remove]

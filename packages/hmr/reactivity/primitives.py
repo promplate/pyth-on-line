@@ -10,9 +10,6 @@ def _equal(a, b):
         return True
     try:
         comparison_result = a == b
-        # Handle array-like objects (numpy, pandas) that raise on truthiness
-        if comparison_result:
-            return True
     except (ValueError, RuntimeError) as e:
         # For array-like instances, check if "is ambiguous" error and apply .all()
         if "is ambiguous" in str(e):
@@ -22,6 +19,16 @@ def _equal(a, b):
             except (ValueError, RuntimeError, AttributeError):
                 return False
         return False
+    # Handle array-like objects (numpy, pandas) that may raise on truthiness
+    try:
+        if comparison_result:
+            return True
+    except (ValueError, RuntimeError):
+        # If truthiness check fails, try .all() method for array-like objects
+        try:
+            return bool(comparison_result.all())
+        except (AttributeError, ValueError, RuntimeError):
+            pass
     return False
 
 
