@@ -1,9 +1,11 @@
 import gc
+from functools import cache
 from inspect import ismethod
+from pathlib import Path
 from typing import assert_type
 from weakref import finalize
 
-from pytest import raises
+from pytest import raises, warns
 from reactivity import Reactive, batch, create_signal, effect, memoized, memoized_method, memoized_property
 from reactivity.context import default_context, new_context
 from reactivity.helpers import DerivedProperty, MemoizedMethod, MemoizedProperty
@@ -934,3 +936,28 @@ def test_descriptors_with_slots():
     with capture_stdout() as stdout:
         gc.collect()
     assert stdout == "collected\n"
+
+
+def test_no_longer_reactive_warning():
+    s = Signal(0)
+
+    @cache
+    def f():
+        return s.get()
+
+    with capture_stdout() as stdout:
+
+        @effect
+        def g():
+            print(f())
+
+        assert stdout.delta == "0\n"
+        assert s.subscribers == {g}
+
+        with warns(RuntimeWarning) as record:
+            s.set(1)
+
+    assert stdout.delta == "0\n"
+    [warning] = record.list
+    assert Path(warning.filename) == Path(__file__)
+    assert not g.dependencies
