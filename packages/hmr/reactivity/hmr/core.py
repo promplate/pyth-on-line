@@ -309,6 +309,13 @@ class BaseReloader:
 
         call_post_reload_hooks()
 
+    @cached_property
+    def _stop_event(self):
+        return _SimpleEvent()
+
+    def stop_watching(self):
+        self._stop_event.set()
+
 
 class _SimpleEvent:
     def __init__(self):
@@ -322,13 +329,6 @@ class _SimpleEvent:
 
 
 class SyncReloader(BaseReloader):
-    @cached_property
-    def _stop_event(self):
-        return _SimpleEvent()
-
-    def stop_watching(self):
-        self._stop_event.set()
-
     def start_watching(self):
         from watchfiles import watch
 
@@ -345,13 +345,6 @@ class SyncReloader(BaseReloader):
 
 
 class AsyncReloader(BaseReloader):
-    @cached_property
-    def _stop_event(self):
-        return _SimpleEvent()
-
-    def stop_watching(self):
-        self._stop_event.set()
-
     async def start_watching(self):
         from watchfiles import awatch
 
