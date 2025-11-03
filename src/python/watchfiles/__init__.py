@@ -33,7 +33,7 @@ class BaseFilter:
 
     def __call__(self, change: Change, path: str) -> bool:  # noqa: ARG002
         current_path = Path(path)
-        if any(current_path in self._ignore_dirs for current_path in current_path.parts):
+        if any(part in self._ignore_dirs for part in current_path.parts):
             return False
 
         entity_name = current_path.name
