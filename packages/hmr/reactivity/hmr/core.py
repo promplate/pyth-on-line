@@ -227,8 +227,8 @@ def patch_module(name_or_module: str | ModuleType):
     name = name_or_module if isinstance(name_or_module, str) else name_or_module.__name__
     module = sys.modules[name_or_module] if isinstance(name_or_module, str) else name_or_module
     assert isinstance(module.__file__, str), f"{name} is not a file-backed module"
-    m = sys.modules[name] = ReactiveModule(Path(module.__file__), module.__dict__, module.__name__, module.__doc__)
-    return m
+    reactive_module = sys.modules[name] = ReactiveModule(Path(module.__file__), module.__dict__, module.__name__, module.__doc__)
+    return reactive_module
 
 
 def patch_meta_path(includes: Iterable[str] = (".",), excludes: Iterable[str] = ()):

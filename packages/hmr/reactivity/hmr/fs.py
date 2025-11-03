@@ -28,9 +28,9 @@ def setup_fs_audithook():
             file, _, flags = args
 
             if (flags % 2 == 0) and _filters and isinstance(file, str) and HMR_CONTEXT.leaf.current_computations:
-                p = Path(file).resolve()
-                if any(f(p) for f in _filters):
-                    track(p)
+                file_path = Path(file).resolve()
+                if any(f(file_path) for f in _filters):
+                    track(file_path)
 
 
 def track(file: Path):

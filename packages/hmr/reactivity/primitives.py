@@ -5,14 +5,14 @@ from weakref import WeakSet
 from .context import Context, default_context
 
 
-def _equal(a, b):
-    if a is b:
+def _equal(left_value, right_value):
+    if left_value is right_value:
         return True
     comparison_result: Any = False
     for i in range(3):  # pandas DataFrame's .all() returns a Series, which is still incompatible :(
         try:
             if i == 0:
-                comparison_result = a == b
+                comparison_result = left_value == right_value
             if comparison_result:
                 return True
         except (ValueError, RuntimeError) as e:

@@ -22,11 +22,11 @@ def patch_install():
 
     @wraps(install)
     async def install_with_toast(*args, **kwargs):
-        r = kwargs.get("requirements") or args[0]
-        r = [r] if isinstance(r, str) else r
-        r = list(map(get_package_name, r))
+        requirements = kwargs.get("requirements") or args[0]
+        requirements = [requirements] if isinstance(requirements, str) else requirements
+        requirements = list(map(get_package_name, requirements))
 
-        with loading(f"pip install {' '.join(r)}"):
+        with loading(f"pip install {' '.join(requirements)}"):
             return await install(*args, **kwargs)
 
     micropip.install = install_with_toast

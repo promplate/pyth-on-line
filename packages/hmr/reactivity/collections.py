@@ -119,12 +119,12 @@ class ReactiveSet[T](ReactiveSetProxy[T]):
 
 
 def _weak_derived[T](fn: Callable[[], T], check_equality=True, *, context: Context | None = None):
-    d = Derived(fn, check_equality, context=context)
-    s = d.subscribers = ReactiveSetProxy(d.subscribers)  # type: ignore
-    e = Effect(lambda: not s and d.dispose(), False)  # when `subscribers` is empty, gc it
-    s._iter.subscribers.add(e)  # noqa: SLF001
-    e.dependencies.add(s._iter)  # noqa: SLF001
-    return d
+    derived = Derived(fn, check_equality, context=context)
+    subscribers = derived.subscribers = ReactiveSetProxy(derived.subscribers)  # type: ignore
+    effect = Effect(lambda: not subscribers and derived.dispose(), False)  # when `subscribers` is empty, gc it
+    subscribers._iter.subscribers.add(effect)  # noqa: SLF001
+    effect.dependencies.add(subscribers._iter)  # noqa: SLF001
+    return derived
 
 
 class ReactiveSequenceProxy[T](MutableSequence[T]):

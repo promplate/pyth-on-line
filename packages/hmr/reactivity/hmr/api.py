@@ -54,15 +54,15 @@ class AsyncReloaderAPI(AsyncReloader, LifecycleMixin):
 
         self.run_with_hooks()
 
-        e = Event()
+        ready_event = Event()
 
         async def task():
-            e.set()
+            ready_event.set()
             await self.start_watching()
 
         self.thread = Thread(target=lambda: run(task()))
         self.thread.start()
-        e.wait()
+        ready_event.wait()
         return super()
 
     def __exit__(self, *_):

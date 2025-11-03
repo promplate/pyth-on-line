@@ -66,20 +66,20 @@ def __name_lookup():
     from builtins import KeyError, NameError
     from collections import ChainMap
     from inspect import currentframe
-    f = currentframe().f_back
-    c = ChainMap(f.f_locals, f.f_globals, f.f_builtins)
-    if freevars := f.f_code.co_freevars:
-        c.maps.insert(1, e := {})
-        freevars = {*f.f_code.co_freevars}
+    frame = currentframe().f_back
+    chain_map = ChainMap(frame.f_locals, frame.f_globals, frame.f_builtins)
+    if freevars := frame.f_code.co_freevars:
+        chain_map.maps.insert(1, enclosed_vars := {})
+        freevars = {*frame.f_code.co_freevars}
         while freevars:
-            f = f.f_back
-            for name in f.f_code.co_cellvars:
-                if name in freevars.intersection(f.f_code.co_cellvars):
+            frame = frame.f_back
+            for name in frame.f_code.co_cellvars:
+                if name in freevars.intersection(frame.f_code.co_cellvars):
                     freevars.remove(name)
-                    e[name] = f.f_locals[name]
+                    enclosed_vars[name] = frame.f_locals[name]
     def lookup(name):
         try:
-            return c[name]
+            return chain_map[name]
         except KeyError as e:
             raise NameError(*e.args) from None
     return lookup

@@ -32,11 +32,11 @@ class BaseFilter:
         self._ignore_paths = tuple(map(str, self.ignore_paths))
 
     def __call__(self, change: Change, path: str) -> bool:  # noqa: ARG002
-        p = Path(path)
-        if any(p in self._ignore_dirs for p in p.parts):
+        current_path = Path(path)
+        if any(current_path in self._ignore_dirs for current_path in current_path.parts):
             return False
 
-        entity_name = p.name
+        entity_name = current_path.name
         return not (any(r.search(entity_name) for r in self._ignore_entity_regexes) or (self._ignore_paths and path.startswith(self._ignore_paths)))
 
     def __repr__(self) -> str:
