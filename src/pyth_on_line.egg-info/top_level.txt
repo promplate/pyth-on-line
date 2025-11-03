@@ -1,4 +1,0 @@
-lib
-netlify
-python
-routes

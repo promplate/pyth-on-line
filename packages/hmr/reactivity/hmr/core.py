@@ -163,10 +163,16 @@ _loader = ReactiveModuleLoader()  # This is a singleton loader instance used by 
 
 def _deduplicate(input_paths: Iterable[str | Path | None]):
     paths = [*{Path(p).resolve(): None for p in input_paths if p is not None}]  # dicts preserve insertion order
-    for i, p in enumerate(s := sorted(paths, reverse=True), start=1):
-        if is_relative_to_any(p, s[i:]):
-            paths.remove(p)
-    return paths
+    # Filter out paths that are subdirectories of other paths
+    # Sort by path depth (longest first) to efficiently check parent relationships
+    sorted_paths = sorted(paths, key=lambda p: len(p.parts), reverse=True)
+    result = []
+    for p in sorted_paths:
+        # Only keep paths that aren't relative to any already-added path
+        if not any(p.is_relative_to(existing) for existing in result):
+            result.append(p)
+    # Restore original order
+    return [p for p in paths if p in result]
 
 
 class ReactiveModuleFinder(MetaPathFinder):
@@ -192,11 +198,19 @@ class ReactiveModuleFinder(MetaPathFinder):
         if sys.path == self._last_sys_path and self._last_cwd.exists() and Path.cwd().samefile(self._last_cwd):
             return self._cached_search_paths
 
-        res = [
-            path
-            for path in (Path(p).resolve() for p in sys.path)
-            if not path.is_file() and not is_relative_to_any(path, self.excludes) and any(i.is_relative_to(path) or path.is_relative_to(i) for i in self.includes)
-        ]
+        # Cache resolved paths and pre-compute exclude check
+        resolved_paths = [Path(p).resolve() for p in sys.path]
+
+        res = []
+        for path in resolved_paths:
+            # Skip files and excluded paths early
+            if path.is_file() or is_relative_to_any(path, self.excludes):
+                continue
+            # Check if path is related to any include
+            for include in self.includes:
+                if include.is_relative_to(path) or path.is_relative_to(include):
+                    res.append(path)
+                    break
 
         self._cached_search_paths = res
         self._last_cwd = Path.cwd()

@@ -8,18 +8,20 @@ from .context import Context, default_context
 def _equal(a, b):
     if a is b:
         return True
-    comparison_result: Any = False
-    for i in range(3):  # pandas DataFrame's .all() returns a Series, which is still incompatible :(
-        try:
-            if i == 0:
-                comparison_result = a == b
-            if comparison_result:
-                return True
-        except (ValueError, RuntimeError) as e:
-            if "is ambiguous" in str(e) and hasattr(comparison_result, "all"):  # array-like instances
-                comparison_result = comparison_result.all()
-            else:
+    try:
+        comparison_result = a == b
+        # Handle array-like objects (numpy, pandas) that raise on truthiness
+        if comparison_result:
+            return True
+    except (ValueError, RuntimeError) as e:
+        # For array-like instances, check if "is ambiguous" error and apply .all()
+        if "is ambiguous" in str(e):
+            try:
+                comparison_result = (a == b).all()
+                return bool(comparison_result)
+            except (ValueError, RuntimeError, AttributeError):
                 return False
+        return False
     return False
 
 

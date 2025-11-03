@@ -19,3 +19,5 @@ vite.config.ts.timestamp-*
 /packages/**/index.d.ts
 /tests/py/**/index.d.ts
 __pycache__
+*.egg-info
+/src/*.egg-info
