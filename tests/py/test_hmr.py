@@ -7,7 +7,7 @@ from textwrap import dedent
 import pytest
 from reactivity.hmr.core import ReactiveModule
 from reactivity.hmr.utils import load
-from utils import environment
+from utils import current_lineno, environment
 
 
 def test_simple_triggering():
@@ -99,8 +99,9 @@ def test_reload_from_outside():
         module = ReactiveModule(file, {}, "main")
         assert env.stdout_delta == ""
 
-        with pytest.raises(AttributeError):
+        with pytest.warns(RuntimeWarning) as record, pytest.raises(AttributeError):
             module.load()
+        assert record[0].lineno == current_lineno() - 1
 
         load(module)
         assert env.stdout_delta == "123\n"
@@ -173,7 +174,7 @@ def test_cache_across_reloads_with_class():
         assert env.stdout_delta == "1\n"
 
 
-def test_cache_across_reloads_source():
+def test_cache_across_reloads_source(recwarn: pytest.WarningsRecorder):
     with environment() as env:
         env["main.py"] = """
                 from inspect import getsource
@@ -184,9 +185,10 @@ def test_cache_across_reloads_source():
                 assert getsource(f) == getsource(cache_across_reloads(f))
             """
         load(ReactiveModule(Path("main.py"), {}, "main"))
+        assert recwarn.pop(RuntimeWarning).lineno == current_lineno() - 1
 
 
-def test_cache_across_reloads_with_other_decorators():
+def test_cache_across_reloads_with_other_decorators(recwarn: pytest.WarningsRecorder):
     with environment() as env:
         env["main.py"] = """
                 from reactivity.hmr.utils import cache_across_reloads
@@ -199,6 +201,10 @@ def test_cache_across_reloads_with_other_decorators():
         load(ReactiveModule(Path("main.py"), ns := {}, "main"))
         assert env.stdout_delta == "3\n3\n1\n"  # inner function being called twice, while the outer one only once
         assert ns["two"] == 2
+
+        warning = recwarn.pop(RuntimeWarning)
+        assert warning.lineno == 3  # f()
+        assert warning.filename == "main.py"
 
 
 def test_cache_across_reloads_cache_lifespan():
