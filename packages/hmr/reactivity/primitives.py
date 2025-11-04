@@ -103,6 +103,9 @@ class Signal[T](Subscribable):
             return True
         return False
 
+    def update(self, updater: Callable[[T], T]):
+        return self.set(updater(self._value))
+
 
 class DescriptorMixin[T]:
     SLOT_KEY = "_reactive_descriptors_"

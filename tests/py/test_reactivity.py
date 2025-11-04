@@ -3,15 +3,16 @@ from functools import cache
 from inspect import ismethod
 from pathlib import Path
 from typing import assert_type
+from warnings import filterwarnings
 from weakref import finalize
 
-from pytest import raises, warns
+from pytest import WarningsRecorder, raises, warns
 from reactivity import Reactive, batch, create_signal, effect, memoized, memoized_method, memoized_property
 from reactivity.context import default_context, new_context
 from reactivity.helpers import DerivedProperty, MemoizedMethod, MemoizedProperty
 from reactivity.hmr.proxy import Proxy
 from reactivity.primitives import Derived, Effect, Signal, State
-from utils import capture_stdout
+from utils import capture_stdout, current_lineno
 
 
 def test_initial_value():
@@ -80,7 +81,8 @@ def test_state_descriptor():
 
     results = []
 
-    with effect(lambda: results.append(obj.v)):
+    with warns(RuntimeWarning) as record, effect(lambda: results.append(obj.v)):
+        assert record[0].lineno == current_lineno() - 1
         assert results == [0]
         obj.v = 1
         assert results == [0]
@@ -240,7 +242,7 @@ def test_memo_class_attribute():
     assert hasattr(r, "get_area")
 
 
-def test_nested_memo():
+def test_nested_memo(recwarn: WarningsRecorder):
     @memoized
     def f():
         print("f")
@@ -257,6 +259,7 @@ def test_nested_memo():
 
     with capture_stdout() as stdout:
         h()
+        assert recwarn.pop(RuntimeWarning).lineno == g.fn.__code__.co_firstlineno + 2  # f()
         assert stdout == "f\ng\nh\n"
 
     with capture_stdout() as stdout:
@@ -265,12 +268,17 @@ def test_nested_memo():
         h()
         assert stdout == "g\nh\n"
 
+    filterwarnings("always")  # this is needed to re-enable the warning after it was caught above
+
     with capture_stdout() as stdout:
         f.invalidate()
+        assert recwarn.list == []
         g()
+        assert recwarn.pop(RuntimeWarning).lineno == g.fn.__code__.co_firstlineno + 2  # f()
         assert stdout == "f\ng\n"
         h()
         assert stdout == "f\ng\nh\n"
+        assert recwarn.list == []
 
 
 def test_derived():
@@ -485,7 +493,8 @@ def test_reactive_lazy_track():
             assert stdout.delta == "123\n123\n"
 
         # views don't track iteration until actually consumed (e.g., by next() or unpacking)
-        with effect(lambda: [obj.keys(), obj.values(), obj.items(), print(123)]):
+        with warns(RuntimeWarning) as record, effect(lambda: [obj.keys(), obj.values(), obj.items(), print(123)]):
+            assert record[0].lineno == current_lineno() - 1  # because the above line only creates the views but doesn't iterate them
             obj[5] = 6
             assert stdout.delta == "123\n"
 
@@ -696,7 +705,8 @@ def test_reactive_inside_batch():
 def test_get_without_tracking():
     get_s, set_s = create_signal(0)
 
-    with capture_stdout() as stdout, effect(lambda: print(get_s(track=False))):
+    with capture_stdout() as stdout, warns(RuntimeWarning) as record, effect(lambda: print(get_s(track=False))):
+        assert record[0].lineno == current_lineno() - 1
         set_s(1)
         assert get_s() == 1
         assert stdout == "0\n"
@@ -852,7 +862,8 @@ def test_context_usage_with_reactive_namespace():
 
 def test_reactive_proxy():
     context = Proxy({"a": 123})
-    with capture_stdout() as stdout, effect(lambda: exec("""class _: print(a)""", context.raw, context)):
+    with capture_stdout() as stdout, warns(RuntimeWarning) as record, effect(lambda: exec("""class _: print(a)""", context.raw, context)):
+        assert record[0].lineno == current_lineno() - 1  # because of the issue mentioned below
         assert stdout.delta == "123\n"
         context["a"] = 234
 
@@ -961,3 +972,19 @@ def test_no_longer_reactive_warning():
     [warning] = record.list
     assert Path(warning.filename) == Path(__file__)
     assert not g.dependencies
+
+
+def test_update_vs_set_get_tracking():
+    s = Signal(0)
+
+    with warns(RuntimeWarning) as record, Effect(lambda: s.update(lambda x: x + 1)) as e:
+        assert record[0].lineno == current_lineno() - 1
+        assert s.get() == 1
+        assert e not in s.subscribers  # update doesn't track
+
+    # without `.update()`, effects will invalidate themselves, which is unintended mostly
+    with Effect(lambda: s.set(s.get() + 1)) as e:
+        assert s.get() == 3
+        assert e in s.subscribers
+        s.set(4)
+        assert s.get() == 5  # effect triggered only once because `Batch.flush` has deduplication logic

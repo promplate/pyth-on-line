@@ -186,6 +186,7 @@ def test_cache_across_reloads_source(recwarn: pytest.WarningsRecorder):
             """
         load(ReactiveModule(Path("main.py"), {}, "main"))
         assert recwarn.pop(RuntimeWarning).lineno == current_lineno() - 1
+    assert recwarn.list == []
 
 
 def test_cache_across_reloads_with_other_decorators(recwarn: pytest.WarningsRecorder):
@@ -203,8 +204,9 @@ def test_cache_across_reloads_with_other_decorators(recwarn: pytest.WarningsReco
         assert ns["two"] == 2
 
         warning = recwarn.pop(RuntimeWarning)
-        assert warning.lineno == 3  # f()
+        assert warning.lineno == 4  # f()
         assert warning.filename == "main.py"
+    assert recwarn.list == []
 
 
 def test_cache_across_reloads_cache_lifespan():
@@ -349,7 +351,7 @@ def test_search_paths_caching(monkeypatch: pytest.MonkeyPatch):
 
 def test_fs_signals():
     with environment() as env:
-        env["main.py"] = "print(open('a').read())"
+        env["main.py"] = "with open('a') as f: print(f.read())"
         env["a"] = "1"
 
         with env.hmr("main.py"):
