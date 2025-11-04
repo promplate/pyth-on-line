@@ -972,3 +972,19 @@ def test_no_longer_reactive_warning():
     [warning] = record.list
     assert Path(warning.filename) == Path(__file__)
     assert not g.dependencies
+
+
+def test_update_vs_set_get_tracking():
+    s = Signal(0)
+
+    with warns(RuntimeWarning) as record, Effect(lambda: s.update(lambda x: x + 1)) as e:
+        assert record[0].lineno == current_lineno() - 1
+        assert s.get() == 1
+        assert e not in s.subscribers  # update doesn't track
+
+    # without `.update()`, effects will invalidate themselves, which is unintended mostly
+    with Effect(lambda: s.set(s.get() + 1)) as e:
+        assert s.get() == 3
+        assert e in s.subscribers
+        s.set(4)
+        assert s.get() == 5  # effect triggered only once because `Batch.flush` has deduplication logic
