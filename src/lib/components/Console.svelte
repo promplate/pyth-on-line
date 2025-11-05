@@ -139,6 +139,7 @@
     reverseMatches = [];
     reverseMatchIndex = -1;
     reverseOriginalInput = "";
+    index = -1;
     focusToInput(input.length);
   }
 
@@ -149,6 +150,7 @@
     reverseMatches = [];
     reverseMatchIndex = -1;
     reverseOriginalInput = "";
+    index = -1;
     focusToInput(input.length);
   }
 
@@ -217,6 +219,7 @@
       reverseQuery = "";
       reverseMatches = [];
       reverseMatchIndex = -1;
+      index = -1;
       return;
     }
 
@@ -294,6 +297,9 @@
   };
 
   $: extras = ` ${$$restProps.class ?? "p-3"}`;
+  $: promptText = reverseSearchActive
+    ? `(reverse-i-search)\`${reverseQuery}':`
+    : status === "incomplete" ? "..." : ">>>";
 </script>
 
 <svelte:document on:keydown={onKeyDown} on:paste={onPaste} />
@@ -314,11 +320,11 @@
         {/if}
       {/each}
       <div class="group flex flex-row" class:animate-pulse={loading || !ready}>
-        <ConsolePrompt prompt={reverseSearchActive ? `(reverse-i-search)\`${reverseQuery}':` : status === "incomplete" ? "..." : ">>>"} />
+        <ConsolePrompt prompt={promptText} />
         {#if reverseSearchActive}
           <span class="w-full">{reverseMatchIndex >= 0 ? reverseMatches[reverseMatchIndex] : ""}</span>
           <!-- svelte-ignore a11y-autofocus -->
-          <input {autofocus} bind:this={inputRef} class="absolute w-full bg-transparent opacity-0 outline-none" bind:value={input} type="text" autocapitalize="off" spellcheck="false" autocomplete="off" autocorrect="off" />
+          <input {autofocus} bind:this={inputRef} class="absolute w-full bg-transparent opacity-0 outline-none" bind:value={input} type="text" autocapitalize="off" spellcheck="false" autocomplete="off" autocorrect="off" aria-hidden="true" />
         {:else}
           <!-- svelte-ignore a11y-autofocus -->
           <input {autofocus} bind:this={inputRef} class="w-full bg-transparent outline-none" bind:value={input} type="text" autocapitalize="off" spellcheck="false" autocomplete="off" autocorrect="off" />
