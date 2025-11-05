@@ -24,6 +24,11 @@
   let input = "";
   let inputRef: HTMLInputElement;
 
+  // Reverse-search state
+  let reverseSearchMode = false;
+  let reverseSearchQuery = "";
+  let reverseSearchIndex = -1;
+
   let pyConsole: ConsoleAPI;
   let complete: AutoComplete;
   let status: Status;
@@ -100,6 +105,43 @@
     input = "";
   }
 
+  function startReverseSearch() {
+    reverseSearchMode = true;
+    reverseSearchQuery = "";
+    reverseSearchIndex = -1;
+    findNextMatch();
+  }
+
+  function findNextMatch() {
+    const query = reverseSearchQuery.toLowerCase();
+    for (let i = reverseSearchIndex + 1; i < history.length; i++) {
+      if (history[i].toLowerCase().includes(query)) {
+        reverseSearchIndex = i;
+        input = history[i];
+        return;
+      }
+    }
+  // If no match found, stay at current position
+  }
+
+  function exitReverseSearch(accept: boolean) {
+    if (accept) {
+      // Keep the current input value
+      reverseSearchMode = false;
+      reverseSearchQuery = "";
+      reverseSearchIndex = -1;
+      index = -1;
+    }
+    else {
+      // Cancel and restore to empty
+      reverseSearchMode = false;
+      reverseSearchQuery = "";
+      reverseSearchIndex = -1;
+      input = "";
+      index = -1;
+    }
+  }
+
   function focusToInput(start?: number, end?: number) {
     inputRef.scrollIntoView({ block: "center" });
     inputRef.focus();
@@ -120,6 +162,61 @@
     focusToInput(input.length - distanceToEnd);
   };
 
+  function handleReverseSearchKeyDown(event: KeyboardEvent) {
+    // Handle Ctrl+R to find next match
+    if ((event.ctrlKey || event.metaKey) && event.key === "r") {
+      event.preventDefault();
+      findNextMatch();
+      return;
+    }
+
+    // Handle Ctrl+G to cancel
+    if ((event.ctrlKey || event.metaKey) && event.key === "g") {
+      event.preventDefault();
+      exitReverseSearch(false);
+      return;
+    }
+
+    switch (event.key) {
+      case "Enter":
+      case "ArrowRight":
+        // Accept the current match
+        event.preventDefault();
+        exitReverseSearch(true);
+        break;
+
+      case "Escape":
+        // Cancel search
+        event.preventDefault();
+        exitReverseSearch(false);
+        break;
+
+      case "Backspace":
+        // Remove last character from search query
+        if (reverseSearchQuery.length > 0) {
+          event.preventDefault();
+          reverseSearchQuery = reverseSearchQuery.slice(0, -1);
+          reverseSearchIndex = -1;
+          findNextMatch();
+        }
+        else {
+          // If query is empty, exit search mode
+          event.preventDefault();
+          exitReverseSearch(false);
+        }
+        break;
+
+      default:
+        // Add character to search query
+        if (!event.ctrlKey && !event.metaKey && !event.altKey && event.key.length === 1) {
+          event.preventDefault();
+          reverseSearchQuery += event.key;
+          reverseSearchIndex = -1;
+          findNextMatch();
+        }
+    }
+  }
+
   const onKeyDown: KeyboardEventHandler<Document | HTMLInputElement> = (event) => {
     if (!((event.target! as Node).contains(inputRef)))
       return;
@@ -127,6 +224,19 @@
       focusToInput();
     else if (document.activeElement !== inputRef)
       return;
+
+    // Handle reverse-search mode separately
+    if (reverseSearchMode) {
+      handleReverseSearchKeyDown(event);
+      return;
+    }
+
+    // Handle Ctrl+R to enter reverse-search mode
+    if ((event.ctrlKey || event.metaKey) && event.key === "r") {
+      event.preventDefault();
+      startReverseSearch();
+      return;
+    }
 
     switch (event.key) {
       case "ArrowUp": {
@@ -222,9 +332,9 @@
         {/if}
       {/each}
       <div class="group flex flex-row" class:animate-pulse={loading || !ready}>
-        <ConsolePrompt prompt={status === "incomplete" ? "..." : ">>>"} />
+        <ConsolePrompt prompt={reverseSearchMode ? `(reverse-i-search)\`${reverseSearchQuery}\`: ` : (status === "incomplete" ? "..." : ">>>")} />
         <!-- svelte-ignore a11y-autofocus -->
-        <input {autofocus} bind:this={inputRef} class="w-full bg-transparent outline-none" bind:value={input} type="text" autocapitalize="off" spellcheck="false" autocomplete="off" autocorrect="off" />
+        <input {autofocus} bind:this={inputRef} class="w-full bg-transparent outline-none" bind:value={input} type="text" autocapitalize="off" spellcheck="false" autocomplete="off" autocorrect="off" readonly={reverseSearchMode} />
       </div>
     </HeadlessConsole>
 
