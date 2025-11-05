@@ -137,22 +137,13 @@
   }
 
   function exitReverseSearch(accept: boolean) {
-    if (accept) {
-      // Keep the current input value
-      reverseSearchMode = false;
-      reverseSearchQuery = "";
-      reverseSearchIndex = -1;
-      reverseSearchFailed = false;
-      index = -1;
-    }
-    else {
-      // Cancel and restore to empty
-      reverseSearchMode = false;
-      reverseSearchQuery = "";
-      reverseSearchIndex = -1;
-      reverseSearchFailed = false;
+    reverseSearchMode = false;
+    reverseSearchQuery = "";
+    reverseSearchIndex = -1;
+    reverseSearchFailed = false;
+    index = -1;
+    if (!accept) {
       input = "";
-      index = -1;
     }
   }
 
@@ -326,6 +317,9 @@
   };
 
   $: extras = ` ${$$restProps.class ?? "p-3"}`;
+  $: promptText = reverseSearchMode
+    ? `(${reverseSearchFailed ? "failed " : ""}reverse-i-search)\`${reverseSearchQuery}\`: `
+    : (status === "incomplete" ? "..." : ">>>");
 </script>
 
 <svelte:document on:keydown={onKeyDown} on:paste={onPaste} />
@@ -346,7 +340,7 @@
         {/if}
       {/each}
       <div class="group flex flex-row" class:animate-pulse={loading || !ready}>
-        <ConsolePrompt prompt={reverseSearchMode ? `(${reverseSearchFailed ? "failed " : ""}reverse-i-search)\`${reverseSearchQuery}\`: ` : (status === "incomplete" ? "..." : ">>>")} />
+        <ConsolePrompt prompt={promptText} />
         <!-- svelte-ignore a11y-autofocus -->
         <input {autofocus} bind:this={inputRef} class="w-full bg-transparent outline-none" bind:value={input} type="text" autocapitalize="off" spellcheck="false" autocomplete="off" autocorrect="off" readonly={reverseSearchMode} />
       </div>
