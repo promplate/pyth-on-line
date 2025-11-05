@@ -314,11 +314,12 @@
         {/if}
       {/each}
       <div class="group flex flex-row" class:animate-pulse={loading || !ready}>
+        <ConsolePrompt prompt={reverseSearchActive ? `(reverse-i-search)\`${reverseQuery}':` : status === "incomplete" ? "..." : ">>>"} />
         {#if reverseSearchActive}
-          <ConsolePrompt prompt={`(reverse-i-search)\`${reverseQuery}':`} />
           <span class="w-full">{reverseMatchIndex >= 0 ? reverseMatches[reverseMatchIndex] : ""}</span>
+          <!-- svelte-ignore a11y-autofocus -->
+          <input {autofocus} bind:this={inputRef} class="absolute w-full bg-transparent opacity-0 outline-none" bind:value={input} type="text" autocapitalize="off" spellcheck="false" autocomplete="off" autocorrect="off" />
         {:else}
-          <ConsolePrompt prompt={status === "incomplete" ? "..." : ">>>"} />
           <!-- svelte-ignore a11y-autofocus -->
           <input {autofocus} bind:this={inputRef} class="w-full bg-transparent outline-none" bind:value={input} type="text" autocapitalize="off" spellcheck="false" autocomplete="off" autocorrect="off" />
         {/if}
