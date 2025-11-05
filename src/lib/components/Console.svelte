@@ -28,6 +28,7 @@
   let reverseSearchMode = false;
   let reverseSearchQuery = "";
   let reverseSearchIndex = -1;
+  let reverseSearchFailed = false;
 
   let pyConsole: ConsoleAPI;
   let complete: AutoComplete;
@@ -109,6 +110,7 @@
     reverseSearchMode = true;
     reverseSearchQuery = "";
     reverseSearchIndex = -1;
+    reverseSearchFailed = false;
     input = "";
   }
 
@@ -116,16 +118,19 @@
     const query = reverseSearchQuery.toLowerCase();
     // Empty query should not match anything (bash behavior)
     if (query === "") {
+      reverseSearchFailed = false;
       return;
     }
     for (let i = reverseSearchIndex + 1; i < history.length; i++) {
       if (history[i].toLowerCase().includes(query)) {
         reverseSearchIndex = i;
         input = history[i];
+        reverseSearchFailed = false;
         return;
       }
     }
-    // If no match found, clear input if this is first search
+    // If no match found, mark as failed
+    reverseSearchFailed = true;
     if (reverseSearchIndex === -1) {
       input = "";
     }
@@ -137,6 +142,7 @@
       reverseSearchMode = false;
       reverseSearchQuery = "";
       reverseSearchIndex = -1;
+      reverseSearchFailed = false;
       index = -1;
     }
     else {
@@ -144,6 +150,7 @@
       reverseSearchMode = false;
       reverseSearchQuery = "";
       reverseSearchIndex = -1;
+      reverseSearchFailed = false;
       input = "";
       index = -1;
     }
@@ -339,7 +346,7 @@
         {/if}
       {/each}
       <div class="group flex flex-row" class:animate-pulse={loading || !ready}>
-        <ConsolePrompt prompt={reverseSearchMode ? `(reverse-i-search)\`${reverseSearchQuery}\`: ` : (status === "incomplete" ? "..." : ">>>")} />
+        <ConsolePrompt prompt={reverseSearchMode ? `(${reverseSearchFailed ? "failed " : ""}reverse-i-search)\`${reverseSearchQuery}\`: ` : (status === "incomplete" ? "..." : ">>>")} />
         <!-- svelte-ignore a11y-autofocus -->
         <input {autofocus} bind:this={inputRef} class="w-full bg-transparent outline-none" bind:value={input} type="text" autocapitalize="off" spellcheck="false" autocomplete="off" autocorrect="off" readonly={reverseSearchMode} />
       </div>
