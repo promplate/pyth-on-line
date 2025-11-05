@@ -109,11 +109,15 @@
     reverseSearchMode = true;
     reverseSearchQuery = "";
     reverseSearchIndex = -1;
-    findNextMatch();
+    input = "";
   }
 
   function findNextMatch() {
     const query = reverseSearchQuery.toLowerCase();
+    // Empty query should not match anything (bash behavior)
+    if (query === "") {
+      return;
+    }
     for (let i = reverseSearchIndex + 1; i < history.length; i++) {
       if (history[i].toLowerCase().includes(query)) {
         reverseSearchIndex = i;
@@ -121,7 +125,10 @@
         return;
       }
     }
-  // If no match found, stay at current position
+    // If no match found, clear input if this is first search
+    if (reverseSearchIndex === -1) {
+      input = "";
+    }
   }
 
   function exitReverseSearch(accept: boolean) {
