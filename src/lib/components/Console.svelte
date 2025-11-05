@@ -24,6 +24,13 @@
   let input = "";
   let inputRef: HTMLInputElement;
 
+  // Reverse incremental search state
+  let reverseSearchActive = false;
+  let reverseQuery = "";
+  let reverseMatches: string[] = [];
+  let reverseMatchIndex = -1;
+  let reverseOriginalInput = "";
+
   let pyConsole: ConsoleAPI;
   let complete: AutoComplete;
   let status: Status;
@@ -108,6 +115,43 @@
     }
   }
 
+  function updateReverseMatches(query: string) {
+    reverseQuery = query;
+    reverseMatches = history.filter(entry => entry.includes(query));
+    reverseMatchIndex = reverseMatches.length > 0 ? 0 : -1;
+  }
+
+  function cycleReverseMatch() {
+    if (reverseMatches.length === 0)
+      return;
+    reverseMatchIndex = (reverseMatchIndex + 1) % reverseMatches.length;
+  }
+
+  function acceptReverseMatch() {
+    if (reverseMatchIndex >= 0 && reverseMatchIndex < reverseMatches.length) {
+      input = reverseMatches[reverseMatchIndex];
+    }
+    else if (reverseQuery) {
+      input = reverseQuery;
+    }
+    reverseSearchActive = false;
+    reverseQuery = "";
+    reverseMatches = [];
+    reverseMatchIndex = -1;
+    reverseOriginalInput = "";
+    focusToInput(input.length);
+  }
+
+  function cancelReverseSearch() {
+    input = reverseOriginalInput;
+    reverseSearchActive = false;
+    reverseQuery = "";
+    reverseMatches = [];
+    reverseMatchIndex = -1;
+    reverseOriginalInput = "";
+    focusToInput(input.length);
+  }
+
   const onPaste: ClipboardEventHandler<Document> = async (event) => {
     if (!((event.target! as Node).contains(inputRef)))
       return;
@@ -127,6 +171,54 @@
       focusToInput();
     else if (document.activeElement !== inputRef)
       return;
+
+    // Handle reverse search mode
+    if (reverseSearchActive) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        cancelReverseSearch();
+        return;
+      }
+      if (event.key === "g" && (event.ctrlKey || event.metaKey)) {
+        event.preventDefault();
+        cancelReverseSearch();
+        return;
+      }
+      if (event.key === "Enter") {
+        event.preventDefault();
+        acceptReverseMatch();
+        return;
+      }
+      if (event.key === "r" && (event.ctrlKey || event.metaKey)) {
+        event.preventDefault();
+        cycleReverseMatch();
+        return;
+      }
+      if (event.key === "Backspace") {
+        event.preventDefault();
+        const newQuery = reverseQuery.slice(0, -1);
+        updateReverseMatches(newQuery);
+        return;
+      }
+      if (!event.ctrlKey && !event.metaKey && !event.altKey && event.key.length === 1) {
+        event.preventDefault();
+        const newQuery = reverseQuery + event.key;
+        updateReverseMatches(newQuery);
+        return;
+      }
+      return;
+    }
+
+    // Start reverse search with Ctrl+R or Cmd+R
+    if (event.key === "r" && (event.ctrlKey || event.metaKey)) {
+      event.preventDefault();
+      reverseSearchActive = true;
+      reverseOriginalInput = input;
+      reverseQuery = "";
+      reverseMatches = [];
+      reverseMatchIndex = -1;
+      return;
+    }
 
     switch (event.key) {
       case "ArrowUp": {
@@ -222,9 +314,14 @@
         {/if}
       {/each}
       <div class="group flex flex-row" class:animate-pulse={loading || !ready}>
-        <ConsolePrompt prompt={status === "incomplete" ? "..." : ">>>"} />
-        <!-- svelte-ignore a11y-autofocus -->
-        <input {autofocus} bind:this={inputRef} class="w-full bg-transparent outline-none" bind:value={input} type="text" autocapitalize="off" spellcheck="false" autocomplete="off" autocorrect="off" />
+        {#if reverseSearchActive}
+          <ConsolePrompt prompt={`(reverse-i-search)\`${reverseQuery}':`} />
+          <span class="w-full">{reverseMatchIndex >= 0 ? reverseMatches[reverseMatchIndex] : ""}</span>
+        {:else}
+          <ConsolePrompt prompt={status === "incomplete" ? "..." : ">>>"} />
+          <!-- svelte-ignore a11y-autofocus -->
+          <input {autofocus} bind:this={inputRef} class="w-full bg-transparent outline-none" bind:value={input} type="text" autocapitalize="off" spellcheck="false" autocomplete="off" autocorrect="off" />
+        {/if}
       </div>
     </HeadlessConsole>
 
