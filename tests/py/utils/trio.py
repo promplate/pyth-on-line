@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 
 async def run_trio_in_asyncio[T](trio_main: Callable[[], Coroutine[Any, Any, T]]) -> T:
     """
-    Run a trio async function inside an asyncio event loop using _guest mode_
+    Run a trio async function inside an asyncio event loop using *guest mode*
     See: https://trio.readthedocs.io/en/stable/reference-lowlevel.html#using-guest-mode-to-run-trio-on-top-of-other-event-loops
     """
 
