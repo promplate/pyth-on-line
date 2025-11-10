@@ -11,7 +11,7 @@ dependencies = [
     "pre-commit~=4.3.0",
     "pure-eval~=0.2.3",
     "html2text2~=1.1.1",
-    "pytest~=8.4.0",
+    "pytest~=9.0.0",
     "pytest-asyncio~=1.2.0",
     "hmr",
     "numpy~=2.2",
