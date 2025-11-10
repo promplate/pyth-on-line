@@ -71,7 +71,7 @@ reportMissingModuleSource = false
 reportWildcardImportFromLibrary = false
 reportUnnecessaryTypeIgnoreComment = true
 
-[tool.pytest.ini_options]
+[tool.pytest]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "session"
 filterwarnings = ["error"]
