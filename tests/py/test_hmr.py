@@ -316,6 +316,24 @@ def test_cache_across_reloads_traceback():
             assert expected_segment.replace("1", "2") in env.stdout_delta
 
 
+def test_cache_across_reloads_no_warning():
+    with environment() as env:
+        env["main.py"] = """
+            from reactivity.hmr import cache_across_reloads
+
+            @cache_across_reloads
+            def f():
+                from builtins import print
+                print(1)
+
+            f()
+        """
+        with env.hmr("main.py"):
+            assert env.stdout_delta == "1\n"
+            env["main.py"].touch()
+            assert env.stdout_delta == ""
+
+
 def test_module_metadata():
     with environment() as env:
         env["main.py"] = "'abc'; print(__doc__)"
