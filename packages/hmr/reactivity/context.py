@@ -59,6 +59,10 @@ class Context(NamedTuple):
         return partial(Effect, context=self)
 
     @property
+    def derived(self):
+        return partial(Derived, context=self)
+
+    @property
     def async_effect(self):
         return partial(AsyncEffect, context=self)
 
@@ -90,4 +94,4 @@ def new_context():
 default_context = new_context()
 
 from .async_primitives import AsyncDerived, AsyncEffect
-from .primitives import Batch, Effect, Signal
+from .primitives import Batch, Derived, Effect, Signal
