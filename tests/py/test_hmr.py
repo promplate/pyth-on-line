@@ -189,7 +189,7 @@ def test_cache_across_reloads_source(recwarn: pytest.WarningsRecorder):
     assert recwarn.list == []
 
 
-def test_cache_across_reloads_with_other_decorators():
+def test_cache_across_reloads_with_other_decorators(recwarn: pytest.WarningsRecorder):
     with environment() as env:
         env["main.py"] = """
                 from reactivity.hmr.utils import cache_across_reloads
@@ -202,6 +202,11 @@ def test_cache_across_reloads_with_other_decorators():
         load(ReactiveModule(Path("main.py"), ns := {}, "main"))
         assert env.stdout_delta == "3\n3\n1\n"  # inner function being called twice, while the outer one only once
         assert ns["two"] == 2
+
+        warning = recwarn.pop(RuntimeWarning)
+        assert warning.lineno == 4  # f()
+        assert warning.filename == "main.py"
+    assert recwarn.list == []
 
 
 def test_cache_across_reloads_cache_lifespan():
