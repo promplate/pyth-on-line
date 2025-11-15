@@ -7,7 +7,7 @@ from textwrap import dedent
 import pytest
 from reactivity.hmr.core import ReactiveModule
 from reactivity.hmr.utils import load
-from utils import current_lineno, environment
+from utils import environment
 
 
 def test_simple_triggering():
@@ -99,9 +99,8 @@ def test_reload_from_outside():
         module = ReactiveModule(file, {}, "main")
         assert env.stdout_delta == ""
 
-        with pytest.warns(RuntimeWarning) as record, pytest.raises(AttributeError):
+        with pytest.raises(AttributeError):
             module.load()
-        assert record[0].lineno == current_lineno() - 1
 
         load(module)
         assert env.stdout_delta == "123\n"
@@ -174,7 +173,7 @@ def test_cache_across_reloads_with_class():
         assert env.stdout_delta == "1\n"
 
 
-def test_cache_across_reloads_source(recwarn: pytest.WarningsRecorder):
+def test_cache_across_reloads_source():
     with environment() as env:
         env["main.py"] = """
                 from inspect import getsource
@@ -185,8 +184,6 @@ def test_cache_across_reloads_source(recwarn: pytest.WarningsRecorder):
                 assert getsource(f) == getsource(cache_across_reloads(f))
             """
         load(ReactiveModule(Path("main.py"), {}, "main"))
-        assert recwarn.pop(RuntimeWarning).lineno == current_lineno() - 1
-    assert recwarn.list == []
 
 
 def test_cache_across_reloads_with_other_decorators():

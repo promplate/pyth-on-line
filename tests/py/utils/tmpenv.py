@@ -3,6 +3,9 @@ from collections.abc import Callable
 from contextlib import chdir, contextmanager
 from tempfile import TemporaryDirectory
 
+from reactivity.hmr.core import ReactiveModuleFinder
+from reactivity.hmr.fs import _filters
+
 from .fs import FsUtils
 from .io import StringIOWrapper, capture_stdout
 from .mock import MockReloader
@@ -40,9 +43,12 @@ def environment():
     with TemporaryDirectory() as tmpdir, chdir(tmpdir), capture_stdout() as stdout:
         sys.path.append(tmpdir)
         names = {*sys.modules}
+        sys.meta_path.insert(0, finder := ReactiveModuleFinder())
         try:
             yield Environment(stdout)
         finally:
             sys.path.remove(tmpdir)
             for name in {*sys.modules} - names:
                 del sys.modules[name]
+            sys.meta_path.remove(finder)
+            _filters.clear()
