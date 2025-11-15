@@ -360,4 +360,4 @@ class AsyncReloader(BaseReloader):
             await self.start_watching()
 
 
-__version__ = "0.7.5"
+__version__ = "0.7.6"

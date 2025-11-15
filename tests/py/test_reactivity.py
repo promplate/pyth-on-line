@@ -988,3 +988,37 @@ def test_update_vs_set_get_tracking():
         assert e in s.subscribers
         s.set(4)
         assert s.get() == 5  # effect triggered only once because `Batch.flush` has deduplication logic
+
+
+def test_reactivity_loss_strategy():
+    s = Signal(1)
+    trivial_condition = True
+    reactive_condition = Signal(True)
+
+    @Derived
+    def f():
+        if trivial_condition and reactive_condition.get():
+            return s.get()
+
+    assert f() == 1
+
+    f.reactivity_loss_strategy = "restore"
+    trivial_condition = False
+    reactive_condition.set(False)
+    assert f() is None
+    assert f.dependencies  # lost but restored
+    s.set(2)
+    trivial_condition = True
+    assert f() is None
+    reactive_condition.set(True)
+    assert f() == 2
+
+    f.reactivity_loss_strategy = "ignore"
+    trivial_condition = False
+    reactive_condition.set(False)
+    assert f() is None
+    assert not f.dependencies  # not restored
+    s.set(3)
+    trivial_condition = True
+    reactive_condition.set(True)
+    assert f() is None
