@@ -1,5 +1,5 @@
 from collections.abc import Callable
-from typing import Any, Self, overload
+from typing import Any, Literal, Self, overload
 from weakref import WeakSet
 
 from .context import Context, default_context
@@ -74,6 +74,18 @@ class BaseComputation[T]:
 
     def __call__(self) -> T:
         return self.trigger()
+
+    reactivity_loss_strategy: Literal["ignore", "warn", "restore"] = "warn"
+    """
+    A computation without dependencies usually indicates a code mistake.
+    ---
+    By default, a warning is issued when a computation completes without collecting any dependencies.
+    This often happens when signal access is behind non-reactive conditions or caching.
+    You can set this to `"restore"` to automatically preserve previous dependencies as a **temporary workaround**.
+    The correct practice is to replace those conditions with reactive ones (e.g. `Signal`) or use `Derived` for caching.
+    * * *
+    Consider `"ignore"` only when extending this library and manually managing dependencies. Use with caution.
+    """
 
 
 class Signal[T](Subscribable):

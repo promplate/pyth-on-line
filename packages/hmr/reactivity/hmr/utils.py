@@ -71,6 +71,7 @@ def cache_across_reloads[T](func: Callable[[], T]) -> Callable[[], T]:
         return functions[key]()
 
     memo = Derived(wrapper, context=HMR_CONTEXT)
+    memo.reactivity_loss_strategy = "ignore"  # Manually invalidated on source change, so reactivity loss is safe to ignore
     memos[key] = memo, source
 
     return _return(wraps(func)(memo))

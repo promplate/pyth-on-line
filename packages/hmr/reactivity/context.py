@@ -34,14 +34,18 @@ class Context(NamedTuple):
                 computation.dependencies.update(old_dependencies)
             raise
         else:
-            if not computation.dependencies:
+            if not computation.dependencies and (strategy := computation.reactivity_loss_strategy) != "ignore":
+                if strategy == "restore":
+                    for dep in old_dependencies:
+                        dep.subscribers.add(computation)
+                    computation.dependencies.update(old_dependencies)
+                    return
                 from pathlib import Path
                 from sysconfig import get_path
                 from warnings import warn
 
-                # in the future this may be a configurable behavior (e.g., restoring the previous dependencies)
                 msg = "lost all its dependencies" if old_dependencies else "has no dependencies"
-                warn(f"Computation {computation} {msg} and will never be auto-triggered.", RuntimeWarning, skip_file_prefixes=(str(Path(__file__).parent), str(Path(get_path("stdlib")).resolve())))
+                warn(f"{computation} {msg} and will never be auto-triggered.", RuntimeWarning, skip_file_prefixes=(str(Path(__file__).parent), str(Path(get_path("stdlib")).resolve())))
         finally:
             last = self.current_computations.pop()
             assert last is computation  # sanity check
