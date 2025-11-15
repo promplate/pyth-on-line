@@ -35,7 +35,7 @@ class Context(NamedTuple):
             raise
         else:
             if not computation.dependencies and (strategy := computation.reactivity_loss_strategy) != "ignore":
-                if strategy == "restore":
+                if strategy == "restore" and old_dependencies:
                     for dep in old_dependencies:
                         dep.subscribers.add(computation)
                     computation.dependencies.update(old_dependencies)
