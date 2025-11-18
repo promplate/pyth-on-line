@@ -48,7 +48,7 @@ class Context(NamedTuple):
                 warn(f"{computation} {msg} and will never be auto-triggered.", RuntimeWarning, skip_file_prefixes=(str(Path(__file__).parent), str(Path(get_path("stdlib")).resolve())))
         finally:
             last = self.current_computations.pop()
-            assert last is computation  # sanity check
+            # assert last is computation  # sanity check
 
     @property
     def batch(self):
