@@ -16,7 +16,7 @@
     "startCommand": "cp package.json p && jq 'del(.devDependencies)' p > package.json && pnpm i && mv p package.json && pnpm dev"
   },
   "dependencies": {
-    "@ethercorps/sveltekit-og": "^3.0.0",
+    "@ethercorps/sveltekit-og": "^4.2.0",
     "@fontsource-variable/fira-code": "^5.2.7",
     "@fontsource-variable/inter": "^5.2.8",
     "@fontsource-variable/jetbrains-mono": "^5.2.8",
