@@ -68,24 +68,44 @@ sw.addEventListener("activate", (event) => {
   event.waitUntil(deleteOldCaches());
 });
 
+async function fetchWithProxyWithBody(request: Request) {
+  if (request.body) {
+    let body: BodyInit;
+    let _;
+    if (request.duplex === "half")
+      [_, body] = request.body.tee();
+    else
+      body = new Uint8Array(await request.arrayBuffer());
+
+    const { url, method, headers, keepalive, signal } = request;
+
+    try {
+      return await fetch(request);
+    }
+    catch {
+      return await fetch(`/proxy?url=${encodeURIComponent(url)}`, { method, headers, keepalive, signal, body: new Uint8Array(await new Response(body).arrayBuffer()) });
+    }
+  }
+  else {
+    return fetchWithProxy(request);
+  }
+}
+
 async function fetchWithProxy(request: Request) {
   try {
     return await fetch(request);
   }
-  catch (e) {
-    const url = new URL(request.url);
-    if ([location.hostname, "localhost", "127.0.0.1", "::1"].includes(url.hostname))
-      throw e;
+  catch {
     return await fetch(`/proxy?url=${encodeURIComponent(request.url)}`, request);
   }
-}
-
-sw.addEventListener("fetch", (event) => {
+}sw.addEventListener("fetch", (event) => {
   if (!event.request.url.startsWith("http") || event.request.keepalive)
     return;
 
-  if (event.request.method !== "GET") {
-    return event.respondWith(fetchWithProxy(event.request));
+  const useProxy = !([location.hostname, "localhost", "127.0.0.1", "::1"].includes(new URL(event.request.url).hostname));
+
+  if (!["GET", "HEAD"].includes(event.request.method)) {
+    return useProxy ? event.respondWith(fetchWithProxyWithBody(event.request)) : undefined;
   }
 
   async function respond() {
@@ -104,7 +124,7 @@ sw.addEventListener("fetch", (event) => {
     // for everything else, try the network first, but
     // fall back to the cache if we're offline
     try {
-      const response = await fetchWithProxy(event.request.clone()); // Clone the request before first attempt to avoid "Body is already used" error
+      const response = await (useProxy ? fetchWithProxy(event.request) : fetch(event.request));
 
       // if we're offline, fetch can return a value that is not a Response
       // instead of throwing - and we can't pass this non-Response to respondWith
