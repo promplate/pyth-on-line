@@ -81,7 +81,7 @@ async function fetchWithProxy(request: Request) {
 }
 
 sw.addEventListener("fetch", (event) => {
-  if (!event.request.url.startsWith("http"))
+  if (!event.request.url.startsWith("http") || event.request.keepalive)
     return;
 
   if (event.request.method !== "GET") {
