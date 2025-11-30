@@ -1,4 +1,6 @@
 from collections.abc import Callable
+from functools import partial
+from inspect import isclass
 from pathlib import Path
 from runpy import run_path
 from typing import Any
@@ -28,12 +30,13 @@ def find_test_functions(root_dir: Path):
         for name, obj in ns.items():
             if callable(obj) and name.startswith("test"):
                 test_functions.append(obj)
-            elif isinstance(obj, type) and name.startswith("Test"):
+            elif isclass(obj) and name.startswith("Test"):
                 # For test classes, traverse their methods
                 for method_name in dir(obj):
                     if method_name.startswith("test"):
                         method = getattr(obj, method_name)
                         if callable(method):
-                            test_functions.append(method)
+                            # Create a callable that instantiates the class and calls the method
+                            test_functions.append(partial(lambda cls, m: m(cls()), obj, method))
 
     return test_functions
