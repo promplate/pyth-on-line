@@ -19,8 +19,7 @@ def run_test(func: Callable[..., Any], fixtures: dict[str, Callable[[], Any]]):
                     if hasattr(fixture, "__enter__") and hasattr(fixture, "__exit__"):
                         kwargs[param.name] = stack.enter_context(fixture)
             ret = func(**kwargs)
-            if iscoroutine(ret):
-                return run(ret)
+            return run(ret) if iscoroutine(ret) else ret
 
     except Exception as e:
         marks: list[Mark] = getattr(func, "pytestmark", [])
