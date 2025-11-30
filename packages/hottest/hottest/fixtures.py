@@ -34,10 +34,10 @@ def find_fixtures(path: Path) -> dict[str, Callable[[], Any]]:
 
     for file_path in *path.rglob("conftest.py"), *path.rglob("test_*.py"), *path.rglob("*_test.py"):
         # Skip venv and site-packages directories
-        if ".venv" in str(file_path) or "site-packages" in str(file_path):
+        if ".venv" in file_path.parts or "site-packages" in file_path.parts:
             continue
         rel_path = file_path.relative_to(path)
-        module_name = str(rel_path).replace("/", ".").replace("\\", ".").rstrip(".py")
+        module_name = rel_path.with_suffix("").as_posix().replace("/", ".")
 
         ns = run_path(str(file_path), None, module_name)
 
