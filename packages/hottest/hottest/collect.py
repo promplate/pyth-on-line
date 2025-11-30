@@ -1,8 +1,8 @@
 from collections.abc import Callable
 from functools import partial
+from importlib import import_module
 from inspect import isclass
 from pathlib import Path
-from runpy import run_path
 from typing import Any
 
 
@@ -24,7 +24,7 @@ def find_test_functions(root_dir: Path):
         module_name = file.relative_to(root_dir).with_suffix("").as_posix().replace("/", ".")
 
         # Execute the test file and get its globals namespace
-        ns = run_path(str(file), None, module_name)
+        ns = import_module(module_name).__dict__
 
         # Traverse the namespace dict produced by run_path
         for name, obj in ns.items():
