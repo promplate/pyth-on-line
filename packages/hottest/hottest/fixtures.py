@@ -1,0 +1,51 @@
+from collections.abc import Callable
+from contextlib import contextmanager
+from inspect import isgeneratorfunction, unwrap
+from pathlib import Path
+from runpy import run_path
+from typing import Any
+
+from pytest import MonkeyPatch, WarningsRecorder
+
+
+@contextmanager
+def recwarn():
+    from warnings import simplefilter
+
+    with WarningsRecorder() as wrec:
+        simplefilter("default")
+        yield wrec
+
+
+@contextmanager
+def monkeypatch():
+    mpatch = MonkeyPatch()
+    try:
+        yield mpatch
+    finally:
+        mpatch.undo()
+
+
+builtin_fixtures = {"monkeypatch": monkeypatch, "recwarn": recwarn}
+
+
+def find_fixtures(path: Path) -> dict[str, Callable[[], Any]]:
+    fixtures: dict[str, Callable[[], Any]] = {}
+
+    for file_path in *path.rglob("conftest.py"), *path.rglob("test_*.py"), *path.rglob("*_test.py"):
+        # Skip venv and site-packages directories
+        if ".venv" in str(file_path) or "site-packages" in str(file_path):
+            continue
+        rel_path = file_path.relative_to(path)
+        module_name = str(rel_path).replace("/", ".").replace("\\", ".").rstrip(".py")
+
+        ns = run_path(str(file_path), None, module_name)
+
+        for name, obj in ns.items():
+            if hasattr(obj, "_fixture_function_marker"):  # @pytest.fixture marker
+                function = unwrap(obj)
+                if isgeneratorfunction(function):
+                    function = contextmanager(function)
+                fixtures[name] = function
+
+    return builtin_fixtures | fixtures
