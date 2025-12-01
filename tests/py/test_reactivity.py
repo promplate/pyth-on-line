@@ -781,18 +781,15 @@ def test_memo_as_hard_puller():
 
 
 def test_no_notify_on_first_set():
-    get_s, set_s = create_signal(0)
+    s = Signal(0)
 
-    @Derived
-    def f():
-        return [get_s()]
+    d1 = Derived(lambda: s.get())
+    d2 = Derived(lambda: s.get(), check_equality=False)
 
-    with capture_stdout() as stdout, effect(lambda: print(f())):
-        assert stdout == "[0]\n"
-        set_s(1)
-        assert stdout == "[0]\n[1]\n"
-        set_s(2)
-        assert stdout == "[0]\n[1]\n[2]\n"
+    with capture_stdout() as stdout, Effect(lambda: print(d1(), d2())):
+        assert stdout.delta == "0 0\n"
+        s.set(1)
+        assert stdout.delta == "1 1\n"
 
 
 def test_equality_check_among_arrays():
