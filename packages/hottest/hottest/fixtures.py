@@ -1,8 +1,8 @@
 from collections.abc import Callable
 from contextlib import contextmanager
+from importlib import import_module
 from inspect import isgeneratorfunction, unwrap
 from pathlib import Path
-from runpy import run_path
 from typing import Any
 
 from pytest import MonkeyPatch, WarningsRecorder
@@ -39,7 +39,7 @@ def find_fixtures(path: Path) -> dict[str, Callable[[], Any]]:
         rel_path = file_path.relative_to(path)
         module_name = rel_path.with_suffix("").as_posix().replace("/", ".")
 
-        ns = run_path(str(file_path), None, module_name)
+        ns = import_module(module_name).__dict__
 
         for name, obj in ns.items():
             if hasattr(obj, "_fixture_function_marker"):  # @pytest.fixture marker
