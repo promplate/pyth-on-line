@@ -11,7 +11,11 @@ from utils import Clock, capture_stdout, create_trio_task_factory, run_trio_in_a
 def trio(func):
     @wraps(func)
     async def wrapper():
-        return await run_trio_in_asyncio(func)
+        try:
+            return await run_trio_in_asyncio(func)
+        except ExceptionGroup as e:
+            if len(e.exceptions) == 1:
+                raise e.exceptions[0] from None
 
     return wrapper
 
