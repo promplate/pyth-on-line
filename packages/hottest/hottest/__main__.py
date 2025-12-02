@@ -12,12 +12,13 @@ DIM = "\033[2m"
 RESET = "\033[0m"
 
 
+rootdir = find_test_root(Path.cwd())
+
+if str(rootdir) not in sys.path:
+    sys.path.insert(0, str(rootdir))
+
+
 def _main():
-    rootdir = find_test_root(Path.cwd())
-
-    if str(rootdir) not in sys.path:
-        sys.path.insert(0, str(rootdir))
-
     fixtures = find_fixtures(rootdir)
 
     for func in find_test_functions(rootdir):
