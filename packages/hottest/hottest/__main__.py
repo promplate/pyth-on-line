@@ -1,10 +1,13 @@
 import sys
+from collections.abc import Callable
 from inspect import getsourcefile
 from pathlib import Path
-from typing import override
+from typing import Any, override
 
 from . import find_fixtures, find_test_functions, find_test_root, run_test
+from ._vendored_reactivity import derived
 from ._vendored_reactivity.hmr.core import HMR_CONTEXT, ReactiveModule, SyncReloader
+from ._vendored_reactivity.hmr.hooks import pre_reload
 
 RED = "\033[31m"
 GREEN = "\033[32m"
@@ -18,12 +21,15 @@ if str(rootdir) not in sys.path:
     sys.path.insert(0, str(rootdir))
 
 
-def _main():
+def _collect_tests():
     fixtures = find_fixtures(rootdir)
+
+    tests: list[Callable[[], Any]] = []
 
     for func in find_test_functions(rootdir):
 
-        @HMR_CONTEXT.effect
+        @tests.append
+        @derived(check_equality=False, context=HMR_CONTEXT)
         def _(func=func):
             file = getsourcefile(func)
             assert file is not None
@@ -39,15 +45,22 @@ def _main():
             else:
                 print(f"{GREEN}PASS{RESET}")
 
+    return tests
+
 
 class Reloader(SyncReloader):
     def __init__(self):
         super().__init__("")
-        _main()
+        self.tests = _collect_tests()
 
     @override
     def run_entry_file(self):
-        pass
+        @pre_reload
+        def clear_terminal():
+            print("\033c", end="", flush=True)
+
+        for test in self.tests:
+            test()
 
 
 def main():
