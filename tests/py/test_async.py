@@ -268,3 +268,32 @@ async def test_async_derived_track_behavior():
     s.set(2)
 
     assert await h() == 2
+
+
+@trio
+async def test_no_notify_on_first_set():
+    from trio import open_nursery
+    from trio.testing import wait_all_tasks_blocked
+
+    async with open_nursery() as nursery:
+        factory = create_trio_task_factory(nursery)
+
+        s = Signal(0)
+
+        @async_derived(task_factory=factory)
+        async def d1():
+            return s.get()
+
+        @async_derived(task_factory=factory, check_equality=False)
+        async def d2():
+            return s.get()
+
+        async def print_values():
+            print(await d1(), await d2())
+
+        with capture_stdout() as stdout, AsyncEffect(print_values, task_factory=factory):
+            await wait_all_tasks_blocked()
+            assert stdout.delta == "0 0\n"
+            s.set(1)
+            await wait_all_tasks_blocked()
+            assert stdout.delta == "1 1\n"
