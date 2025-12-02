@@ -95,14 +95,14 @@ class AsyncDerived[T](BaseDerived[Awaitable[T]]):
         finally:
             if self._call_task is not None:
                 self.dirty = False  # If invalidated before this run completes, stay dirty.
-        if self._check_equality:
-            if _equal(value, self._value):
-                return
-            if self._value is self.UNSET:  # do not notify on first set
-                self._value = value
-                return
-        self._value = value
-        self.notify()
+        if self._check_equality and _equal(value, self._value):
+            return
+        if self._value is self.UNSET:
+            self._value = value
+            # do not notify on first set
+        else:
+            self._value = value
+            self.notify()
 
     async def __sync_dirty_deps(self):
         try:

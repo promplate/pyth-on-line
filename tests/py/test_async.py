@@ -1,7 +1,7 @@
 from asyncio import TaskGroup, gather, sleep, timeout
 from functools import wraps
 
-from pytest import raises
+from pytest import mark, raises
 from reactivity import async_derived
 from reactivity.async_primitives import AsyncDerived, AsyncEffect
 from reactivity.primitives import Derived, Signal
@@ -11,7 +11,11 @@ from utils import Clock, capture_stdout, create_trio_task_factory, run_trio_in_a
 def trio(func):
     @wraps(func)
     async def wrapper():
-        return await run_trio_in_asyncio(func)
+        try:
+            return await run_trio_in_asyncio(func)
+        except ExceptionGroup as e:
+            if len(e.exceptions) == 1:
+                raise e.exceptions[0] from None
 
     return wrapper
 
@@ -268,3 +272,33 @@ async def test_async_derived_track_behavior():
     s.set(2)
 
     assert await h() == 2
+
+
+@mark.xfail(reason="Not working correctly due to batch logic issues.", raises=AssertionError, strict=True)
+@trio
+async def test_no_notify_on_first_set():
+    from trio import open_nursery
+    from trio.testing import wait_all_tasks_blocked
+
+    async with open_nursery() as nursery:
+        factory = create_trio_task_factory(nursery)
+
+        s = Signal(0)
+
+        @async_derived(task_factory=factory)
+        async def d1():
+            return s.get()
+
+        @async_derived(task_factory=factory, check_equality=False)
+        async def d2():
+            return s.get()
+
+        async def print_values():
+            print(await d1(), await d2())
+
+        with capture_stdout() as stdout, AsyncEffect(print_values, task_factory=factory):
+            await wait_all_tasks_blocked()
+            assert stdout.delta == "0 0\n"
+            s.set(1)
+            await wait_all_tasks_blocked()
+            assert stdout.delta == "1 1\n"

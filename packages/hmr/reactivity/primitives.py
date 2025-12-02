@@ -274,14 +274,14 @@ class Derived[T](BaseDerived[T]):
                 value = self.fn()
             finally:
                 self.dirty = False
-            if self._check_equality:
-                if _equal(value, self._value):
-                    return
-                if self._value is self.UNSET:  # do not notify on first set
-                    self._value = value
-                    return
-            self._value = value
-            self.notify()
+            if self._check_equality and _equal(value, self._value):
+                return
+            if self._value is self.UNSET:
+                self._value = value
+                # do not notify on first set
+            else:
+                self._value = value
+                self.notify()
 
     def __call__(self):
         self.track()

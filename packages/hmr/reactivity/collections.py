@@ -1,7 +1,6 @@
 from collections import defaultdict
 from collections.abc import Callable, Iterable, Mapping, MutableMapping, MutableSequence, MutableSet, Sequence, Set
 from functools import update_wrapper
-from inspect import isclass, ismethod
 from typing import Any, overload
 
 from .context import Context, default_context
@@ -340,6 +339,8 @@ def reactive_object_proxy[T](initial: T, check_equality=True, *, context: Contex
 
     cls = initial.__class__
     meta: type[type[T]] = type(cls)
+
+    from inspect import isclass, ismethod
 
     class Proxy(cls, metaclass=meta):
         def __getattribute__(self, key):

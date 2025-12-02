@@ -1,9 +1,8 @@
 from collections.abc import MutableMapping
 from typing import Any
 
-from reactivity.context import Context
-
 from ..collections import ReactiveMappingProxy
+from ..context import Context
 
 
 class Proxy[T: MutableMapping](ReactiveMappingProxy[str, Any]):
