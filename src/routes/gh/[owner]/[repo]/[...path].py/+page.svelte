@@ -6,8 +6,8 @@
   import "@fontsource-variable/jetbrains-mono/wght.css";
 
   import Dependency from "./Dependency.svelte";
+  import ScriptBlock from "./ScriptBlock.svelte";
   import { page } from "$app/stores";
-  import CodeBlock from "$lib/components/CodeBlock.svelte";
   import UseCopy from "$lib/components/console/UseCopy.svelte";
   import Router from "$lib/components/markdown/Router.svelte";
   import WithMarkdown from "$lib/components/reusable/WithMarkdown.svelte";
@@ -256,7 +256,7 @@
         </div>
       </div>
       <div class="text-xs [&_pre]:p-4 [&_code_*]:!font-jb">
-        <CodeBlock code={payload.content} lang="python" />
+        <ScriptBlock code={payload.content} />
       </div>
     </section>
 
