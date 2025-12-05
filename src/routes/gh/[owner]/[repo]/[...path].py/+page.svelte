@@ -234,7 +234,7 @@
       </div>
       <UseCopy text={runCommand} let:handleClick>
         <button class="max-w-full w-fit row items-center gap-2 rounded-lg bg-white/4 px-2.5 py-1.5 text-sm text-neutral-2 ring-1 ring-white/7 hover:bg-white/6" on:click={handleClick}>
-          <div class="i-si-copy-alt-line size-4" />
+          <div class="i-si-copy-alt-line size-3.5 shrink-0" />
           <code class="max-w-full overflow-hidden text-ellipsis ws-nowrap text-xs text-neutral-3 font-jb">{runCommand}</code>
         </button>
       </UseCopy>
