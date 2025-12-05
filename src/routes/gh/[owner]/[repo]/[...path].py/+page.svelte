@@ -10,6 +10,7 @@
   import UseCopy from "$lib/components/console/UseCopy.svelte";
   import Router from "$lib/components/markdown/Router.svelte";
   import WithMarkdown from "$lib/components/reusable/WithMarkdown.svelte";
+  import { fromNow } from "$lib/date";
   import { updateMetadata } from "$lib/seo";
   import { Avatar } from "bits-ui";
   import { fly } from "svelte/transition";
@@ -77,9 +78,37 @@
           </WithMarkdown>
         {/if}
         <div class="mt-1 row flex-wrap gap-3 text-xs text-neutral-4">
-          <span class="row items-center gap-1"><div class="i-mdi-star size-3.5 text-amber-4" /> {payload.repository.stargazers}</span>
-          <span class="row items-center gap-1"><div class="i-mdi-source-fork size-3.5" /> {payload.repository.forks}</span>
-          <span class="row items-center gap-1"><div class="i-mdi-eye-outline size-3.5" /> {payload.repository.watchers}</span>
+          <a href="{repoLink}/stargazers" target="_blank" rel="noreferrer" class="row items-center gap-1 hover:text-white"><div class="i-mdi-star size-3.5 text-amber-4" /> {payload.repository.stargazers}</a>
+          <a href="{repoLink}/forks" target="_blank" rel="noreferrer" class="row items-center gap-1 hover:text-white"><div class="i-mdi-source-fork size-3.5" /> {payload.repository.forks}</a>
+          <a href="{repoLink}/watchers" target="_blank" rel="noreferrer" class="row items-center gap-1 hover:text-white"><div class="i-mdi-eye-outline size-3.5" /> {payload.repository.watchers}</a>
+        </div>
+        <div class="mt-2 col gap-1.5 text-xs text-neutral-5">
+          <div class="row justify-between">
+            <span>Created</span>
+            <span class="text-neutral-4">{fromNow(payload.repository.createdAt)}</span>
+          </div>
+          <div class="row justify-between">
+            <span>Last push</span>
+            <a href="{repoLink}/commits" target="_blank" rel="noreferrer" class="text-neutral-4 hover:text-white">{fromNow(payload.repository.pushedAt)}</a>
+          </div>
+          {#if payload.repository.primaryLanguage}
+            <div class="row justify-between">
+              <span>Language</span>
+              <span class="flex items-center gap-1.5"><span class="block size-2 rounded-1/2" style="background-color: {payload.repository.primaryLanguage.color}" />{payload.repository.primaryLanguage.name}</span>
+            </div>
+          {/if}
+          {#if payload.repository.licenseInfo}
+            <div class="row justify-between">
+              <span>License</span>
+              <a href="{repoLink}/blob/{payload.ref}/LICENSE" target="_blank" rel="noreferrer" class="text-neutral-4 hover:text-white">{payload.repository.licenseInfo.name}</a>
+            </div>
+          {/if}
+          {#if payload.repository.isArchived}
+            <div class="row items-center gap-1.5 rounded-md bg-amber-4/10 px-2 py-1 text-amber-3 ring-1 ring-amber-4/20">
+              <div class="i-mdi-archive-outline size-3" />
+              <span>Archived</span>
+            </div>
+          {/if}
         </div>
       </section>
 
@@ -110,6 +139,42 @@
           <p class="text-xs text-neutral-6">No dependencies detected.</p>
         {/if}
       </section>
+
+      {#if payload.repository.openIssuesCount > 0 || payload.repository.recentIssues.length > 0}
+        <section class="col gap-2">
+          <div class="row items-center justify-between">
+            <span class="text-[0.68rem] text-neutral-5 tracking-wider uppercase">Latest Issues</span>
+            <span class="text-xs text-neutral-5">{payload.repository.openIssuesCount} open</span>
+          </div>
+          {#if payload.repository.recentIssues.length > 0}
+            <ul class="col gap-1.5">
+              {#each payload.repository.recentIssues as issue}
+                <li>
+                  <a href={issue.url} target="_blank" rel="noreferrer" class="block truncate rounded-md px-2 py-1.5 text-xs text-neutral-4 ring-1 ring-white/5 hover:(bg-white/4 text-white)">
+                    <span class="text-neutral-6">#{issue.number}</span>
+                    <span class="font-medium">{issue.title}</span>
+                  </a>
+                </li>
+              {/each}
+            </ul>
+          {/if}
+        </section>
+      {/if}
+
+      {#if payload.repository.latestRelease}
+        <section class="col gap-2">
+          <div class="row items-center justify-between">
+            <span class="text-[0.68rem] text-neutral-5 tracking-wider uppercase">Latest release</span>
+            <span class="text-xs text-neutral-5 font-mono">{payload.repository.latestRelease.tagName}</span>
+          </div>
+          <a href="{repoLink}/releases/tag/{payload.repository.latestRelease.tagName}" target="_blank" rel="noreferrer" class="block rounded-md px-2 py-1.5 text-xs text-neutral-4 ring-1 ring-white/5 hover:(bg-white/4 text-white)">
+            {#if payload.repository.latestRelease.name}
+              <span class="font-medium">{payload.repository.latestRelease.name}</span>
+            {/if}
+            <div class="mt-1 text-[0.65rem] text-neutral-6">{fromNow(payload.repository.latestRelease.publishedAt)}</div>
+          </a>
+        </section>
+      {/if}
 
       <section class="col gap-2">
         <span class="text-[0.68rem] text-neutral-5 tracking-wider uppercase">pyproject.toml</span>
@@ -181,12 +246,15 @@
           <h2 class="text-sm text-neutral-2 font-semibold">Served content</h2>
           <p class="text-xs text-neutral-5">Includes injected PEP 723 header when applicable.</p>
         </div>
-        <UseCopy text={payload.content} let:handleClick>
-          <button class="row items-center gap-1.5 rounded-md bg-white/7 px-2.5 py-1.5 text-xs text-neutral-3 ring-1 ring-white/10 hover:bg-white/10" on:click={handleClick}>
-            <div class="i-si-copy-alt-line size-3.5" />
-            Copy
-          </button>
-        </UseCopy>
+        <div class="row items-center gap-3">
+          <span class="text-xs text-neutral-5">Last changed {fromNow(payload.repository.fileLastUpdatedAt)}</span>
+          <UseCopy text={payload.content} let:handleClick>
+            <button class="row items-center gap-1.5 rounded-md bg-white/7 px-2.5 py-1.5 text-xs text-neutral-3 ring-1 ring-white/10 hover:bg-white/10" on:click={handleClick}>
+              <div class="i-si-copy-alt-line size-3.5" />
+              Copy
+            </button>
+          </UseCopy>
+        </div>
       </div>
       <div class="text-sm [&_pre]:p-4 [&_code_*]:!font-jb">
         <CodeBlock code={payload.content} lang="python" />

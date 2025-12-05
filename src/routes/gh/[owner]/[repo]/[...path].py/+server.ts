@@ -10,13 +10,27 @@ import { gql } from "$lib/github/client";
 interface RepoData {
   repository?: {
     target?: { text?: string };
+    targetHistory?: { target?: { history?: { nodes?: Array<{ committedDate?: string }> } } };
     stargazerCount?: number;
     forkCount?: number;
     watchers?: { totalCount?: number };
     description?: string | null;
     defaultBranchRef?: { name?: string } | null;
     owner?: { login?: string; avatarUrl?: string };
+    isArchived?: boolean;
+    primaryLanguage?: { name?: string; color?: string } | null;
+    licenseInfo?: { name?: string; spdxId?: string } | null;
+    createdAt?: string;
+    pushedAt?: string;
+    issues?: {
+      totalCount?: number;
+      nodes?: Array<{ number?: number; title?: string; url?: string; createdAt?: string }>;
+    };
+    releases?: {
+      nodes?: Array<{ tagName?: string; name?: string | null; publishedAt?: string }>;
+    };
     [key: `pyproject${number}`]: { text?: string } | undefined;
+    [key: `pyprojectHistory${number}`]: { target?: { history?: { nodes?: Array<{ committedDate?: string }> } } } | undefined;
   };
 }
 
@@ -79,6 +93,24 @@ export const GET: RequestHandler = async ({ params, request, cookies }) => {
       used: p === usedPath && !pep, // used if it's the first one and no PEP 723
     }));
 
+  // Calculate file last updated time (most recent of py file and used pyproject files)
+  const timestamps: string[] = [];
+  const targetTimestamp = repository.targetHistory?.target?.history?.nodes?.[0]?.committedDate;
+  if (targetTimestamp)
+    timestamps.push(targetTimestamp);
+
+  for (let i = 0; i < pyprojectPaths.length; i++) {
+    const histKey = `pyprojectHistory${i}` as const;
+    const hist = repository[histKey];
+    const ts = hist?.target?.history?.nodes?.[0]?.committedDate;
+    if (ts)
+      timestamps.push(ts);
+  }
+
+  const fileLastUpdatedAt = timestamps.length > 0
+    ? timestamps.reduce((latest, curr) => (new Date(curr) > new Date(latest) ? curr : latest))
+    : repository.pushedAt ?? "";
+
   const payload: Payload = {
     owner,
     repo,
@@ -97,6 +129,30 @@ export const GET: RequestHandler = async ({ params, request, cookies }) => {
       defaultBranch: repository.defaultBranchRef?.name ?? null,
       ownerAvatarUrl: repository.owner?.avatarUrl ?? "",
       ownerLogin: repository.owner?.login ?? owner,
+      isArchived: repository.isArchived ?? false,
+      primaryLanguage: repository.primaryLanguage
+        ? { name: repository.primaryLanguage.name ?? "", color: repository.primaryLanguage.color ?? "" }
+        : null,
+      licenseInfo: repository.licenseInfo
+        ? { name: repository.licenseInfo.name ?? "", spdxId: repository.licenseInfo.spdxId ?? "" }
+        : null,
+      openIssuesCount: repository.issues?.totalCount ?? 0,
+      recentIssues: (repository.issues?.nodes ?? []).map(issue => ({
+        number: issue.number ?? 0,
+        title: issue.title ?? "",
+        url: issue.url ?? "",
+        createdAt: issue.createdAt ?? "",
+      })),
+      latestRelease: repository.releases?.nodes?.[0]
+        ? {
+            tagName: repository.releases.nodes[0].tagName ?? "",
+            name: repository.releases.nodes[0].name ?? null,
+            publishedAt: repository.releases.nodes[0].publishedAt ?? "",
+          }
+        : null,
+      createdAt: repository.createdAt ?? "",
+      pushedAt: repository.pushedAt ?? "",
+      fileLastUpdatedAt,
     },
     content,
     original: targetFileText,

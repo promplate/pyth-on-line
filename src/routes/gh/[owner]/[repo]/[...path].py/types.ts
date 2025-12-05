@@ -3,6 +3,19 @@ export interface DependencySource {
   path: string | null;
 }
 
+export interface GitHubIssue {
+  number: number;
+  title: string;
+  url: string;
+  createdAt: string;
+}
+
+export interface GitHubRelease {
+  tagName: string;
+  name: string | null;
+  publishedAt: string;
+}
+
 export interface RepoInfo {
   stargazers: number;
   forks: number;
@@ -11,6 +24,15 @@ export interface RepoInfo {
   defaultBranch: string | null;
   ownerAvatarUrl: string;
   ownerLogin: string;
+  isArchived: boolean;
+  primaryLanguage: { name: string; color: string } | null;
+  licenseInfo: { name: string; spdxId: string } | null;
+  openIssuesCount: number;
+  recentIssues: GitHubIssue[];
+  latestRelease: GitHubRelease | null;
+  createdAt: string;
+  pushedAt: string;
+  fileLastUpdatedAt: string;
 }
 
 export interface Payload {
