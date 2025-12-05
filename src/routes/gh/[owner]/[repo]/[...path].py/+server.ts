@@ -4,7 +4,7 @@ import type { DependencySource, Payload } from "./types";
 import { findDependencies, parsePep723, prependPep723 } from "./pep723";
 import { buildQuery, collectDirectories } from "./query";
 import { error, json, text } from "@sveltejs/kit";
-import { GITHUB_TOKEN } from "$env/static/private";
+import { env } from "$env/dynamic/private";
 import { gql } from "$lib/github/client";
 
 interface RepoData {
@@ -19,7 +19,7 @@ interface RepoData {
   };
 }
 
-export const GET: RequestHandler = async ({ params, request }) => {
+export const GET: RequestHandler = async ({ params, request, cookies }) => {
   const { owner, repo: repoWithRef, path } = params;
   if (!owner || !repoWithRef || !path) {
     throw error(400, "Expected /gh/{owner}/{repo}[@ref]/.../{file}.py");
@@ -32,15 +32,13 @@ export const GET: RequestHandler = async ({ params, request }) => {
 
   const wantsJson = (request.headers.get("accept") ?? "").includes("application/json");
 
-  if (!GITHUB_TOKEN)
-    throw error(500, "GITHUB_TOKEN is not configured");
-
   const pyprojectPaths = collectDirectories(filePath).map(dir => (dir ? `${dir}/pyproject.toml` : "pyproject.toml"));
   const query = buildQuery({ owner, repo, ref, filePath, pyprojectPaths });
 
   let data: RepoData;
   try {
-    data = await gql(query, GITHUB_TOKEN);
+    const token = cookies.get("access_token") || env.GITHUB_TOKEN;
+    data = await gql(query, token);
   }
   catch (err) {
     console.error("GitHub GraphQL failed", err);
