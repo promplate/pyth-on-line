@@ -11,6 +11,7 @@
   import Router from "$lib/components/markdown/Router.svelte";
   import WithMarkdown from "$lib/components/reusable/WithMarkdown.svelte";
   import { updateMetadata } from "$lib/seo";
+  import { Avatar } from "bits-ui";
   import { fly } from "svelte/transition";
 
   export let data: PageData;
@@ -111,27 +112,38 @@
       </section>
 
       <section class="col gap-2">
-        <span class="text-[0.68rem] text-neutral-5 tracking-wider uppercase">pyproject.toml search</span>
-        <ul class="col gap-1">
-          {#each pyprojectLinks as item}
-            <li class="row items-center justify-between gap-2 rounded-md bg-black/30 px-2 py-1.5 text-xs ring-1 ring-white/4">
-              <a href={item.href} target="_blank" rel="noreferrer" class="truncate text-neutral-4 font-mono hover:text-white">{item.path}</a>
-              <span class="shrink-0 {item.exists ? "text-emerald-4" : "text-neutral-6"}">{item.exists ? "found" : "missing"}</span>
-            </li>
-          {/each}
-        </ul>
+        <span class="text-[0.68rem] text-neutral-5 tracking-wider uppercase">pyproject.toml</span>
+        {#if pyprojectLinks.length > 0}
+          <ul class="col gap-1">
+            {#each pyprojectLinks as item}
+              {#if item.exists}
+                <li class="row items-center justify-between gap-2 rounded-md px-2 py-1.5 text-xs ring-1 {item.used ? "bg-teal-9/25 ring-teal-5/40" : "bg-black/30 ring-white/4"}">
+                  <a href={item.href} target="_blank" rel="noreferrer" class="truncate font-mono {item.used ? "text-teal-3 hover:text-teal-2" : "text-neutral-4 hover:text-white"}">{item.path}</a>
+                  <span class="shrink-0 text-[0.65rem] {item.used ? "text-teal-4" : "text-neutral-5"}">{item.used ? "used" : "found"}</span>
+                </li>
+              {/if}
+            {/each}
+          </ul>
+        {:else}
+          <p class="text-xs text-neutral-6">No pyproject.toml files found.</p>
+        {/if}
       </section>
 
-      <nav class="mt-auto col gap-2 pt-4 [&>a]:(row items-center gap-1.5 text-sm text-neutral-4) [&>a:hover_*]:text-white">
-
-        <a href={repoLink} target="_blank" rel="noreferrer">
-          <div class="i-mdi-github size-4" />
+      <nav class="mt-auto col gap-2 pt-4 [&>*]:(row items-center gap-2)">
+        <a href={repoLink} target="_blank" rel="noreferrer" class="row items-center gap-1.5 text-sm text-neutral-4 [&_span]:hover:text-white">
+          <Avatar.Root class="size-5 shrink-0">
+            <div class="grid size-full place-items-center overflow-hidden rounded-1/4 bg-neutral-1/5">
+              <Avatar.Image src={payload.repository.ownerAvatarUrl} alt={`@${payload.repository.ownerLogin}`} />
+              <Avatar.Fallback class="text-xs text-neutral-4/60">
+                <div class="i-mdi-github size-3.5" />
+              </Avatar.Fallback>
+            </div>
+          </Avatar.Root>
           <span class="overflow-hidden ws-nowrap">
-            <span>
-              {payload.owner}
-              /
-              <span class="text-neutral-3">{payload.repo}</span>
-            </span>
+            <span class="text-neutral-3">{payload.repository.ownerLogin}</span>
+            <span class="op-50">/</span>
+            {payload.repo}
+          </span>
         </a>
       </nav>
 
@@ -149,7 +161,12 @@
     </section>
 
     <section class="col gap-2 rounded-lg bg-#121212 p-4">
-      <span class="text-[0.68rem] text-neutral-5 tracking-wider uppercase">Run with uv</span>
+      <div class="text-[0.68rem] text-neutral-5 tracking-wider uppercase">
+        Run with
+        <a href="https://docs.astral.sh/uv/guides/scripts/" target="_blank" rel="noreferrer" class="underline underline-neutral-6 underline-offset-2 underline-dashed hover:text-neutral-2">
+          uv
+        </a>
+      </div>
       <UseCopy text={runCommand} let:handleClick>
         <button class="max-w-full w-fit row items-center gap-2 rounded-lg bg-white/4 px-2.5 py-1.5 text-sm text-neutral-2 ring-1 ring-white/7 hover:bg-white/6" on:click={handleClick}>
           <div class="i-si-copy-alt-line size-4" />

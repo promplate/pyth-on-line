@@ -15,6 +15,7 @@ interface RepoData {
     watchers?: { totalCount?: number };
     description?: string | null;
     defaultBranchRef?: { name?: string } | null;
+    owner?: { login?: string; avatarUrl?: string };
     [key: `pyproject${number}`]: { text?: string } | undefined;
   };
 }
@@ -68,6 +69,16 @@ export const GET: RequestHandler = async ({ params, request, cookies }) => {
 
   const content = pep ? targetFileText : fromPyproject ? prependPep723(targetFileText, dependencies) : targetFileText;
 
+  // Mark which pyproject was used and filter to only found ones
+  const usedPath = fromPyproject?.path;
+  const pyprojectPathsWithStatus = pyprojects
+    .filter(({ text }) => text) // Only include found files
+    .map(({ path: p, text: t }) => ({
+      path: p,
+      exists: Boolean(t),
+      used: p === usedPath && !pep, // used if it's the first one and no PEP 723
+    }));
+
   const payload: Payload = {
     owner,
     repo,
@@ -77,13 +88,15 @@ export const GET: RequestHandler = async ({ params, request, cookies }) => {
     dependencies,
     dependencySource,
     pep723: { present: Boolean(pep), dependencies: depsFromPep },
-    pyprojectPaths: pyprojects.map(({ path: p, text: t }) => ({ path: p, exists: Boolean(t) })),
+    pyprojectPaths: pyprojectPathsWithStatus,
     repository: {
       stargazers: repository.stargazerCount ?? 0,
       forks: repository.forkCount ?? 0,
       watchers: repository.watchers?.totalCount ?? 0,
       description: repository.description ?? "",
       defaultBranch: repository.defaultBranchRef?.name ?? null,
+      ownerAvatarUrl: repository.owner?.avatarUrl ?? "",
+      ownerLogin: repository.owner?.login ?? owner,
     },
     content,
     original: targetFileText,

@@ -9,6 +9,8 @@ export interface RepoInfo {
   watchers: number;
   description: string;
   defaultBranch: string | null;
+  ownerAvatarUrl: string;
+  ownerLogin: string;
 }
 
 export interface Payload {
@@ -20,7 +22,7 @@ export interface Payload {
   dependencies: string[];
   dependencySource: DependencySource;
   pep723: { present: boolean; dependencies: string[] };
-  pyprojectPaths: Array<{ path: string; exists: boolean }>;
+  pyprojectPaths: Array<{ path: string; exists: boolean; used: boolean }>;
   repository: RepoInfo;
   content: string;
   original: string;

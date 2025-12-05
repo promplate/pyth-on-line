@@ -23,6 +23,7 @@ export function buildQuery(args: QueryArgs) {
     "description",
     "watchers { totalCount }",
     "defaultBranchRef { name }",
+    "owner { login avatarUrl }",
     `target: object(expression: "${escapedRef}:${escapedFile}") { ...fileBlob }`,
     ...pyprojectPaths.map((path, i) => `pyproject${i}: object(expression: "${escapedRef}:${escapeGraphQL(path)}") { ...fileBlob }`),
   ].join("\n");
