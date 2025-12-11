@@ -67,11 +67,11 @@
     "vite": "^5.4.21"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^6.5.1",
+    "@antfu/eslint-config": "^6.6.1",
     "@netlify/edge-functions": "^3.0.3",
     "@types/emscripten": "^1.41.5",
     "@types/mdast": "^4.0.4",
-    "@types/node": "^24.10.2",
+    "@types/node": "^24.10.3",
     "@types/turndown": "^5.0.6",
     "@unocss/eslint-config": "~66.4.2",
     "eslint": "^9.39.1",
