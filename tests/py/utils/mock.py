@@ -31,6 +31,7 @@ class MockReloader(LifecycleMixin, FsUtils):
             yield self.entry_module
         finally:
             self.clean_up()
+            self.dispose()
             del self.started
 
     # don't shadow errors

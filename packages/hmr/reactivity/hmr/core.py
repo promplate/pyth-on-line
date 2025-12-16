@@ -19,7 +19,7 @@ from .. import derived_method
 from ..context import Context
 from ..primitives import BaseDerived, Derived, Signal
 from ._common import HMR_CONTEXT
-from .fs import add_filter, notify, setup_fs_audithook
+from .fs import add_filter, notify, remove_filter, setup_fs_audithook
 from .hooks import call_post_reload_hooks, call_pre_reload_hooks
 from .proxy import Proxy
 
@@ -176,14 +176,21 @@ class ReactiveModuleFinder(MetaPathFinder):
         self.includes = _deduplicate(includes)
         self.excludes = _deduplicate((getenv("VIRTUAL_ENV"), *getsitepackages(), getusersitepackages(), *builtins, *excludes))
         setup_fs_audithook()
-        add_filter(lambda path: not is_relative_to_any(path, self.excludes) and is_relative_to_any(path, self.includes))
+        add_filter(self._path_filter)
 
         self._last_sys_path: list[str] = []
         self._last_cwd: Path = Path()
         self._cached_search_paths: list[Path] = []
 
+    def _unregister(self):
+        sys.meta_path.remove(self)
+        remove_filter(self._path_filter)
+
+    def _path_filter(self, path: Path):
+        return not is_relative_to_any(path, self.excludes) and is_relative_to_any(path, self.includes)
+
     def _accept(self, path: Path):
-        return path.is_file() and not is_relative_to_any(path, self.excludes) and is_relative_to_any(path, self.includes)
+        return path.is_file() and self._path_filter(path)
 
     @property
     def search_paths(self):
@@ -232,7 +239,8 @@ def patch_module(name_or_module: str | ModuleType):
 
 
 def patch_meta_path(includes: Iterable[str] = (".",), excludes: Iterable[str] = ()):
-    sys.meta_path.insert(0, ReactiveModuleFinder(includes, excludes))
+    sys.meta_path.insert(0, finder := ReactiveModuleFinder(includes, excludes))
+    return finder
 
 
 def get_path_module_map():
@@ -273,8 +281,11 @@ class BaseReloader:
         self.entry = entry_file
         self.includes = includes
         self.excludes = excludes
-        patch_meta_path(includes, excludes)
+        self._finder = patch_meta_path(includes, excludes)
         self.error_filter = ErrorFilter(*map(str, Path(__file__, "../..").resolve().glob("**/*.py")), "<frozen importlib._bootstrap>")
+
+    def dispose(self):
+        self._finder._unregister()  # noqa: SLF001
 
     @cached_property
     def entry_module(self):

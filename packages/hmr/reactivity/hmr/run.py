@@ -24,26 +24,28 @@ def run_path(entry: str, args: list[str]):
     _argv = sys.argv[:]
     sys.argv[:] = args
     _main = sys.modules["__main__"]
+    reloader = SyncReloader(entry)
     try:
-        reloader = SyncReloader(entry)
         sys.modules["__main__"] = mod = reloader.entry_module
         ns: dict = mod._ReactiveModule__namespace  # noqa: SLF001
         ns.update({"__package__": parent, "__spec__": None if parent is None else mod.__spec__})
         reloader.keep_watching_until_interrupt()
     finally:
+        reloader.dispose()
+        sys.path.remove(str(path.parent))
         sys.argv[:] = _argv
         sys.modules["__main__"] = _main
 
 
 def run_module(module_name: str, args: list[str]):
-    if (cwd := str(Path.cwd())) not in sys.path:
+    if was_cwd_injected := (cwd := str(Path.cwd())) not in sys.path:
         sys.path.insert(0, cwd)
 
     from importlib.util import find_spec
 
     from .core import ReactiveModule, SyncReloader, _loader, patch_meta_path
 
-    patch_meta_path()
+    finder = patch_meta_path()
 
     spec = find_spec(module_name)
     if spec is None:
@@ -66,14 +68,18 @@ def run_module(module_name: str, args: list[str]):
     _argv = sys.argv[:]
     sys.argv[:] = args
     _main = sys.modules["__main__"]
+    reloader = SyncReloader(entry)
     try:
-        reloader = SyncReloader(entry)
         if spec.loader is not _loader:
             spec.loader = _loader  # make it reactive
         namespace = {"__file__": entry, "__name__": "__main__", "__spec__": spec, "__loader__": _loader, "__package__": spec.parent, "__cached__": None, "__builtins__": builtins}
         sys.modules["__main__"] = reloader.entry_module = ReactiveModule(Path(entry), namespace, "__main__")
         reloader.keep_watching_until_interrupt()
     finally:
+        if was_cwd_injected:
+            sys.path.remove(cwd)
+        reloader.dispose()
+        finder._unregister()  # noqa: SLF001
         sys.argv[:] = _argv
         sys.modules["__main__"] = _main
 

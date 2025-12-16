@@ -34,12 +34,13 @@ async def await_for_tick(timeout=1):
 async def test_reusing():
     with environment() as env:
         env["main.py"] = "print(1)"
-        api = SyncReloaderAPI("main.py")
-        with SyncReloaderAPI("main.py"):
+        with SyncReloaderAPI("main.py") as api:
             assert env.stdout_delta == "1\n"
             # can't wait / await here
             # this is weird because we actually can do it in the next test
             # so maybe somehow the first test act as a warm-up of something
+            api.dispose()
+        api = SyncReloaderAPI("main.py")
         with api:
             assert env.stdout_delta == "1\n"
             with wait_for_tick():
@@ -56,6 +57,7 @@ async def test_reusing():
             async with await_for_tick():
                 env["main.py"].touch()
             assert env.stdout_delta == "1\n"
+        api.dispose()
 
     with environment() as env:
         env["main.py"] = "print(2)"
@@ -76,6 +78,7 @@ async def test_reusing():
             async with await_for_tick():
                 env["main.py"].touch()
             assert env.stdout_delta == "2\n"
+        api.dispose()
 
 
 def test_module_getattr():

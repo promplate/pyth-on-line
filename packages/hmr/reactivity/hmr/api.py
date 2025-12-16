@@ -16,6 +16,7 @@ class LifecycleMixin(BaseReloader):
         self.effect.dispose()
         self.entry_module.load.dispose()
         self.entry_module.load.invalidate()
+        del self.entry_module
         sys.modules["__main__"] = self._original_main_module
 
 

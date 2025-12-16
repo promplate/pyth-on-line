@@ -108,6 +108,8 @@ def test_reload_from_outside():
         load(module)
         assert env.stdout_delta == ""
 
+        del module
+
 
 def test_getsourcefile():
     with environment() as env:
@@ -199,6 +201,8 @@ def test_cache_across_reloads_with_other_decorators():
         load(ReactiveModule(Path("main.py"), ns := {}, "main"))
         assert env.stdout_delta == "3\n3\n1\n"  # inner function being called twice, while the outer one only once
         assert ns["two"] == 2
+
+        del ns
 
 
 def test_cache_across_reloads_cache_lifespan():

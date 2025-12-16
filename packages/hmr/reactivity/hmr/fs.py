@@ -18,6 +18,7 @@ type PathFilter = Callable[[Path], bool]
 _filters: list[PathFilter] = []
 
 add_filter = _filters.append
+remove_filter = _filters.remove
 
 
 @cache

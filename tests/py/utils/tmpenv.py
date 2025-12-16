@@ -1,10 +1,12 @@
+import gc
 import sys
 from collections.abc import Callable
 from contextlib import chdir, contextmanager
 from tempfile import TemporaryDirectory
 
-from reactivity.hmr.core import ReactiveModuleFinder
-from reactivity.hmr.fs import _filters
+from reactivity.hmr.core import ReactiveModule, patch_meta_path
+from reactivity.hmr.fs import _filters, fs_signals
+from reactivity.hmr.utils import functions, memos
 
 from .fs import FsUtils
 from .io import StringIOWrapper, capture_stdout
@@ -43,12 +45,20 @@ def environment():
     with TemporaryDirectory() as tmpdir, chdir(tmpdir), capture_stdout() as stdout:
         sys.path.append(tmpdir)
         names = {*sys.modules}
-        sys.meta_path.insert(0, finder := ReactiveModuleFinder())
+        finder = patch_meta_path()
         try:
             yield Environment(stdout)
         finally:
             sys.path.remove(tmpdir)
             for name in {*sys.modules} - names:
                 del sys.modules[name]
-            sys.meta_path.remove(finder)
-            _filters.clear()
+            finder._unregister()  # noqa: SLF001
+
+            assert _filters == [], _filters
+
+            fs_signals.clear()
+            functions.clear()
+            memos.clear()
+            gc.collect()
+
+            assert len(ReactiveModule.instances) == 0, tuple(ReactiveModule.instances)
