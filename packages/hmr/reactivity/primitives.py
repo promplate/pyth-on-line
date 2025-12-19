@@ -224,8 +224,20 @@ class Batch:
     def flush(self):
         triggered = set()
         while self.callbacks:
-            callbacks = self.callbacks - triggered
+            callbacks: list[BaseComputation] = []
+            deriveds: list[BaseDerived] = []
+            for computation in self.callbacks - triggered:
+                if isinstance(computation, BaseDerived):
+                    computation.dirty = True  # to prevent a dirty Derived from being missed by a subscriber's _sync_dirty_deps before marking
+                    deriveds.append(computation)
+                else:
+                    callbacks.append(computation)
             self.callbacks.clear()
+            for d in deriveds:
+                d.trigger()
+            # Deriveds are triggered first to ensure intermediate nodes in the dependency graph are updated before callbacks execute.
+            # This prevents stale values when callbacks read from derived computations.
+            # TODO: Extend this ordering to handle `Memoized` and other nodes that inherit from both Subscribable and BaseComputation.
             for computation in callbacks:
                 if computation in self.callbacks:
                     continue  # skip if re-added during callback
@@ -252,11 +264,13 @@ class BaseDerived[T](Subscribable, BaseComputation[T]):
         super().__init__(context=context)
         self.dirty = True
 
-    def _sync_dirty_deps(self) -> Any:
+    def _sync_dirty_deps(self, *_syncing: BaseComputation) -> Any:
         current_computations = self.context.leaf.current_computations
         for dep in self.dependencies:
-            if isinstance(dep, BaseDerived) and dep.dirty and dep not in current_computations:
-                dep()
+            if isinstance(dep, BaseDerived) and dep not in current_computations and dep not in _syncing:
+                dep._sync_dirty_deps(*_syncing, self)  # noqa: SLF001
+                if dep.dirty:
+                    dep()
 
 
 class Derived[T](BaseDerived[T]):

@@ -3,7 +3,7 @@ from sys import platform
 from typing import Any, Protocol
 
 from .context import Context
-from .primitives import BaseDerived, Effect, _equal, _pulled
+from .primitives import BaseComputation, BaseDerived, Effect, _equal, _pulled
 
 type AsyncFunction[T] = Callable[[], Coroutine[Any, Any, T]]
 
@@ -104,26 +104,26 @@ class AsyncDerived[T](BaseDerived[Awaitable[T]]):
             self._value = value
             self.notify()
 
-    async def __sync_dirty_deps(self):
+    async def __sync_dirty_deps(self, *_syncing: BaseComputation):
         try:
             current_computations = self.context.leaf.current_computations
             for dep in tuple(self.dependencies):  # note: I don't know why but `self.dependencies` may shrink during iteration
-                if isinstance(dep, BaseDerived) and dep not in current_computations:
+                if isinstance(dep, BaseDerived) and dep not in current_computations and dep not in _syncing:
                     if isinstance(dep, AsyncDerived):
-                        await dep._sync_dirty_deps()  # noqa: SLF001
+                        await dep._sync_dirty_deps(*_syncing, self)  # noqa: SLF001
                         if dep.dirty:
                             await dep()
                     else:
-                        await __class__.__sync_dirty_deps(dep)  # noqa: SLF001  # type: ignore
+                        await __class__.__sync_dirty_deps(dep, *_syncing, self)  # noqa: SLF001  # type: ignore
                         if dep.dirty:
                             dep()
         finally:
             self._sync_dirty_deps_task = None
 
-    def _sync_dirty_deps(self):
+    def _sync_dirty_deps(self, *_syncing: BaseComputation):
         if self._sync_dirty_deps_task is not None:
             return self._sync_dirty_deps_task
-        task = self._sync_dirty_deps_task = self.start(self.__sync_dirty_deps)
+        task = self._sync_dirty_deps_task = self.start(lambda: self.__sync_dirty_deps(*_syncing))
         return task
 
     async def _call_async(self):

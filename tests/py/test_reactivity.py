@@ -1019,3 +1019,40 @@ def test_reactivity_loss_strategy():
     trivial_condition = True
     reactive_condition.set(True)
     assert f() is None
+
+
+def test_dependency_ordering():
+    class C:
+        s = State(0)
+
+        @DerivedProperty
+        def d1(self):
+            return self.s
+
+        @DerivedProperty
+        def d2(self):
+            return self.d1
+
+        @DerivedProperty
+        def d3(self):
+            return self.d2
+
+        @DerivedProperty
+        def d4(self):
+            return self.d3
+
+    o = C()
+
+    with capture_stdout() as stdout, effect(lambda: print(o.s, o.d1, o.d2, o.d3, o.d4)):
+        assert stdout.delta == "0 0 0 0 0\n"
+        o.s = 1
+        assert stdout.delta == "1 1 1 1 1\n"
+
+    @Derived
+    def d5():
+        return o.s, o.d1, o.d2, o.d3, o.d4
+
+    with capture_stdout() as stdout, effect(lambda: print(*d5())):
+        assert stdout.delta == "1 1 1 1 1\n"
+        o.s = 2
+        assert stdout.delta == "2 2 2 2 2\n"
