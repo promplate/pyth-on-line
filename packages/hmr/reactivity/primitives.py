@@ -235,6 +235,7 @@ class Batch:
             self.callbacks.clear()
             for d in deriveds:
                 d.trigger()
+                triggered.add(d)
             # Deriveds are triggered first to ensure intermediate nodes in the dependency graph are updated before callbacks execute.
             # This prevents stale values when callbacks read from derived computations.
             # TODO: Extend this ordering to handle `Memoized` and other nodes that inherit from both Subscribable and BaseComputation.
