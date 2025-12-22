@@ -4,16 +4,12 @@ from inspect import getsourcefile
 from pathlib import Path
 from typing import Any, override
 
+from termcolor import colored
+
 from . import find_fixtures, find_test_functions, find_test_root, run_test
 from ._vendored_reactivity import derived
 from ._vendored_reactivity.hmr.core import HMR_CONTEXT, ReactiveModule, SyncReloader
 from ._vendored_reactivity.hmr.hooks import pre_reload
-
-RED = "\033[31m"
-GREEN = "\033[32m"
-DIM = "\033[2m"
-RESET = "\033[0m"
-
 
 rootdir = find_test_root(Path.cwd())
 
@@ -37,13 +33,13 @@ def _collect_tests():
             assert isinstance(module, ReactiveModule)
             func = getattr(module, func.__name__)
 
-            print(f"{DIM}{func.__module__}.{RESET}{func.__qualname__}", end=" ", flush=True)
+            print(colored(f"{func.__module__}.", attrs=["dark"]) + str(func.__qualname__), end=" ", flush=True)
             try:
                 run_test(func, fixtures)
             except Exception:
-                print(f"{RED}FAIL{RESET}")
+                print(colored("FAIL", "red"))
             else:
-                print(f"{GREEN}PASS{RESET}")
+                print(colored("PASS", "green"))
 
     return tests
 

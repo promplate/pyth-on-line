@@ -15,6 +15,7 @@ keywords = ["testing", "hmr", "hot-reload", "vitest"]
 requires-python = ">=3.12"
 description = "Test framework with Vitest-like HMR (hot reload)"
 scripts = { hottest = "hottest.__main__:main" }
+dependencies = ["termcolor>=2"]
 
 [build-system]
 requires = ["uv-build~=0.9"]
