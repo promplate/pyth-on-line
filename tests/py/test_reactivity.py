@@ -1056,3 +1056,8 @@ def test_dependency_ordering():
         assert stdout.delta == "1 1 1 1 1\n"
         o.s = 2
         assert stdout.delta == "2 2 2 2 2\n"
+
+    with capture_stdout() as stdout, effect(lambda: print(o.s, o.d4)):
+        assert stdout.delta == "2 2\n"
+        o.s = 3
+        assert stdout.delta == "3 3\n"
