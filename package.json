@@ -40,7 +40,7 @@
     "hast-util-to-html": "^9.0.5",
     "hast-util-to-mdast": "^10.1.2",
     "htmlparser2": "^10.1.0",
-    "libraries.io": "^3.4.4",
+    "libraries.io": "^3.4.5",
     "mdast-util-from-markdown": "^2.0.2",
     "mdast-util-gfm": "^3.1.0",
     "mdast-util-to-hast": "^13.2.1",
