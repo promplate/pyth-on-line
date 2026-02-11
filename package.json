@@ -22,7 +22,7 @@
     "@fontsource-variable/jetbrains-mono": "^5.2.8",
     "@iconify/json": "^2.2.437",
     "@joplin/turndown-plugin-gfm": "^1.0.64",
-    "@lobehub/icons-static-svg": "^1.78.0",
+    "@lobehub/icons-static-svg": "^1.79.0",
     "@neodrag/svelte": "^2.3.3",
     "@shikijs/monaco": "^3.22.0",
     "@sveltejs/adapter-auto": "^7.0.0",
@@ -48,7 +48,7 @@
     "micromark": "^4.0.2",
     "micromark-extension-gfm": "^3.0.0",
     "monaco-editor-core": "^0.55.1",
-    "openai": "^6.19.0",
+    "openai": "^6.21.0",
     "paneforge": "^0.0.6",
     "pyodide": "0.29.0",
     "rollup-plugin-flatten-dir": "^1.0.1",
@@ -71,12 +71,12 @@
     "@netlify/edge-functions": "^3.0.3",
     "@types/emscripten": "^1.41.5",
     "@types/mdast": "^4.0.4",
-    "@types/node": "^24.10.12",
+    "@types/node": "^24.10.13",
     "@types/turndown": "^5.0.6",
     "@unocss/eslint-config": "~66.4.2",
     "eslint": "^9.39.2",
     "eslint-plugin-format": "^1.4.0",
-    "eslint-plugin-svelte": "^3.14.0",
+    "eslint-plugin-svelte": "^3.15.0",
     "svelte-check": "^4.3.6"
   }
 }
