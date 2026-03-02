@@ -22,7 +22,7 @@
     "@fontsource-variable/jetbrains-mono": "^5.2.8",
     "@iconify/json": "^2.2.444",
     "@joplin/turndown-plugin-gfm": "^1.0.64",
-    "@lobehub/icons-static-svg": "^1.81.0",
+    "@lobehub/icons-static-svg": "^1.82.0",
     "@neodrag/svelte": "^2.3.3",
     "@shikijs/monaco": "^3.23.0",
     "@sveltejs/adapter-auto": "^7.0.1",
