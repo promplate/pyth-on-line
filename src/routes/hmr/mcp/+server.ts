@@ -100,6 +100,7 @@ for (const { content, uri, tool, title, description, hint } of entrypoints) {
 const transport = new HttpTransport(server, {
   path: "/hmr/mcp",
   cors: true,
+  disableSse: true,
 });
 
 const handler: RequestHandler = async ({ request }) => {
