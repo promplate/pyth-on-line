@@ -1,31 +1,12 @@
 import type { RequestHandler } from "./$types";
 import type { JSONSchema7 } from "json-schema";
 
-import coreFiles from "../../../../packages/hmr";
-import testFiles from "../../../../tests/py";
-import concepts from "../concepts";
 import { HttpTransport } from "@tmcp/transport-http";
-import { packXML } from "$lib/utils/pack";
 import { McpServer } from "tmcp";
-
-const docs = `\
-# Hot Module Reload for Python (https://pypi.org/project/hmr/)
-
-${coreFiles["README.md"].replace(/.*<\/div>/s, "").trim()}
-
----
-
-${concepts}
-
----
-
-The \`hmr\` library doesn't have a documentation site yet, but the code is high-quality and self-explanatory.
-Now you should read the source code (using the other two MCP tools) for more information on how to use it.
-`;
 
 const entrypoints = [
   {
-    content: docs,
+    key: "about",
     uri: "hmr-docs://about",
     tool: "learn-hmr-basics",
     title: "About HMR",
@@ -37,7 +18,7 @@ const entrypoints = [
     ].join(" "),
   },
   {
-    content: `# Files under <https://github.com/promplate/pyth-on-line/packages/hmr>:\n\n${packXML(coreFiles)}`,
+    key: "core-files",
     uri: "hmr-docs://core-files",
     tool: "view-hmr-core-sources",
     title: "HMR Sources",
@@ -51,7 +32,7 @@ const entrypoints = [
     ].join(" "),
   },
   {
-    content: `# Files under <https://github.com/promplate/pyth-on-line/tests/py>:\n\n${packXML(testFiles)}`,
+    key: "test-files",
     uri: "hmr-docs://test-files",
     tool: "view-hmr-unit-tests",
     title: "HMR Unit Tests",
@@ -64,6 +45,18 @@ const entrypoints = [
     ].join(" "),
   },
 ];
+
+let baseUrl = "";
+
+async function fetchContent(key: string): Promise<string> {
+  const url = new URL(`/hmr/mcp/content/${key}.json`, baseUrl);
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Unable to load MCP content \"${key}\" from ${url.pathname}.`);
+  }
+  const payload = (await response.json()) as { content: string };
+  return payload.content;
+}
 
 // a minimal icon using python's color scheme
 const icons = [{ mimeType: "image/webp", src: "data:image/webp;base64,UklGRkoAAABXRUJQVlA4TD0AAAAvj8AjEBcgEEjypxlnNAVpGzDd8694IBBIktp22PkP8NsGQg0MJZWU86YAj4j+T4B+ceplERrXhF1vygEGAA==" }];
@@ -90,11 +83,22 @@ const server = new McpServer(
   },
 );
 
-for (const { content, uri, tool, title, description, hint } of entrypoints) {
-  const resource = { text: content, uri };
-  server.tool({ name: tool, title: tool, description: `${description}\n\n${hint}`, annotations: { readOnlyHint: true }, icons }, () => ({ content: [{ type: "resource", resource }] }));
-  server.resource({ name: title, title, description, uri, icons }, () => ({ contents: [resource] }));
-  server.prompt({ name: tool, description, icons }, () => ({ description, messages: [{ role: "user", content: { type: "resource", resource } }] }));
+for (const { key, uri, tool, title, description, hint } of entrypoints) {
+  server.tool(
+    { name: tool, title: tool, description: `${description}\n\n${hint}`, annotations: { readOnlyHint: true }, icons },
+    async () => {
+      const resource = { text: await fetchContent(key), uri };
+      return { content: [{ type: "resource", resource }] };
+    },
+  );
+  server.resource({ name: title, title, description, uri, icons }, async () => {
+    const resource = { text: await fetchContent(key), uri };
+    return { contents: [resource] };
+  });
+  server.prompt({ name: tool, description, icons }, async () => {
+    const resource = { text: await fetchContent(key), uri };
+    return { description, messages: [{ role: "user", content: { type: "resource", resource } }] };
+  });
 }
 
 const transport = new HttpTransport(server, {
@@ -104,8 +108,14 @@ const transport = new HttpTransport(server, {
 });
 
 const handler: RequestHandler = async ({ request }) => {
-  const response = await transport.respond(request);
-  return response ?? new Response("Not Found", { status: 404 });
+  baseUrl = request.url;
+  try {
+    const response = await transport.respond(request);
+    return response ?? new Response("Not Found", { status: 404 });
+  }
+  finally {
+    baseUrl = "";
+  }
 };
 
 export const GET = handler;
