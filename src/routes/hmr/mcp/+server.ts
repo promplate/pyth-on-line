@@ -1,12 +1,9 @@
 import type { RequestHandler } from "./$types";
-import type { JSONSchema7 } from "json-schema";
 
 import coreFiles from "../../../../packages/hmr";
 import testFiles from "../../../../tests/py";
 import concepts from "../concepts";
-import { HttpTransport } from "@tmcp/transport-http";
 import { packXML } from "$lib/utils/pack";
-import { McpServer } from "tmcp";
 
 const docs = `\
 # Hot Module Reload for Python (https://pypi.org/project/hmr/)
@@ -23,7 +20,16 @@ The \`hmr\` library doesn't have a documentation site yet, but the code is high-
 Now you should read the source code (using the other two MCP tools) for more information on how to use it.
 `;
 
-const entrypoints = [
+type Entry = {
+  content: string;
+  uri: string;
+  tool: string;
+  title: string;
+  description: string;
+  hint: string;
+};
+
+const entrypoints: Entry[] = [
   {
     content: docs,
     uri: "hmr-docs://about",
@@ -65,47 +71,115 @@ const entrypoints = [
   },
 ];
 
-// a minimal icon using python's color scheme
-const icons = [{ mimeType: "image/webp", src: "data:image/webp;base64,UklGRkoAAABXRUJQVlA4TD0AAAAvj8AjEBcgEEjypxlnNAVpGzDd8694IBBIktp22PkP8NsGQg0MJZWU86YAj4j+T4B+ceplERrXhF1vygEGAA==" }];
+const byTool = new Map(entrypoints.map(entry => [entry.tool, entry]));
+const byUri = new Map(entrypoints.map(entry => [entry.uri, entry]));
 
-const server = new McpServer(
-  {
-    name: "hmr-docs",
-    version: "1.0.0",
-    description: "Docs for the HMR library for Python (python modules `reactivity` and `reactivity.hmr`).",
-    websiteUrl: "https://github.com/promplate/hmr",
-    icons,
-  },
-  {
-    adapter: {
-      async toJsonSchema() {
-        return {} as JSONSchema7; // minimal adapter since we don't use any schemas
-      },
-    },
-    capabilities: {
-      tools: {},
-      prompts: {},
-      resources: {},
-    },
-  },
-);
-
-for (const { content, uri, tool, title, description, hint } of entrypoints) {
-  const resource = { text: content, uri };
-  server.tool({ name: tool, title: tool, description: `${description}\n\n${hint}`, annotations: { readOnlyHint: true }, icons }, () => ({ content: [{ type: "resource", resource }] }));
-  server.resource({ name: title, title, description, uri, icons }, () => ({ contents: [resource] }));
-  server.prompt({ name: tool, description, icons }, () => ({ description, messages: [{ role: "user", content: { type: "resource", resource } }] }));
+function withCors(response: Response) {
+  const headers = new Headers(response.headers);
+  headers.set("Access-Control-Allow-Origin", "*");
+  headers.set("Access-Control-Allow-Methods", "GET,POST,DELETE,OPTIONS");
+  headers.set("Access-Control-Allow-Headers", "Content-Type");
+  return new Response(response.body, { status: response.status, headers });
 }
 
-const transport = new HttpTransport(server, {
-  path: "/hmr/mcp",
-  cors: true,
-  disableSse: true,
-});
+function json(id: unknown, result: unknown) {
+  return withCors(Response.json({ jsonrpc: "2.0", id, result }));
+}
+
+function rpcError(id: unknown, code: number, message: string) {
+  return withCors(Response.json({ jsonrpc: "2.0", id, error: { code, message } }));
+}
+
+function empty(status = 204) {
+  return withCors(new Response(null, { status }));
+}
 
 const handler: RequestHandler = async ({ request }) => {
-  const response = await transport.respond(request);
-  return response ?? new Response("Not Found", { status: 404 });
+  if (request.method === "OPTIONS") {
+    return empty();
+  }
+
+  if (request.method === "GET") {
+    // Keep a tiny GET response for health checks and browser probing.
+    return withCors(Response.json({ name: "hmr-docs", version: "1.0.0" }));
+  }
+
+  if (request.method !== "POST") {
+    return empty(405);
+  }
+
+  const payload = await request.json().catch(() => null) as { id?: unknown; method?: string; params?: any } | null;
+  if (!payload?.method) {
+    return rpcError(payload?.id, -32600, "Invalid Request");
+  }
+
+  switch (payload.method) {
+    case "initialize":
+      return json(payload.id, {
+        protocolVersion: "2024-11-05",
+        capabilities: { tools: {}, prompts: {}, resources: {} },
+        serverInfo: { name: "hmr-docs", version: "1.0.0" },
+      });
+
+    case "tools/list":
+      return json(payload.id, {
+        tools: entrypoints.map(({ tool, description, hint }) => ({
+          name: tool,
+          title: tool,
+          description: `${description}\n\n${hint}`,
+          inputSchema: { type: "object", properties: {}, additionalProperties: false },
+          annotations: { readOnlyHint: true },
+        })),
+      });
+
+    case "tools/call": {
+      const entry = byTool.get(payload.params?.name);
+      if (!entry) {
+        return rpcError(payload.id, -32602, "Unknown tool");
+      }
+      const resource = { uri: entry.uri, text: entry.content };
+      return json(payload.id, { content: [{ type: "resource", resource }] });
+    }
+
+    case "resources/list":
+      return json(payload.id, {
+        resources: entrypoints.map(({ uri, title, description }) => ({
+          uri,
+          name: title,
+          title,
+          description,
+          mimeType: "text/plain",
+        })),
+      });
+
+    case "resources/read": {
+      const entry = byUri.get(payload.params?.uri);
+      if (!entry) {
+        return rpcError(payload.id, -32602, "Unknown resource");
+      }
+      return json(payload.id, { contents: [{ uri: entry.uri, text: entry.content, mimeType: "text/plain" }] });
+    }
+
+    case "prompts/list":
+      return json(payload.id, {
+        prompts: entrypoints.map(({ tool, description }) => ({ name: tool, description })),
+      });
+
+    case "prompts/get": {
+      const entry = byTool.get(payload.params?.name);
+      if (!entry) {
+        return rpcError(payload.id, -32602, "Unknown prompt");
+      }
+      const resource = { uri: entry.uri, text: entry.content };
+      return json(payload.id, {
+        description: entry.description,
+        messages: [{ role: "user", content: { type: "resource", resource } }],
+      });
+    }
+
+    default:
+      return rpcError(payload.id, -32601, "Method not found");
+  }
 };
 
 export const GET = handler;

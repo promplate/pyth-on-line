@@ -1,12 +1,12 @@
 <script lang="ts">
-  import type { ComponentType } from "svelte";
+  import type { SvelteComponent } from "svelte";
   import type { PageData } from "./$types";
 
   import { onMount } from "svelte";
 
   export let data: PageData;
 
-  let Client: ComponentType<{ data: PageData }> | null = null;
+  let Client: (new (...args: any[]) => SvelteComponent) | null = null;
 
   onMount(async () => {
     // Keep the server chunk tiny; load the heavy notebook renderer in the browser only.
