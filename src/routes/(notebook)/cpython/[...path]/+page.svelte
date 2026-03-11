@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { PageServerData } from "./$types";
+  import type { PageData } from "./$types";
 
   import { afterNavigate } from "$app/navigation";
   import Router from "$lib/components/markdown/Router.svelte";
@@ -9,7 +9,7 @@
   import getPy from "$lib/pyodide";
   import { onMount } from "svelte";
 
-  export let data: PageServerData;
+  export let data: PageData;
 
   let text = "";
   let loading = true;
