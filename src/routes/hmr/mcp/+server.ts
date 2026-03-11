@@ -1,12 +1,10 @@
 import type { RequestHandler } from "./$types";
-import type { JSONSchema7 } from "json-schema";
 
 import coreFiles from "../../../../packages/hmr";
 import testFiles from "../../../../tests/py";
 import concepts from "../concepts";
-import { HttpTransport } from "@tmcp/transport-http";
 import { packXML } from "$lib/utils/pack";
-import { McpServer } from "tmcp";
+import { MinimalMcpHttpServer } from "./minimal-mcp";
 
 const docs = `\
 # Hot Module Reload for Python (https://pypi.org/project/hmr/)
@@ -68,44 +66,16 @@ const entrypoints = [
 // a minimal icon using python's color scheme
 const icons = [{ mimeType: "image/webp", src: "data:image/webp;base64,UklGRkoAAABXRUJQVlA4TD0AAAAvj8AjEBcgEEjypxlnNAVpGzDd8694IBBIktp22PkP8NsGQg0MJZWU86YAj4j+T4B+ceplERrXhF1vygEGAA==" }];
 
-const server = new McpServer(
-  {
-    name: "hmr-docs",
-    version: "1.0.0",
-    description: "Docs for the HMR library for Python (python modules `reactivity` and `reactivity.hmr`).",
-    websiteUrl: "https://github.com/promplate/hmr",
-    icons,
-  },
-  {
-    adapter: {
-      async toJsonSchema() {
-        return {} as JSONSchema7; // minimal adapter since we don't use any schemas
-      },
-    },
-    capabilities: {
-      tools: {},
-      prompts: {},
-      resources: {},
-    },
-  },
-);
-
-for (const { content, uri, tool, title, description, hint } of entrypoints) {
-  const resource = { text: content, uri };
-  server.tool({ name: tool, title: tool, description: `${description}\n\n${hint}`, annotations: { readOnlyHint: true }, icons }, () => ({ content: [{ type: "resource", resource }] }));
-  server.resource({ name: title, title, description, uri, icons }, () => ({ contents: [resource] }));
-  server.prompt({ name: tool, description, icons }, () => ({ description, messages: [{ role: "user", content: { type: "resource", resource } }] }));
-}
-
-const transport = new HttpTransport(server, {
-  path: "/hmr/mcp",
-  cors: true,
-  disableSse: true,
+const server = new MinimalMcpHttpServer(entrypoints, {
+  name: "hmr-docs",
+  version: "1.0.0",
+  description: "Docs for the HMR library for Python (python modules `reactivity` and `reactivity.hmr`).",
+  websiteUrl: "https://github.com/promplate/hmr",
+  icons,
 });
 
 const handler: RequestHandler = async ({ request }) => {
-  const response = await transport.respond(request);
-  return response ?? new Response("Not Found", { status: 404 });
+  return server.respond(request);
 };
 
 export const GET = handler;
