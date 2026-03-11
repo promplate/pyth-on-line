@@ -1,31 +1,12 @@
 import type { RequestHandler } from "./$types";
 import type { JSONSchema7 } from "json-schema";
 
-import coreFiles from "../../../../packages/hmr";
-import testFiles from "../../../../tests/py";
-import concepts from "../concepts";
 import { HttpTransport } from "@tmcp/transport-http";
-import { packXML } from "$lib/utils/pack";
 import { McpServer } from "tmcp";
-
-const docs = `\
-# Hot Module Reload for Python (https://pypi.org/project/hmr/)
-
-${coreFiles["README.md"].replace(/.*<\/div>/s, "").trim()}
-
----
-
-${concepts}
-
----
-
-The \`hmr\` library doesn't have a documentation site yet, but the code is high-quality and self-explanatory.
-Now you should read the source code (using the other two MCP tools) for more information on how to use it.
-`;
 
 const entrypoints = [
   {
-    content: docs,
+    key: "about",
     uri: "hmr-docs://about",
     tool: "learn-hmr-basics",
     title: "About HMR",
@@ -37,7 +18,7 @@ const entrypoints = [
     ].join(" "),
   },
   {
-    content: `# Files under <https://github.com/promplate/pyth-on-line/packages/hmr>:\n\n${packXML(coreFiles)}`,
+    key: "core-files",
     uri: "hmr-docs://core-files",
     tool: "view-hmr-core-sources",
     title: "HMR Sources",
@@ -51,7 +32,7 @@ const entrypoints = [
     ].join(" "),
   },
   {
-    content: `# Files under <https://github.com/promplate/pyth-on-line/tests/py>:\n\n${packXML(testFiles)}`,
+    key: "test-files",
     uri: "hmr-docs://test-files",
     tool: "view-hmr-unit-tests",
     title: "HMR Unit Tests",
@@ -63,7 +44,7 @@ const entrypoints = [
       "The response is identical to the MCP resource with the same name. Only use it once and prefer this tool to that resource if you can choose.",
     ].join(" "),
   },
-];
+] as const;
 
 // a minimal icon using python's color scheme
 const icons = [{ mimeType: "image/webp", src: "data:image/webp;base64,UklGRkoAAABXRUJQVlA4TD0AAAAvj8AjEBcgEEjypxlnNAVpGzDd8694IBBIktp22PkP8NsGQg0MJZWU86YAj4j+T4B+ceplERrXhF1vygEGAA==" }];
@@ -90,12 +71,7 @@ const server = new McpServer(
   },
 );
 
-for (const { content, uri, tool, title, description, hint } of entrypoints) {
-  const resource = { text: content, uri };
-  server.tool({ name: tool, title: tool, description: `${description}\n\n${hint}`, annotations: { readOnlyHint: true }, icons }, () => ({ content: [{ type: "resource", resource }] }));
-  server.resource({ name: title, title, description, uri, icons }, () => ({ contents: [resource] }));
-  server.prompt({ name: tool, description, icons }, () => ({ description, messages: [{ role: "user", content: { type: "resource", resource } }] }));
-}
+let setupPromise: Promise<void> | undefined;
 
 const transport = new HttpTransport(server, {
   path: "/hmr/mcp",
@@ -104,6 +80,31 @@ const transport = new HttpTransport(server, {
 });
 
 const handler: RequestHandler = async ({ request }) => {
+  setupPromise ??= (async () => {
+    const { origin } = new URL(request.url);
+
+    await Promise.all(entrypoints.map(async (entrypoint) => {
+      const response = await fetch(`${origin}/hmr/mcp-content/${entrypoint.key}`);
+
+      if (!response.ok)
+        throw new Error(`Failed to load MCP content for ${entrypoint.key}.`);
+
+      const payload = await response.json() as { content?: string };
+      const content = payload.content;
+
+      if (!content)
+        throw new Error(`MCP content for ${entrypoint.key} is missing.`);
+
+      const resource = { text: content, uri: entrypoint.uri };
+
+      server.tool({ name: entrypoint.tool, title: entrypoint.tool, description: `${entrypoint.description}\n\n${entrypoint.hint}`, annotations: { readOnlyHint: true }, icons }, () => ({ content: [{ type: "resource", resource }] }));
+      server.resource({ name: entrypoint.title, title: entrypoint.title, description: entrypoint.description, uri: entrypoint.uri, icons }, () => ({ contents: [resource] }));
+      server.prompt({ name: entrypoint.tool, description: entrypoint.description, icons }, () => ({ description: entrypoint.description, messages: [{ role: "user", content: { type: "resource", resource } }] }));
+    }));
+  })();
+
+  await setupPromise;
+
   const response = await transport.respond(request);
   return response ?? new Response("Not Found", { status: 404 });
 };
