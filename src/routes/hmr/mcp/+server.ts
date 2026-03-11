@@ -1,12 +1,9 @@
 import type { RequestHandler } from "./$types";
-import type { JSONSchema7 } from "json-schema";
 
 import coreFiles from "../../../../packages/hmr";
 import testFiles from "../../../../tests/py";
 import concepts from "../concepts";
-import { HttpTransport } from "@tmcp/transport-http";
 import { packXML } from "$lib/utils/pack";
-import { McpServer } from "tmcp";
 
 const docs = `\
 # Hot Module Reload for Python (https://pypi.org/project/hmr/)
@@ -63,54 +60,164 @@ const entrypoints = [
       "The response is identical to the MCP resource with the same name. Only use it once and prefer this tool to that resource if you can choose.",
     ].join(" "),
   },
-];
+] as const;
 
-// a minimal icon using python's color scheme
 const icons = [{ mimeType: "image/webp", src: "data:image/webp;base64,UklGRkoAAABXRUJQVlA4TD0AAAAvj8AjEBcgEEjypxlnNAVpGzDd8694IBBIktp22PkP8NsGQg0MJZWU86YAj4j+T4B+ceplERrXhF1vygEGAA==" }];
 
-const server = new McpServer(
-  {
-    name: "hmr-docs",
-    version: "1.0.0",
-    description: "Docs for the HMR library for Python (python modules `reactivity` and `reactivity.hmr`).",
-    websiteUrl: "https://github.com/promplate/hmr",
-    icons,
-  },
-  {
-    adapter: {
-      async toJsonSchema() {
-        return {} as JSONSchema7; // minimal adapter since we don't use any schemas
-      },
-    },
-    capabilities: {
-      tools: {},
-      prompts: {},
-      resources: {},
-    },
-  },
-);
+const resources = entrypoints.map(({ content, title, description, uri }) => ({
+  name: title,
+  title,
+  description,
+  uri,
+  icons,
+  content: { text: content, uri },
+}));
 
-for (const { content, uri, tool, title, description, hint } of entrypoints) {
-  const resource = { text: content, uri };
-  server.tool({ name: tool, title: tool, description: `${description}\n\n${hint}`, annotations: { readOnlyHint: true }, icons }, () => ({ content: [{ type: "resource", resource }] }));
-  server.resource({ name: title, title, description, uri, icons }, () => ({ contents: [resource] }));
-  server.prompt({ name: tool, description, icons }, () => ({ description, messages: [{ role: "user", content: { type: "resource", resource } }] }));
-}
+const tools = entrypoints.map(({ tool, description, hint, uri }) => ({
+  name: tool,
+  title: tool,
+  description: `${description}\n\n${hint}`,
+  icons,
+  inputSchema: { type: "object", properties: {} },
+  annotations: { readOnlyHint: true },
+  resource: resources.find(item => item.uri === uri)!.content,
+}));
 
-const transport = new HttpTransport(server, {
-  path: "/hmr/mcp",
-  cors: true,
-  disableSse: true,
-});
+const prompts = entrypoints.map(({ tool, description, uri }) => ({
+  name: tool,
+  description,
+  icons,
+  resource: resources.find(item => item.uri === uri)!.content,
+}));
 
-const handler: RequestHandler = async ({ request }) => {
-  const response = await transport.respond(request);
-  return response ?? new Response("Not Found", { status: 404 });
+const sessions = new Set<string>();
+
+const CORS_HEADERS = {
+  "access-control-allow-origin": "*",
+  "access-control-allow-headers": "*",
+  "access-control-allow-methods": "GET, POST, DELETE, OPTIONS",
 };
 
-export const GET = handler;
-export const POST = handler;
-export const DELETE = handler;
-export const OPTIONS = handler;
+function jsonRpc(id: unknown, result?: unknown, error?: { code: number; message: string }) {
+  return { jsonrpc: "2.0", id, ...(error ? { error } : { result }) };
+}
+
+function toResponse(payload: unknown, sessionId?: string, status = 200) {
+  return new Response(JSON.stringify(payload), {
+    status,
+    headers: {
+      ...CORS_HEADERS,
+      "content-type": "application/json",
+      ...(sessionId ? { "mcp-session-id": sessionId } : {}),
+    },
+  });
+}
+
+function getSessionId(request: Request) {
+  return request.headers.get("mcp-session-id") ?? undefined;
+}
+
+export const POST: RequestHandler = async ({ request }) => {
+  const body = await request.json().catch(() => null);
+
+  if (!body || typeof body !== "object") {
+    return toResponse(jsonRpc(null, undefined, { code: -32700, message: "Parse error" }), undefined, 400);
+  }
+
+  const { id, method, params } = body as { id?: unknown; method?: string; params?: Record<string, unknown> };
+
+  if (!method) {
+    return toResponse(jsonRpc(id ?? null, undefined, { code: -32600, message: "Invalid Request" }), undefined, 400);
+  }
+
+  if (method === "initialize") {
+    const sessionId = crypto.randomUUID();
+    sessions.add(sessionId);
+    return toResponse(jsonRpc(id ?? null, {
+      protocolVersion: "2024-11-05",
+      adapter: {},
+      capabilities: { tools: {}, prompts: {}, resources: {} },
+      serverInfo: {
+        name: "hmr-docs",
+        version: "1.0.0",
+        description: "Docs for the HMR library for Python (python modules `reactivity` and `reactivity.hmr`).",
+        websiteUrl: "https://github.com/promplate/hmr",
+        icons,
+      },
+    }), sessionId);
+  }
+
+  const sessionId = getSessionId(request);
+  if (!sessionId || !sessions.has(sessionId)) {
+    return toResponse(jsonRpc(id ?? null, undefined, { code: -32001, message: "Session not found" }), undefined, 400);
+  }
+
+  if (id === undefined) {
+    // Notifications are acknowledged with no body.
+    return new Response(null, { status: 202, headers: { ...CORS_HEADERS, "mcp-session-id": sessionId } });
+  }
+
+  switch (method) {
+    case "ping":
+      return toResponse(jsonRpc(id, {}), sessionId);
+    case "tools/list":
+      return toResponse(jsonRpc(id, { tools: tools.map(({ resource: _resource, ...tool }) => tool) }), sessionId);
+    case "tools/call": {
+      const toolName = typeof params?.name === "string" ? params.name : "";
+      const tool = tools.find(item => item.name === toolName);
+      if (!tool)
+        return toResponse(jsonRpc(id, undefined, { code: -32602, message: `Unknown tool: ${toolName}` }), sessionId, 400);
+      return toResponse(jsonRpc(id, { content: [{ type: "resource", resource: tool.resource }] }), sessionId);
+    }
+    case "resources/list":
+      return toResponse(jsonRpc(id, { resources: resources.map(({ content: _content, ...resource }) => resource) }), sessionId);
+    case "resources/read": {
+      const uri = typeof params?.uri === "string" ? params.uri : "";
+      const resource = resources.find(item => item.uri === uri)?.content;
+      if (!resource)
+        return toResponse(jsonRpc(id, undefined, { code: -32602, message: `Unknown resource: ${uri}` }), sessionId, 400);
+      return toResponse(jsonRpc(id, { contents: [resource] }), sessionId);
+    }
+    case "prompts/list":
+      return toResponse(jsonRpc(id, { prompts: prompts.map(({ resource: _resource, ...prompt }) => prompt) }), sessionId);
+    case "prompts/get": {
+      const promptName = typeof params?.name === "string" ? params.name : "";
+      const prompt = prompts.find(item => item.name === promptName);
+      if (!prompt)
+        return toResponse(jsonRpc(id, undefined, { code: -32602, message: `Unknown prompt: ${promptName}` }), sessionId, 400);
+      return toResponse(jsonRpc(id, { description: prompt.description, messages: [{ role: "user", content: { type: "resource", resource: prompt.resource } }] }), sessionId);
+    }
+    default:
+      return toResponse(jsonRpc(id, undefined, { code: -32601, message: `Method not found: ${method}` }), sessionId, 404);
+  }
+};
+
+export const GET: RequestHandler = async () => {
+  return new Response(null, {
+    status: 405,
+    headers: {
+      ...CORS_HEADERS,
+      allow: "POST, DELETE, OPTIONS",
+      vary: "Accept",
+    },
+  });
+};
+
+export const DELETE: RequestHandler = async ({ request }) => {
+  const sessionId = getSessionId(request);
+  if (sessionId)
+    sessions.delete(sessionId);
+
+  return new Response(null, {
+    status: 204,
+    headers: {
+      ...CORS_HEADERS,
+    },
+  });
+};
+
+export const OPTIONS: RequestHandler = async () => {
+  return new Response(null, { status: 204, headers: CORS_HEADERS });
+};
 
 export const config = { runtime: "edge" };
