@@ -1,31 +1,12 @@
 import type { RequestHandler } from "./$types";
 import type { JSONSchema7 } from "json-schema";
 
-import coreFiles from "../../../../packages/hmr";
-import testFiles from "../../../../tests/py";
-import concepts from "../concepts";
 import { HttpTransport } from "@tmcp/transport-http";
-import { packXML } from "$lib/utils/pack";
 import { McpServer } from "tmcp";
-
-const docs = `\
-# Hot Module Reload for Python (https://pypi.org/project/hmr/)
-
-${coreFiles["README.md"].replace(/.*<\/div>/s, "").trim()}
-
----
-
-${concepts}
-
----
-
-The \`hmr\` library doesn't have a documentation site yet, but the code is high-quality and self-explanatory.
-Now you should read the source code (using the other two MCP tools) for more information on how to use it.
-`;
 
 const entrypoints = [
   {
-    content: docs,
+    source: "about",
     uri: "hmr-docs://about",
     tool: "learn-hmr-basics",
     title: "About HMR",
@@ -37,7 +18,7 @@ const entrypoints = [
     ].join(" "),
   },
   {
-    content: `# Files under <https://github.com/promplate/pyth-on-line/packages/hmr>:\n\n${packXML(coreFiles)}`,
+    source: "core-files",
     uri: "hmr-docs://core-files",
     tool: "view-hmr-core-sources",
     title: "HMR Sources",
@@ -51,7 +32,7 @@ const entrypoints = [
     ].join(" "),
   },
   {
-    content: `# Files under <https://github.com/promplate/pyth-on-line/tests/py>:\n\n${packXML(testFiles)}`,
+    source: "test-files",
     uri: "hmr-docs://test-files",
     tool: "view-hmr-unit-tests",
     title: "HMR Unit Tests",
@@ -90,11 +71,30 @@ const server = new McpServer(
   },
 );
 
-for (const { content, uri, tool, title, description, hint } of entrypoints) {
-  const resource = { text: content, uri };
-  server.tool({ name: tool, title: tool, description: `${description}\n\n${hint}`, annotations: { readOnlyHint: true }, icons }, () => ({ content: [{ type: "resource", resource }] }));
-  server.resource({ name: title, title, description, uri, icons }, () => ({ contents: [resource] }));
-  server.prompt({ name: tool, description, icons }, () => ({ description, messages: [{ role: "user", content: { type: "resource", resource } }] }));
+for (const { source, uri, tool, title, description, hint } of entrypoints) {
+  const contentUrl = `/hmr/mcp/content/${source}`;
+
+  const readResource = async () => {
+    const response = await fetch(contentUrl);
+    if (!response.ok) {
+      throw new Error(`Failed to load prerendered content: ${response.status}`);
+    }
+
+    return { text: await response.text(), uri };
+  };
+
+  server.tool(
+    { name: tool, title: tool, description: `${description}\n\n${hint}`, annotations: { readOnlyHint: true }, icons },
+    async () => ({ content: [{ type: "resource" as const, resource: await readResource() }] }),
+  );
+  server.resource({ name: title, title, description, uri, icons }, async () => ({ contents: [await readResource()] }));
+  server.prompt(
+    { name: tool, description, icons },
+    async () => {
+      const resource = await readResource();
+      return { description, messages: [{ role: "user", content: { type: "resource", resource } }] };
+    },
+  );
 }
 
 const transport = new HttpTransport(server, {
