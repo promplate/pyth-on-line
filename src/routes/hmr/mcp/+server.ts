@@ -4,6 +4,7 @@ import type { JSONSchema7 } from "json-schema";
 import coreFiles from "../../../../packages/hmr";
 import testFiles from "../../../../tests/py";
 import concepts from "../concepts";
+import { redirect } from "@sveltejs/kit";
 import { HttpTransport } from "@tmcp/transport-http";
 import { packXML } from "$lib/utils/pack";
 import { McpServer } from "tmcp";
@@ -108,7 +109,11 @@ const handler: RequestHandler = async ({ request }) => {
   return response ?? new Response("Not Found", { status: 404 });
 };
 
-export const GET = handler;
+export const GET: RequestHandler = async (event) => {
+  if (event.request.headers.get("accept")?.includes("text/html"))
+    return redirect(307, new URL("/hmr/docs/mcp", event.url));
+  return handler(event);
+};
 export const POST = handler;
 export const DELETE = handler;
 export const OPTIONS = handler;

@@ -9,10 +9,11 @@
   import { updateMetadata } from "$lib/seo";
   import { Separator } from "bits-ui";
 
-  const url = `${$page.url.origin}/hmr/mcp`;
+  const origin = $page.url.origin.replace("http://sveltekit-prerender", "");
+  const url = `${origin}/hmr/mcp`;
 
   const placeholders = {
-    "{HOST}": $page.url.origin,
+    "{HOST}": origin,
     "{cursor-http}": btoa(JSON.stringify({ url })),
     "{cursor-stdio}": btoa(JSON.stringify({ command: "npx", args: ["mcp-remote", url] })),
     "{vscode-http}": encodeURIComponent(JSON.stringify({ name: "hmr-docs", type: "http", url })),
