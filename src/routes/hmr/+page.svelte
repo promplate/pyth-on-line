@@ -46,7 +46,7 @@
       <div class="mx-auto max-w-4xl px-4 lg:px-8 sm:px-6">
         <div class="grid grid-cols-1 mx-auto max-w-4xl gap-3 md:grid-cols-2 sm:gap-4">
 
-          <a href="/hmr/mcp" class="group rounded-xl bg-white/2 p-3 ring-(1.2 transparent) md:col-span-2 sm:p-4 focus-visible:(outline-none ring-1.2 ring-neutral-2) hover:ring-neutral-6">
+          <a href="/hmr/docs/mcp" class="group rounded-xl bg-white/2 p-3 ring-(1.2 transparent) md:col-span-2 sm:p-4 focus-visible:(outline-none ring-1.2 ring-neutral-2) hover:ring-neutral-6">
             <div class="flex items-center gap-2 sm:gap-3">
               <div class="h-8 w-8 flex items-center justify-center rounded-lg bg-white/10">
                 <div class="i-octicon-mcp-24 size-4 text-neutral" />

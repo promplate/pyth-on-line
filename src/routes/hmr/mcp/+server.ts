@@ -108,7 +108,12 @@ const handler: RequestHandler = async ({ request }) => {
   return response ?? new Response("Not Found", { status: 404 });
 };
 
-export const GET = handler;
+export const GET: RequestHandler = async (event) => {
+  if (event.request.headers.get("accept")?.includes("text/html"))
+    return Response.redirect(new URL("/hmr/docs/mcp", event.request.url), 307);
+
+  return handler(event);
+};
 export const POST = handler;
 export const DELETE = handler;
 export const OPTIONS = handler;

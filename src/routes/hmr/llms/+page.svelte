@@ -161,7 +161,7 @@
       <Separator.Root class="invisible min-h-5 grow" />
 
       <nav class="[&>a]:before:i-material-symbols-arrow-insert-rounded col gap-3 [&>a]:(row items-center gap-1.5 text-sm text-neutral-4 before:content-['']) [&>a:hover]:text-white">
-        <a href="/hmr/mcp" class="before:!i-octicon-mcp-24">
+        <a href="/hmr/docs/mcp" class="before:!i-octicon-mcp-24">
           MCP server
         </a>
         <a href="/hmr">
