@@ -77,6 +77,6 @@
     "eslint": "^9.39.4",
     "eslint-plugin-format": "^1.5.0",
     "eslint-plugin-svelte": "^3.16.0",
-    "svelte-check": "^4.4.5"
+    "svelte-check": "^4.4.6"
   }
 }
