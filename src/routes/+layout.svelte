@@ -1,8 +1,8 @@
 <script lang="ts">
   import "@unocss/reset/tailwind.css";
   import "uno.css";
-  import "@fontsource-variable/fira-code";
-  import "@fontsource-variable/inter";
+  import "@fontsource-variable/fira-code/wght.css";
+  import "@fontsource-variable/inter/wght.css";
 
   import { dev } from "$app/environment";
   import { onNavigate } from "$app/navigation";
