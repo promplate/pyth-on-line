@@ -45,7 +45,7 @@ class Context(NamedTuple):
                 from warnings import warn
 
                 msg = "lost all its dependencies" if old_dependencies else "has no dependencies"
-                warn(f"{computation} {msg} and will never be auto-triggered.", RuntimeWarning, skip_file_prefixes=(str(Path(__file__).parent), get_path("stdlib")))
+                warn(f"{computation} {msg} and will never be auto-triggered.", RuntimeWarning, skip_file_prefixes=(str(Path(__file__).parent), s := get_path("stdlib"), str(Path(s).resolve())))
         finally:
             last = self.current_computations.pop()
             assert last is computation  # sanity check
