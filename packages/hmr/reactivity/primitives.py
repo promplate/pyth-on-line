@@ -43,10 +43,6 @@ class Subscribable:
     def notify(self):
         ctx = self.context.leaf
 
-        if isinstance(self, Derived):
-            for sub in self.subscribers:
-                if isinstance(sub, Derived):
-                    sub.dirty = True
         if ctx.batches:
             ctx.schedule_callbacks(self.subscribers)
         else:
@@ -297,6 +293,13 @@ class Derived[T](BaseDerived[T]):
             else:
                 self._value = value
                 self.notify()
+
+    def notify(self):
+        # HMR uses BaseDerived hybrid nodes with different scheduling semantics.
+        for sub in self.subscribers:
+            if isinstance(sub, Derived):
+                sub.dirty = True
+        super().notify()
 
     def __call__(self):
         self.track()
