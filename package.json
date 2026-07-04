@@ -20,7 +20,7 @@
     "@fontsource-variable/fira-code": "^5.2.7",
     "@fontsource-variable/inter": "^5.2.8",
     "@fontsource-variable/jetbrains-mono": "^5.2.8",
-    "@iconify/json": "^2.2.494",
+    "@iconify/json": "^2.2.495",
     "@joplin/turndown-plugin-gfm": "^1.0.67",
     "@lobehub/icons-static-svg": "^1.91.0",
     "@neodrag/svelte": "^2.3.3",
