@@ -228,7 +228,6 @@ class Batch:
             deriveds: list[BaseDerived] = []
             for computation in self.callbacks - triggered:
                 if isinstance(computation, BaseDerived):
-                    computation.dirty = True  # to prevent a dirty Derived from being missed by a subscriber's _sync_dirty_deps before marking
                     deriveds.append(computation)
                 else:
                     callbacks.append(computation)
@@ -236,12 +235,9 @@ class Batch:
             for d in deriveds:
                 d.trigger()
                 triggered.add(d)
-            # Deriveds are triggered first to ensure intermediate nodes in the dependency graph are updated before callbacks execute.
-            # This prevents stale values when callbacks read from derived computations.
-            # TODO: Extend this ordering to handle `Memoized` and other nodes that inherit from both Subscribable and BaseComputation.
             for computation in callbacks:
                 if computation in self.callbacks:
-                    continue  # skip if re-added during callback
+                    continue
                 computation.trigger()
                 triggered.add(computation)
 
@@ -297,6 +293,13 @@ class Derived[T](BaseDerived[T]):
             else:
                 self._value = value
                 self.notify()
+
+    def notify(self):
+        # HMR uses BaseDerived hybrid nodes with different scheduling semantics.
+        for sub in self.subscribers:
+            if isinstance(sub, Derived):
+                sub.dirty = True
+        super().notify()
 
     def __call__(self):
         self.track()
