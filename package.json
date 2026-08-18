@@ -35,7 +35,7 @@
     "cheerio": "^1.2.0",
     "clsx": "^2.1.1",
     "cmdk-sv": "^0.0.19",
-    "dayjs": "^1.11.22",
+    "dayjs": "^1.11.23",
     "hast-util-from-html": "^2.0.3",
     "hast-util-to-html": "^9.0.5",
     "hast-util-to-mdast": "^10.1.2",
