@@ -250,8 +250,8 @@ async def test_concurrent_tracking():
 
 async def test_context_stacks_are_isolated_between_sibling_tasks():
     context = new_context()
-    first_signal = Signal(context=context)
-    second_signal = Signal(context=context)
+    first_signal = Signal(0, context=context)
+    second_signal = Signal(0, context=context)
     first_effect = Effect(lambda: None, False, context=context)
     second_effect = Effect(lambda: None, False, context=context)
     first_entered = Event()
@@ -282,8 +282,8 @@ async def test_context_stacks_are_isolated_between_sibling_tasks():
 
 async def test_batch_stacks_are_isolated_between_sibling_tasks():
     context = new_context()
-    first_signal = Signal(context=context)
-    second_signal = Signal(context=context)
+    first_signal = Signal(0, context=context)
+    second_signal = Signal(0, context=context)
     first_history = []
     second_history = []
     Effect(lambda: first_history.append(first_signal.get()), context=context)
