@@ -218,10 +218,16 @@ class Effect[T](BaseComputation[T]):
 
 class Batch:
     def __init__(self, force_flush=True, *, context: Context | None = None):
-        self.callbacks = set[BaseComputation]()
         self.force_flush = force_flush
         self.context = context or default_context
         self._entries: ContextVar[tuple[Any, ...]] = ContextVar("batch entries", default=())
+        self._callback_scopes: ContextVar[tuple[set[BaseComputation], ...]] = ContextVar("batch callback scopes", default=())
+        self._idle_callbacks = set[BaseComputation]()
+
+    @property
+    def callbacks(self) -> set[BaseComputation]:
+        scopes = self._callback_scopes.get()
+        return scopes[-1] if scopes else self._idle_callbacks
 
     def flush(self):
         triggered = set()
@@ -248,6 +254,7 @@ class Batch:
                 triggered.add(computation)
 
     def __enter__(self):
+        self._callback_scopes.set((*self._callback_scopes.get(), set()))
         entry = self.context.enter_batch(self)
         entry.__enter__()
         self._entries.set((*self._entries.get(), entry))
@@ -256,14 +263,18 @@ class Batch:
         entries = self._entries.get()
         entry = entries[-1]
         self._entries.set(entries[:-1])
+        callback_scopes = self._callback_scopes.get()
+        callbacks = callback_scopes[-1]
         if self.force_flush or self.context.batch_depth == 1:
             try:
                 self.flush()
             finally:
+                self._callback_scopes.set(callback_scopes[:-1])
                 entry.__exit__(None, None, None)
         else:
+            self._callback_scopes.set(callback_scopes[:-1])
             entry.__exit__(None, None, None)
-            self.context.schedule_callbacks(self.callbacks)
+            self.context.schedule_callbacks(callbacks)
 
 
 class BaseDerived[T](Subscribable, BaseComputation[T]):

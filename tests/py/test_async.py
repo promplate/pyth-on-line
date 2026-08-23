@@ -351,21 +351,37 @@ async def test_child_task_does_not_retain_exited_parent_frames():
 async def test_same_batch_instance_isolated_between_tasks():
     context = new_context()
     shared_batch = Batch(False, context=context)
+    first_signal = Signal(0, context=context)
+    second_signal = Signal(0, context=context)
+    first_history = []
+    second_history = []
+    Effect(lambda: first_history.append(first_signal.get()), context=context)
+    Effect(lambda: second_history.append(second_signal.get()), context=context)
     first_entered = Event()
     release_first = Event()
+    second_updated = Event()
 
     async def first():
         with shared_batch:
             first_entered.set()
             await release_first.wait()
+            assert second_history == [0]
+            first_signal.set(1)
 
     async def second():
         await first_entered.wait()
         with shared_batch:
+            second_signal.set(1)
+            second_updated.set()
+            await sleep(0)
+            assert second_history == [0]
             release_first.set()
             await sleep(0)
 
     await gather(first(), second())
+    assert second_updated.is_set()
+    assert first_history == [0, 1]
+    assert second_history == [0, 1]
     assert context.current_batch is None
     assert context.batch_depth == 0
 
