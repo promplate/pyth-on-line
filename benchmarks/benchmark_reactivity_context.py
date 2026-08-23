@@ -23,6 +23,9 @@ shuffled on every round to reduce ordering bias.  GC is disabled only while timi
 (default) and collected immediately before every sample.
 """
 
+# Benchmark assertions intentionally include descriptive messages.
+# ruff: noqa: TRY003
+
 from __future__ import annotations
 
 import argparse
