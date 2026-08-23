@@ -348,6 +348,28 @@ async def test_child_task_does_not_retain_exited_parent_frames():
     assert await batch_task == (None, 0)
 
 
+async def test_same_batch_instance_isolated_between_tasks():
+    context = new_context()
+    shared_batch = Batch(False, context=context)
+    first_entered = Event()
+    release_first = Event()
+
+    async def first():
+        with shared_batch:
+            first_entered.set()
+            await release_first.wait()
+
+    async def second():
+        await first_entered.wait()
+        with shared_batch:
+            release_first.set()
+            await sleep(0)
+
+    await gather(first(), second())
+    assert context.current_batch is None
+    assert context.batch_depth == 0
+
+
 async def test_async_derived_track_behavior():
     """Test that awaiting AsyncDerived doesn't track dependencies, but calling does."""
     s = Signal(1)

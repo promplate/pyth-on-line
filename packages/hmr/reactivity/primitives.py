@@ -1,4 +1,5 @@
 from collections.abc import Callable
+from contextvars import ContextVar
 from typing import Any, Literal, Self, overload
 from weakref import WeakSet
 
@@ -220,7 +221,7 @@ class Batch:
         self.callbacks = set[BaseComputation]()
         self.force_flush = force_flush
         self.context = context or default_context
-        self._entries = []
+        self._entries: ContextVar[tuple[Any, ...]] = ContextVar("batch entries", default=())
 
     def flush(self):
         triggered = set()
@@ -249,10 +250,12 @@ class Batch:
     def __enter__(self):
         entry = self.context.enter_batch(self)
         entry.__enter__()
-        self._entries.append(entry)
+        self._entries.set((*self._entries.get(), entry))
 
     def __exit__(self, *_):
-        entry = self._entries.pop()
+        entries = self._entries.get()
+        entry = entries[-1]
+        self._entries.set(entries[:-1])
         if self.force_flush or self.context.batch_depth == 1:
             try:
                 self.flush()
