@@ -11,7 +11,7 @@ from reactivity import Reactive, batch, create_signal, effect, memoized, memoize
 from reactivity.context import default_context, new_context
 from reactivity.helpers import DerivedProperty, MemoizedMethod, MemoizedProperty
 from reactivity.hmr.proxy import Proxy
-from reactivity.primitives import Derived, Effect, Signal, State
+from reactivity.primitives import Batch, Derived, Effect, Signal, State
 from utils import capture_stdout, current_lineno
 
 
@@ -437,6 +437,20 @@ def test_nested_non_flushing_batch():
                 signal.set(2)
             assert history == [0]
         assert history == [0, 2]
+
+
+def test_reenter_same_batch_instance():
+    context = new_context()
+    signal = Signal(0, context=context)
+    history = []
+    shared_batch = Batch(False, context=context)
+
+    with Effect(lambda: history.append(signal.get()), context=context):
+        with shared_batch:
+            with shared_batch:
+                signal.set(1)
+            assert history == [0]
+        assert history == [0, 1]
 
 
 def test_context_computation_stack_and_untrack():

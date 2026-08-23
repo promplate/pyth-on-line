@@ -220,6 +220,7 @@ class Batch:
         self.callbacks = set[BaseComputation]()
         self.force_flush = force_flush
         self.context = context or default_context
+        self._entries = []
 
     def flush(self):
         triggered = set()
@@ -246,17 +247,19 @@ class Batch:
                 triggered.add(computation)
 
     def __enter__(self):
-        self._entry = self.context.enter_batch(self)
-        self._entry.__enter__()
+        entry = self.context.enter_batch(self)
+        entry.__enter__()
+        self._entries.append(entry)
 
     def __exit__(self, *_):
+        entry = self._entries.pop()
         if self.force_flush or self.context.batch_depth == 1:
             try:
                 self.flush()
             finally:
-                self._entry.__exit__(None, None, None)
+                entry.__exit__(None, None, None)
         else:
-            self._entry.__exit__(None, None, None)
+            entry.__exit__(None, None, None)
             self.context.schedule_callbacks(self.callbacks)
 
 
