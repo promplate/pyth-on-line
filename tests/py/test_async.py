@@ -310,8 +310,8 @@ async def test_batch_stacks_are_isolated_between_sibling_tasks():
 
     await gather(run_first(), run_second())
 
-    assert first_history == [None, 1]
-    assert second_history == [None, 1]
+    assert first_history == [0, 1]
+    assert second_history == [0, 1]
 
 
 async def test_child_task_does_not_retain_exited_parent_frames():
