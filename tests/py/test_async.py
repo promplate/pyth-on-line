@@ -1,10 +1,11 @@
-from asyncio import TaskGroup, gather, sleep, timeout
+from asyncio import Event, TaskGroup, create_task, gather, sleep, timeout
 from functools import wraps
 
 from pytest import mark, raises
 from reactivity import async_derived
 from reactivity.async_primitives import AsyncDerived, AsyncEffect
-from reactivity.primitives import Derived, Signal
+from reactivity.context import new_context
+from reactivity.primitives import Batch, Derived, Effect, Signal
 from utils import Clock, capture_stdout, create_trio_task_factory, run_trio_in_asyncio
 
 
@@ -245,6 +246,106 @@ async def test_concurrent_tracking():
             assert await f() == 2
             await clock.tick()
             assert await h() == 6
+
+
+async def test_context_stacks_are_isolated_between_sibling_tasks():
+    context = new_context()
+    first_signal = Signal(context=context)
+    second_signal = Signal(context=context)
+    first_effect = Effect(lambda: None, False, context=context)
+    second_effect = Effect(lambda: None, False, context=context)
+    first_entered = Event()
+    second_entered = Event()
+    first_done = Event()
+
+    async def run_first():
+        try:
+            with context.enter(first_effect):
+                first_entered.set()
+                await second_entered.wait()
+                first_signal.get()
+        finally:
+            first_done.set()
+
+    async def run_second():
+        await first_entered.wait()
+        with context.enter(second_effect):
+            second_entered.set()
+            await first_done.wait()
+            second_signal.get()
+
+    await gather(run_first(), run_second())
+
+    assert {*first_effect.dependencies} == {first_signal}
+    assert {*second_effect.dependencies} == {second_signal}
+
+
+async def test_batch_stacks_are_isolated_between_sibling_tasks():
+    context = new_context()
+    first_signal = Signal(context=context)
+    second_signal = Signal(context=context)
+    first_history = []
+    second_history = []
+    Effect(lambda: first_history.append(first_signal.get()), context=context)
+    Effect(lambda: second_history.append(second_signal.get()), context=context)
+    first_entered = Event()
+    second_entered = Event()
+    first_done = Event()
+
+    async def run_first():
+        try:
+            with Batch(context=context):
+                first_entered.set()
+                await second_entered.wait()
+                first_signal.set(1)
+        finally:
+            first_done.set()
+
+    async def run_second():
+        await first_entered.wait()
+        with Batch(context=context):
+            second_entered.set()
+            await first_done.wait()
+            second_signal.set(1)
+
+    await gather(run_first(), run_second())
+
+    assert first_history == [None, 1]
+    assert second_history == [None, 1]
+
+
+async def test_child_task_does_not_retain_exited_parent_frames():
+    context = new_context()
+    parent_effect = Effect(lambda: None, False, context=context)
+    parent_effect.reactivity_loss_strategy = "ignore"
+    parent_batch = Batch(False, context=context)
+    computation_entered = Event()
+    batch_entered = Event()
+    release = Event()
+
+    async def inspect_computation():
+        computation_entered.set()
+        await release.wait()
+        return context.current_computation
+
+    with context.enter(parent_effect):
+        computation_task = create_task(inspect_computation())
+        await computation_entered.wait()
+    release.set()
+    assert await computation_task is None
+
+    release.clear()
+
+    async def inspect_batch():
+        batch_entered.set()
+        await release.wait()
+        return context.current_batch, context.batch_depth
+
+    with parent_batch:
+        batch_task = create_task(inspect_batch())
+        await batch_entered.wait()
+    release.set()
+    assert await batch_task == (None, 0)
 
 
 async def test_async_derived_track_behavior():

@@ -32,9 +32,9 @@ class Subscribable:
     def track(self):
         ctx = self.context.leaf
 
-        if not ctx.current_computations:
+        last = ctx.current_computation
+        if last is None:
             return
-        last = ctx.current_computations[-1]
         if last is not self:
             with ctx.untrack():
                 self.subscribers.add(last)
@@ -43,7 +43,7 @@ class Subscribable:
     def notify(self):
         ctx = self.context.leaf
 
-        if ctx.batches:
+        if ctx.current_batch is not None:
             ctx.schedule_callbacks(self.subscribers)
         else:
             with Batch(force_flush=False, context=ctx):
@@ -246,18 +246,18 @@ class Batch:
                 triggered.add(computation)
 
     def __enter__(self):
-        self.context.batches.append(self)
+        self._entry = self.context.enter_batch(self)
+        self._entry.__enter__()
 
     def __exit__(self, *_):
-        if self.force_flush or len(self.context.batches) == 1:
+        if self.force_flush or self.context.batch_depth == 1:
             try:
                 self.flush()
             finally:
-                last = self.context.batches.pop()
+                self._entry.__exit__(None, None, None)
         else:
-            last = self.context.batches.pop()
+            self._entry.__exit__(None, None, None)
             self.context.schedule_callbacks(self.callbacks)
-        assert last is self
 
 
 class BaseDerived[T](Subscribable, BaseComputation[T]):
@@ -266,9 +266,8 @@ class BaseDerived[T](Subscribable, BaseComputation[T]):
         self.dirty = True
 
     def _sync_dirty_deps(self, *_syncing: BaseComputation) -> Any:
-        current_computations = self.context.leaf.current_computations
         for dep in self.dependencies:
-            if isinstance(dep, BaseDerived) and dep not in current_computations and dep not in _syncing:
+            if isinstance(dep, BaseDerived) and not self.context.leaf.is_computing(dep) and dep not in _syncing:
                 dep._sync_dirty_deps(*_syncing, self)  # noqa: SLF001
                 if dep.dirty:
                     dep()

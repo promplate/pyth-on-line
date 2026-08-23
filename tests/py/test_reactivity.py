@@ -425,6 +425,46 @@ def test_nested_batch():
         assert stdout == "0\n3\n5\n"
 
 
+def test_nested_non_flushing_batch():
+    context = new_context()
+    signal = Signal(0, context=context)
+    history = []
+
+    with Effect(lambda: history.append(signal.get()), context=context):
+        with context.batch(force_flush=False):
+            signal.set(1)
+            with context.batch(force_flush=False):
+                signal.set(2)
+            assert history == [0]
+        assert history == [0, 2]
+
+
+def test_context_computation_stack_and_untrack():
+    context = new_context()
+    tracked = Signal(context=context)
+    untracked = Signal(context=context)
+    outer = Effect(lambda: None, False, context=context)
+    inner = Effect(lambda: None, False, context=context)
+
+    assert context.current_computations == []
+    with context.enter(outer):
+        assert context.current_computations == [outer]
+        with context.untrack():
+            assert context.current_computations == []
+            untracked.get()
+        assert context.current_computations == [outer]
+        tracked.get()
+        with context.enter(inner):
+            assert context.current_computations == [outer, inner]
+            tracked.get()
+        assert context.current_computations == [outer]
+    assert context.current_computations == []
+
+    assert {*outer.dependencies} == {tracked}
+    assert {*inner.dependencies} == {tracked}
+    assert untracked.subscribers == set()
+
+
 def test_reactive():
     obj = Reactive[str, int]()
     obj["x"] = obj["y"] = 0
