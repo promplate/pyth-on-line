@@ -50,7 +50,7 @@ def default_task_factory[T](async_function: AsyncFunction[T]) -> Awaitable[T]:
                         yield from evt.wait().__await__()
                     if exc is not None:
                         raise exc
-                    return res  # noqa: F821
+                    return res
 
             return Future()
 
