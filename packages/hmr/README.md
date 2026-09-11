@@ -32,3 +32,7 @@ If you are running your entry file with `python foo.py bar baz ...`, you can jus
 You can also run modules with `hmr -m <module>`, just like `python -m <module>`.
 
 Try it with `uvx` or `pipx`. If you are using a virtual environment, it is recommended to install `hmr` in the virtual environment instead of globally.
+
+## Integration example
+
+For a real CPU inference-server smoke, see [`examples/vllm-cpu-hmr`](../../examples/vllm-cpu-hmr/). It runs one OpenAI-compatible vLLM request before and after a Python source edit, then records PID, model-identity, and byte-restoration evidence.
