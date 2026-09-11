@@ -124,7 +124,7 @@ def _watch() -> None:
                     }
                     telemetry.event("source_change", path=rel, decision=decision.as_dict())
             _dump_status()
-    except Exception as exc:  # noqa: BLE001 - watcher failures must be receipted
+    except Exception as exc:
         telemetry.event("watcher_failed", error=f"{type(exc).__name__}: {exc}")
         _dump_status()
 
@@ -136,7 +136,7 @@ def _load_handle(module):
     helper = getattr(core, "_hmr_probe_load", None)
     if helper is None:
         namespace = core.__dict__
-        exec("def _hmr_probe_load(module):\n    return module.load\n", namespace)  # noqa: S102 - construct a helper inside HMR's protected package
+        exec("def _hmr_probe_load(module):\n    return module.load\n", namespace)
         helper = namespace["_hmr_probe_load"]
     return helper(module)
 
@@ -217,7 +217,7 @@ def sync_pending(*, force: bool = False) -> dict[str, Any]:
                                 "forced_dependents_reexecuted": forced_dependents_reexecuted,
                             }
                         )
-                    except Exception as exc:  # noqa: BLE001 - reject and receipt it
+                    except Exception as exc:
                         rejected.append(
                             {
                                 **record,
