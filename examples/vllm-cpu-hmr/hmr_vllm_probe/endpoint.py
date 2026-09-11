@@ -1,4 +1,5 @@
 """Opt-in vLLM endpoint plugin for HMR state and publication evidence."""
+
 # pyright: reportMissingImports=false
 
 from __future__ import annotations

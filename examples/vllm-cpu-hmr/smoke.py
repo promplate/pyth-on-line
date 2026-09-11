@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """One-item real-vLLM CPU HMR smoke for the official CPU image."""
+
 # ruff: noqa: TRY003, TRY301
 # pyright: reportReturnType=false, reportOptionalMemberAccess=false, reportOptionalSubscript=false, reportArgumentType=false, reportAttributeAccessIssue=false
 
@@ -60,7 +61,7 @@ def request_json(
         raw = exc.read()
         try:
             payload = json.loads(raw)
-        except Exception:
+        except (json.JSONDecodeError, UnicodeDecodeError):
             payload = raw.decode(errors="replace")
         return (
             exc.code,
@@ -102,7 +103,7 @@ def wait_ready(base: str, process: subprocess.Popen, timeout: float) -> None:
             if status == 200:
                 return
             last = payload
-        except Exception as exc:
+        except (OSError, TimeoutError) as exc:
             last = repr(exc)
         time.sleep(1)
     raise TimeoutError(f"vLLM did not become ready: {last}")

@@ -1,4 +1,5 @@
 """Ambient pyth-on-line finder, watcher, and request-boundary publisher."""
+
 # This disposable integration deliberately reports candidate errors verbatim.
 # ruff: noqa: TRY003, TRY301
 # pyright: reportMissingImports=false, reportArgumentType=false, reportIndexIssue=false
@@ -123,19 +124,19 @@ def _watch() -> None:
                     }
                     telemetry.event("source_change", path=rel, decision=decision.as_dict())
             _dump_status()
-    except BaseException as exc:
+    except Exception as exc:  # noqa: BLE001 - watcher failures must be receipted
         telemetry.event("watcher_failed", error=f"{type(exc).__name__}: {exc}")
         _dump_status()
 
 
 def _load_handle(module):
     """Access the intentionally private loader from a core-owned frame."""
-    import reactivity.hmr.core as core
+    from reactivity.hmr import core
 
     helper = getattr(core, "_hmr_probe_load", None)
     if helper is None:
         namespace = core.__dict__
-        exec("def _hmr_probe_load(module):\n    return module.load\n", namespace)
+        exec("def _hmr_probe_load(module):\n    return module.load\n", namespace)  # noqa: S102 - construct a helper inside HMR's protected package
         helper = namespace["_hmr_probe_load"]
     return helper(module)
 
@@ -216,7 +217,7 @@ def sync_pending(*, force: bool = False) -> dict[str, Any]:
                                 "forced_dependents_reexecuted": forced_dependents_reexecuted,
                             }
                         )
-                    except BaseException as exc:
+                    except Exception as exc:  # noqa: BLE001 - reject and receipt it
                         rejected.append(
                             {
                                 **record,

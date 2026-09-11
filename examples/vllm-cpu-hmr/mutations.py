@@ -1,4 +1,5 @@
 """Deterministic, byte-restoring source mutations for the CPU smoke."""
+
 # ruff: noqa: TRY003
 
 from __future__ import annotations

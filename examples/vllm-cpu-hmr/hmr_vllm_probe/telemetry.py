@@ -1,4 +1,5 @@
 """Stable, process-local telemetry for the disposable vLLM HMR probe."""
+
 # ruff: noqa: TRY003,ARG001
 
 from __future__ import annotations

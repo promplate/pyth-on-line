@@ -1,4 +1,5 @@
 """Worker-side identity and publication RPCs for the CPU smoke."""
+
 # pyright: reportMissingImports=false, reportAttributeAccessIssue=false
 
 from __future__ import annotations
