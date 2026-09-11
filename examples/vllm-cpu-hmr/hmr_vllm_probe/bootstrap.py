@@ -1,6 +1,6 @@
 """Ambient pyth-on-line finder, watcher, and request-boundary publisher."""
 # This disposable integration deliberately reports candidate errors verbatim.
-# ruff: noqa: TRY003,TRY301,BLE001,S102,PLR0402
+# ruff: noqa: TRY003, TRY301
 # pyright: reportMissingImports=false, reportArgumentType=false, reportIndexIssue=false
 
 from __future__ import annotations

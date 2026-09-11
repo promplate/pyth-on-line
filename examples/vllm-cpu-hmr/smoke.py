@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """One-item real-vLLM CPU HMR smoke for the official CPU image."""
-# ruff: noqa: BLE001,TRY003,TRY301
+# ruff: noqa: TRY003, TRY301
 # pyright: reportReturnType=false, reportOptionalMemberAccess=false, reportOptionalSubscript=false, reportArgumentType=false, reportAttributeAccessIssue=false
 
 from __future__ import annotations
