@@ -16,7 +16,7 @@ dependencies = [
     "hmr",
     "numpy~=2.2",
     "pandas~=2.2",
-    "trio~=0.32.0",
+    "trio~=0.33.0",
 ]
 
 [tool.pdm]
