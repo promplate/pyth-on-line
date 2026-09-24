@@ -274,10 +274,8 @@ class ReactiveSequenceProxy[T](MutableSequence[T]):
     def insert(self, index, value):
         if index < 0:
             index += self._length
-        if index < 0:
-            index = 0
-        if index > self._length:
-            index = self._length
+        index = max(index, 0)
+        index = min(index, self._length)
         self._replace(slice(index, index), [value])
 
     def append(self, value):
