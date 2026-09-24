@@ -106,9 +106,8 @@ class AsyncDerived[T](BaseDerived[Awaitable[T]]):
 
     async def __sync_dirty_deps(self, *_syncing: BaseComputation):
         try:
-            current_computations = self.context.leaf.current_computations
             for dep in tuple(self.dependencies):  # note: I don't know why but `self.dependencies` may shrink during iteration
-                if isinstance(dep, BaseDerived) and dep not in current_computations and dep not in _syncing:
+                if isinstance(dep, BaseDerived) and not self.context.leaf.is_computing(dep) and dep not in _syncing:
                     if isinstance(dep, AsyncDerived):
                         await dep._sync_dirty_deps(*_syncing, self)  # noqa: SLF001
                         if dep.dirty:
