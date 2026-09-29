@@ -6,10 +6,17 @@ import { bundledLanguages, createHighlighter } from "shiki";
 export const languages = Object.keys(bundledLanguages);
 
 export async function getHighlighter(lang: string) {
-  if (!languages.includes(lang) && lang !== "text") {
+  // Normalize language to lowercase for consistency with bundledLanguages
+  const normalizedLang = lang.toLowerCase();
+
+  if (!languages.includes(normalizedLang) && normalizedLang !== "text") {
     console.error(`Language "${lang}" is not supported by Shiki.`);
     lang = "text";
   }
+  else {
+    lang = normalizedLang;
+  }
+
   return await cacheGlobally(`shiki-${lang}`, async () => {
     return await createHighlighter({ themes: ["vitesse-dark"], langs: [lang] });
   })();
@@ -20,5 +27,7 @@ const transformers: ShikiTransformer[] = [
 ];
 
 export async function highlight(lang = "text", code: string) {
-  return (await getHighlighter(lang)).codeToHtml(code, { lang, theme: "vitesse-dark", transformers });
+  // Normalize language to lowercase for consistency
+  const normalizedLang = lang.toLowerCase();
+  return (await getHighlighter(normalizedLang)).codeToHtml(code, { lang: normalizedLang, theme: "vitesse-dark", transformers });
 }
