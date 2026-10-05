@@ -62,7 +62,7 @@ def create_trio_task_factory(nursery: "Nursery"):
                 yield from evt.wait().__await__()
                 if exc is not None:
                     raise exc
-                return res  # noqa: F821
+                return res
 
         return Future()
 
