@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { Heading, List, Node, Parent } from "mdast";
-  import type { ComponentType } from "svelte";
+  import type { Component } from "svelte";
 
   import Fallback from "./Fallback.svelte";
   import InlineCode from "./InlineCode.svelte";
@@ -10,7 +10,7 @@
 
   export let node: Node;
 
-  export let OverrideCode: ComponentType | null = null;
+  export let OverrideCode: Component<any> | null = null;
   export let codeProps: Record<string, any> = {};
   export let inlineCodeProps: Record<string, any> = {};
 

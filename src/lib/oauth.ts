@@ -1,4 +1,4 @@
-import * as env from "$env/static/public";
+import * as env from "$app/env/public";
 import { persisted } from "svelte-persisted-store";
 import { derived, readable } from "svelte/store";
 
@@ -10,7 +10,7 @@ const SCOPES = "read:user,read:org,repo";
 
 export function getOauthUrl(origin: string) {
   const url = new URL("https://github.com/login/oauth/authorize");
-  url.searchParams.set("client_id", client_id);
+  url.searchParams.set("client_id", String(client_id));
   url.searchParams.set("redirect_uri", new URL("/oauth", origin).href);
   url.searchParams.set("scope", SCOPES);
   return url.href;

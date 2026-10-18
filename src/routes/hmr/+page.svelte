@@ -1,17 +1,16 @@
 <script lang="ts">
   import FancyButton from "./FancyButton.svelte";
   import SparklesText from "./SparklesText.svelte";
-  import { navigating } from "$app/stores";
+  import { navigating } from "$app/state";
   import { updateMetadata } from "$lib/seo";
   import { onMount } from "svelte";
-  import { get } from "svelte/store";
 
   updateMetadata({
     ogTitle: "HMR - Hot Module Reload for Python",
     ogDescription: "Next-generation hot module replacement for Python development",
   });
 
-  let highlighted = !get(navigating)?.from;
+  let highlighted = !navigating.from;
   highlighted && onMount(() => setTimeout(() => highlighted = false, 500));
 </script>
 

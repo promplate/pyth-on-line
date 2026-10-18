@@ -7,14 +7,18 @@
 
   import Dependency from "./Dependency.svelte";
   import ScriptBlock from "./ScriptBlock.svelte";
-  import { page } from "$app/stores";
+  import { page as pageState } from "$app/state";
   import UseCopy from "$lib/components/console/UseCopy.svelte";
   import Router from "$lib/components/markdown/Router.svelte";
   import WithMarkdown from "$lib/components/reusable/WithMarkdown.svelte";
   import { fromNow } from "$lib/date";
   import { updateMetadata } from "$lib/seo";
   import { Avatar } from "bits-ui";
+  import { toStore } from "svelte/store";
   import { fly } from "svelte/transition";
+
+  // Bridge Kit state to the existing store syntax without losing navigation updates.
+  const page = toStore(() => ({ ...pageState }));
 
   export let data: PageData;
   const payload = data.payload as Payload;

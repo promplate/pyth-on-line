@@ -4,13 +4,17 @@
   import "@fontsource-variable/fira-code";
   import "@fontsource-variable/inter";
 
-  import { dev } from "$app/environment";
+  import { dev } from "$app/env";
+  import * as env from "$app/env/public";
   import { onNavigate } from "$app/navigation";
-  import { page } from "$app/stores";
-  import * as env from "$env/static/public";
+  import { page as pageState } from "$app/state";
   import CmdK from "$lib/components/command/CmdK.svelte";
   import { initMetadataStore, resetMetadata } from "$lib/seo";
   import { Toaster } from "svelte-sonner";
+  import { toStore } from "svelte/store";
+
+  // Bridge Kit state to the existing store syntax without losing navigation updates.
+  const page = toStore(() => ({ ...pageState }));
 
   const metadata = initMetadataStore();
   onNavigate(() => resetMetadata(metadata));
@@ -30,7 +34,7 @@
     {@html headScripts}
   {/if}
   {#if originTrialToken}
-    <meta http-equiv="origin-trial" content={originTrialToken} />
+    <meta http-equiv={"origin-trial" as any} content={originTrialToken} />
   {/if}
 
   <title>{ogTitle}</title>

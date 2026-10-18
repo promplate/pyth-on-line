@@ -2,11 +2,16 @@
   import type { Spring } from "svelte/motion";
 
   import { query } from "./store";
-  import { browser } from "$app/environment";
+  import { browser } from "$app/env";
   import { afterNavigate, beforeNavigate, goto, preloadData } from "$app/navigation";
-  import { navigating, page } from "$app/stores";
+  import { navigating as navigation, page as pageState } from "$app/state";
   import Progress from "$lib/components/Progress.svelte";
   import { Button } from "bits-ui";
+  import { toStore } from "svelte/store";
+
+  // Bridge Kit state to the existing store syntax without losing navigation updates.
+  const page = toStore(() => ({ ...pageState }));
+  const navigating = toStore(() => navigation.to ? { ...navigation } : null);
 
   let progress: Spring<number>;
   let reset: () => any;
@@ -26,7 +31,8 @@
 
   function search() {
     if (!disableSearch) {
-      goto(`/pypi?q=${$query}`, { keepFocus: true });
+      // Kit 3 combines focus and scroll resets; retain input focus but reset the results' scroll.
+      goto(`/pypi?q=${$query}`, { reset: false }).then(() => window.scrollTo(0, 0));
     }
   }
 

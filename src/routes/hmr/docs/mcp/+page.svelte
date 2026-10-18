@@ -1,13 +1,17 @@
 <script lang="ts">
   import mcpDocs from "./MCP.md?raw";
   import cursor from "@lobehub/icons-static-svg/icons/cursor.svg?raw";
-  import { page } from "$app/stores";
+  import { page as pageState } from "$app/state";
   import CodeBlock from "$lib/components/CodeBlock.svelte";
   import UseCopy from "$lib/components/console/UseCopy.svelte";
   import Router from "$lib/components/markdown/Router.svelte";
   import WithMarkdown from "$lib/components/reusable/WithMarkdown.svelte";
   import { updateMetadata } from "$lib/seo";
   import { Separator } from "bits-ui";
+  import { toStore } from "svelte/store";
+
+  // Bridge Kit state to the existing store syntax without losing navigation updates.
+  const page = toStore(() => ({ ...pageState }));
 
   const origin = $page.url.origin.replace("http://sveltekit-prerender", "");
   const url = `${origin}/hmr/mcp`;

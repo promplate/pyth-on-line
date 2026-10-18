@@ -1,4 +1,4 @@
-import * as env from "$env/static/public";
+import * as env from "$app/env/public";
 import { version } from "pyodide/package.json";
 
 // eslint-disable-next-line ts/ban-ts-comment

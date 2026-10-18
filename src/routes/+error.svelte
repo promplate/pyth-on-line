@@ -1,5 +1,9 @@
 <script lang="ts">
-  import { page } from "$app/stores";
+  import { page as pageState } from "$app/state";
+  import { toStore } from "svelte/store";
+
+  // Bridge Kit state to the existing store syntax without losing navigation updates.
+  const page = toStore(() => ({ ...pageState }));
 </script>
 
 <div class="grid h-95vh place-items-center">

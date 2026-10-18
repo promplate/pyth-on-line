@@ -2,12 +2,16 @@
   import type { PageData } from "./$types";
 
   import { query } from "./store";
-  import { browser } from "$app/environment";
+  import { browser } from "$app/env";
   import { afterNavigate, goto } from "$app/navigation";
-  import { page } from "$app/stores";
+  import { page as pageState } from "$app/state";
   import { updateMetadata } from "$lib/seo";
   import { Button } from "bits-ui";
   import { onMount } from "svelte";
+  import { toStore } from "svelte/store";
+
+  // Bridge Kit state to the existing store syntax without losing navigation updates.
+  const page = toStore(() => ({ ...pageState }));
 
   updateMetadata({ ogTitle: "PyPI Explorer", ogDescription: "Search and explore Python packages from the PyPI directly in your browser." });
 

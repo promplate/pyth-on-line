@@ -1,4 +1,7 @@
+import type { ComponentType } from "svelte";
+
 import BaseMarkdown from "$lib/components/markdown/BaseMarkdown.svelte";
+import { cast } from "$lib/utils/typing";
 import { tick } from "svelte";
 import { toast } from "svelte-sonner";
 
@@ -16,5 +19,6 @@ export function withToast(data: { loading: string; success?: string; duration?: 
 }
 
 export function toastMarkdown(markdown: string, type: "message" | "success" | "info" | "warning" | "error" = "success") {
-  toast[type](BaseMarkdown, { componentProps: { text: markdown } });
+  // Sonner 0.3 accepts compiled Svelte 5 components but still declares Svelte 4 class types.
+  toast[type](cast<ComponentType>(BaseMarkdown), { componentProps: { text: markdown } });
 }

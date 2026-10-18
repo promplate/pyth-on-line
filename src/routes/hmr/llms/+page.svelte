@@ -4,8 +4,8 @@
   import "@fontsource-variable/jetbrains-mono/wght.css";
   import "@fontsource-variable/jetbrains-mono/wght-italic.css";
 
-  import { browser } from "$app/environment";
-  import { page } from "$app/stores";
+  import { browser } from "$app/env";
+  import { page as pageState } from "$app/state";
   import CodeBlock from "$lib/components/CodeBlock.svelte";
   import UseCopy from "$lib/components/console/UseCopy.svelte";
   import Router from "$lib/components/markdown/Router.svelte";
@@ -13,7 +13,11 @@
   import WithTooltip from "$lib/components/reusable/WithTooltip.svelte";
   import { updateMetadata } from "$lib/seo";
   import { Label, Separator, Switch, Tabs } from "bits-ui";
+  import { toStore } from "svelte/store";
   import { fly } from "svelte/transition";
+
+  // Bridge Kit state to the existing store syntax without losing navigation updates.
+  const page = toStore(() => ({ ...pageState }));
 
   updateMetadata({ ogTitle: "LLM-Friendly Docs for HMR", ogDescription: "HMR library documentation in llms.txt format for AI assistants" });
 
