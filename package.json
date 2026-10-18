@@ -8,7 +8,7 @@
     "lint": "eslint .",
     "build": "vite build --sourcemap",
     "preview": "vite preview",
-    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json && tsc -p src/service-worker --noEmit",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
   },
   "stackblitz": {
