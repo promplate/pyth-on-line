@@ -1,29 +1,34 @@
 <script lang="ts">
   import type { PageData } from "./$types";
 
-  import { query } from "./store";
-  import { browser } from "$app/environment";
+  import { getSearchState } from "./store";
   import { afterNavigate, goto } from "$app/navigation";
-  import { page } from "$app/stores";
+  import { page } from "$app/state";
   import { updateMetadata } from "$lib/seo";
   import { Button } from "bits-ui";
-  import { onMount } from "svelte";
+  import { onMount, tick } from "svelte";
 
   updateMetadata({ ogTitle: "PyPI Explorer", ogDescription: "Search and explore Python packages from the PyPI directly in your browser." });
 
-  export let data: PageData;
+  const { data }: { data: PageData } = $props();
+  const searchState = getSearchState();
+  let additionalResults = $state.raw<PageData["results"]>([]);
+  const results = $derived([...data.results, ...additionalResults]);
 
   let loadingMore = false;
 
-  $: enough = data.total !== null && data.total <= data.results.length;
+  const enough = $derived(data.total !== null && data.total <= results.length);
 
   let ref: HTMLDivElement;
   let index = 1;
-
-  let intersecting = !enough;
+  let generation = 0;
+  let intersecting = false;
 
   afterNavigate(() => {
+    generation++;
+    additionalResults = [];
     index = 1;
+    loadingMore = false;
     intersecting && startLoadingMore();
   });
 
@@ -31,36 +36,43 @@
     if (loadingMore || !data.query)
       return;
     loadingMore = true;
-    const q = $query;
-    // eslint-disable-next-line no-unmodified-loop-condition
-    while (intersecting && !enough) {
-      const url = new URL(`${location.pathname}/~search${location.search}`, location.origin);
-      url.searchParams.set("page", String(index + 1));
-      const json = await fetch(url, { headers: { accept: "application/json" } }).then(res => res.json());
-      if (q === $query) {
-        data.results = [...data.results, ...json.results];
+    const currentGeneration = generation;
+    try {
+      // `enough` is derived from the results appended below.
+      // eslint-disable-next-line no-unmodified-loop-condition
+      while (intersecting && !enough) {
+        const url = new URL(`${location.pathname}/~search${location.search}`, location.origin);
+        url.searchParams.set("page", String(index + 1));
+        const json = await fetch(url, { headers: { accept: "application/json" } }).then(res => res.json());
+        // A response from the previous search must not append to the new results.
+        if (currentGeneration !== generation)
+          return;
+        additionalResults = [...additionalResults, ...json.results];
         index++;
-        await new Promise(resolve => setTimeout(resolve, 10));
-      }
-      else {
-        return;
+        await tick();
+        intersecting = ref.getBoundingClientRect().top < innerHeight;
       }
     }
-    loadingMore = false;
-  }
-
-  $: if (browser && intersecting) {
-    startLoadingMore();
+    finally {
+      if (currentGeneration === generation)
+        loadingMore = false;
+    }
   }
 
   onMount(() => {
-    new IntersectionObserver(([{ isIntersecting }]) => {
+    const observer = new IntersectionObserver(([{ isIntersecting }]) => {
       intersecting = isIntersecting;
-    }).observe(ref);
+      intersecting && startLoadingMore();
+    });
+    observer.observe(ref);
+    return () => {
+      generation++;
+      observer.disconnect();
+    };
   });
 </script>
 
-{#if $page.url.searchParams.get("q")}
+{#if page.url.searchParams.get("q")}
   <h1 class="text-xl">
     <span class="text-neutral-1">{data.total}</span>
     <span class="text-neutral-5">Results for</span>
@@ -71,13 +83,13 @@
     <div class="m-4 flex flex-col gap-2">
       <h1 class="text-lg text-neutral-3 font-275 lg:text-xl">Welcome to the PyPI Explorer</h1>
       <!-- svelte-ignore a11y-autofocus -->
-      <input autofocus on:keydown={({ key }) => key === "Enter" && goto(`/pypi?q=${$query}`)} placeholder="search something ..." class="w-full b-b-(1 neutral-6) bg-transparent py-1 text-neutral-3 outline-none focus:b-b-neutral-5 lg:text-lg placeholder-neutral-6" bind:value={$query} type="text">
+      <input autofocus onkeydown={({ key }) => key === "Enter" && goto(`/pypi?q=${searchState.query}`)} placeholder="search something ..." class="w-full b-b-(1 neutral-6) bg-transparent py-1 text-neutral-3 outline-none focus:b-b-neutral-5 lg:text-lg placeholder-neutral-6" bind:value={searchState.query} type="text">
     </div>
   </div>
 {/if}
 
 <div class="relative my-4 flex flex-col gap-3 transition-opacity">
-  {#each data.results as { name, version, description = "", updated }}
+  {#each results as { name, version, description = "", updated } (name)}
     <Button.Root class="flex flex-col gap-1 px-3 py-2 ring-(1.2 neutral-8) hover:ring-neutral-5" href="/pypi/{name}">
       <div class="flex flex-row items-center gap-1.5 ws-nowrap">
         <h2 class="text-lg text-neutral-1">{name}</h2>
