@@ -1,7 +1,5 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "installCommand": "bun install",
-  "buildCommand": "bash scripts/vercel-build.sh",
   "redirects": [
     {
       "source": "/hmr/llms(.+)",
