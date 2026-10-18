@@ -4,8 +4,8 @@
   import "@fontsource-variable/jetbrains-mono/wght.css";
   import "@fontsource-variable/jetbrains-mono/wght-italic.css";
 
-  import { browser } from "$app/env";
-  import { page as pageState } from "$app/state";
+  import { afterNavigate } from "$app/navigation";
+  import { page } from "$app/state";
   import CodeBlock from "$lib/components/CodeBlock.svelte";
   import UseCopy from "$lib/components/console/UseCopy.svelte";
   import Router from "$lib/components/markdown/Router.svelte";
@@ -13,42 +13,56 @@
   import WithTooltip from "$lib/components/reusable/WithTooltip.svelte";
   import { updateMetadata } from "$lib/seo";
   import { Label, Separator, Switch, Tabs } from "bits-ui";
-  import { toStore } from "svelte/store";
+  import { onDestroy } from "svelte";
   import { fly } from "svelte/transition";
-
-  // Bridge Kit state to the existing store syntax without losing navigation updates.
-  const page = toStore(() => ({ ...pageState }));
 
   updateMetadata({ ogTitle: "LLM-Friendly Docs for HMR", ogDescription: "HMR library documentation in llms.txt format for AI assistants" });
 
-  export let data: PageData;
+  const { data }: { data: PageData } = $props();
 
-  let content = "";
-  let mounted = false;
-  let loading = true;
-  let viewMode: "raw" | "rendered" = "raw";
-  let includeTests = false;
-  let xml = false;
+  let content = $state("");
+  let loading = $state(true);
+  let viewMode = $state<"raw" | "rendered">("raw");
+  let includeTests = $state(false);
+  let xml = $state(false);
+  let requestId = 0;
 
-  $: url = `${$page.url.origin}/hmr/llms${includeTests ? "-full" : ""}${xml ? ".xml" : ".txt"}`;
+  const url = $derived(`${page.url.origin}/hmr/llms${includeTests ? "-full" : ""}${xml ? ".xml" : ".txt"}`);
 
-  $: if (xml && viewMode === "rendered")
-    viewMode = "raw";
-
-  const getMounted = () => mounted; // no tracking
-
-  $: {
+  async function loadContent(initial = false) {
+    const currentRequest = ++requestId;
     loading = true;
-    browser && (!getMounted() ? data.html : fetch(url, { headers: { accept: xml ? "application/xml" : "text/markdown" } }).then(r => r.text())).then((text) => {
-      content = text;
-    }).catch((error) => {
-      content = String(error);
-    }).finally(() => {
-      mounted = true;
-      loading = false;
-    });
+    try {
+      const text = await (initial ? data.html : fetch(url, { headers: { accept: xml ? "application/xml" : "text/markdown" } }).then(r => r.text()));
+      if (currentRequest === requestId)
+        content = text;
+    }
+    catch (error) {
+      if (currentRequest === requestId)
+        content = String(error);
+    }
+    finally {
+      if (currentRequest === requestId)
+        loading = false;
+    }
   }
 
+  afterNavigate(() => loadContent(!includeTests && !xml));
+  onDestroy(() => {
+    requestId++;
+  });
+
+  function setIncludeTests(value: boolean) {
+    includeTests = value;
+    loadContent();
+  }
+
+  function setXml(value: boolean) {
+    xml = value;
+    if (xml)
+      viewMode = "raw";
+    loadContent();
+  }
 </script>
 
 <div id="llms-page-root" class="m-4 w-[calc(100%-2rem)] col self-center 2xl:(m-14) lg:(m-10 max-w-4xl) md:(m-8 w-[calc(100%-4rem)] row) sm:(m-6 w-[calc(100%-3rem)]) xl:(m-12 max-w-5xl) <md:gap-1">
@@ -71,13 +85,13 @@
 
       <div class="col gap-0.7 text-neutral-4 [&>:where(button,a)]:(w-full row items-center gap-2 rounded-lg px-2 py-1.5 -ml-2) [&>:w\here(button,a):hover]:(bg-white/7 text-white filter-none) [&>:where(button,a):focus-visible]:(outline-none ring-1.2 ring-neutral-2 ring-inset) ![&>:where(button,a):active]:(bg-neutral-2 text-neutral-8 shadow-lg shadow-neutral-2/20)">
         <UseCopy text={url} let:handleClick>
-          <button on:click={handleClick}>
+          <button onclick={handleClick}>
             <div class="i-si-copy-alt-line size-4" />
             Copy URL
           </button>
         </UseCopy>
         <UseCopy text={content} let:handleClick>
-          <button on:click={handleClick}>
+          <button onclick={handleClick}>
             <div class="i-si-copy-alt-fill size-4" />
             Copy Content
           </button>
@@ -121,7 +135,7 @@
             <Label.Root for="include-tests" class="text-sm text-neutral-3">
               Include unit tests
             </Label.Root>
-            <Switch.Root bind:checked={includeTests} id="include-tests" class="peer h-4.5 w-9 inline-flex shrink-0 cursor-pointer items-center rounded-full bg-neutral-8 data-[state=checked]:bg-neutral-5 focus-visible:(outline-none ring-1.2 ring-neutral-2 ring-inset)">
+            <Switch.Root bind:checked={() => includeTests, setIncludeTests} id="include-tests" class="peer h-4.5 w-9 inline-flex shrink-0 cursor-pointer items-center rounded-full bg-neutral-8 data-[state=checked]:bg-neutral-5 focus-visible:(outline-none ring-1.2 ring-neutral-2 ring-inset)">
               <Switch.Thumb class="pointer-events-none block size-3.5 shrink-0 rounded-full bg-white data-[state=checked]:translate-x-5 data-[state=unchecked]:translate-x-0.5" />
             </Switch.Root>
           </div>
@@ -135,7 +149,7 @@
             <Label.Root for="format-toggle" class="text-sm text-neutral-3">
               Output in XML
             </Label.Root>
-            <Switch.Root bind:checked={xml} id="format-toggle" class="peer h-4.5 w-9 inline-flex shrink-0 cursor-pointer items-center rounded-full bg-neutral-8 data-[state=checked]:bg-neutral-5 focus-visible:(outline-none ring-1.2 ring-neutral-2 ring-inset)">
+            <Switch.Root bind:checked={() => xml, setXml} id="format-toggle" class="peer h-4.5 w-9 inline-flex shrink-0 cursor-pointer items-center rounded-full bg-neutral-8 data-[state=checked]:bg-neutral-5 focus-visible:(outline-none ring-1.2 ring-neutral-2 ring-inset)">
               <Switch.Thumb class="pointer-events-none block size-3.5 shrink-0 rounded-full bg-white data-[state=checked]:translate-x-5 data-[state=unchecked]:translate-x-0.5" />
             </Switch.Root>
           </div>
@@ -175,21 +189,19 @@
     </div>
   </div>
 
-  {#key content}
-    {#if !loading}
-      <main transition:fly={{ y: 5 }} class="mt-1 max-w-full overflow-x-hidden" style:--un-prose-hr="#ffffff20">
-        <WithMarkdown let:parse>
-          {#if viewMode === "rendered"}
-            <Router node={parse(content)} />
-          {:else}
-            <section class="text-sm [&_code_*]:!font-jb">
-              <CodeBlock lang="markdown" code={content} />
-            </section>
-          {/if}
-        </WithMarkdown>
-      </main>
-    {/if}
-  {/key}
+  {#if !loading}
+    <main transition:fly={{ y: 5 }} class="mt-1 max-w-full overflow-x-hidden" style:--un-prose-hr="#ffffff20">
+      <WithMarkdown let:parse>
+        {#if viewMode === "rendered"}
+          <Router node={parse(content)} />
+        {:else}
+          <section class="text-sm [&_code_*]:!font-jb">
+            <CodeBlock lang="markdown" code={content} />
+          </section>
+        {/if}
+      </WithMarkdown>
+    </main>
+  {/if}
 
 </div>
 
