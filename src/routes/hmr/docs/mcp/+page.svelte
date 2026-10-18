@@ -9,7 +9,7 @@
   import { updateMetadata } from "$lib/seo";
   import { Separator } from "bits-ui";
 
-  const origin = $derived(page.url.origin);
+  const origin = $derived(page.url.origin.replace("http://sveltekit-prerender", ""));
   const url = $derived(`${origin}/hmr/mcp`);
 
   const placeholders = $derived({
