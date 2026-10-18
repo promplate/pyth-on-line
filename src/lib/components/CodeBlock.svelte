@@ -3,19 +3,18 @@
 
   import { highlight } from "../highlight";
 
-  export let code: string;
-  export let lang = "text";
-  export let items: Item[] = [];
+  const { code, lang = "text", items = [] }: { code: string; lang?: string; items?: Item[] } = $props();
 
-  code = code.replaceAll("\r", "");
+  const normalizedCode = $derived(code.replaceAll("\r", ""));
 </script>
 
 <section class="not-prose relative overflow-y-scroll rounded-md [&>pre]:!line-height-relaxed">
-  {#key code}
-    {#await highlight(lang, code)}
-      <pre class="bg-#121212"><code class="!text-#cdcabe">{code}</code></pre>
-    {:then code}
-      {@html code}
+  <!-- Reset the await block so edits show current plain text while highlighting is pending. -->
+  {#key normalizedCode}
+    {#await highlight(lang, normalizedCode)}
+      <pre class="bg-#121212"><code class="!text-#cdcabe">{normalizedCode}</code></pre>
+    {:then html}
+      {@html html}
     {/await}
   {/key}
   {#if items.length}
