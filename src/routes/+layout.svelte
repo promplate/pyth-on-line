@@ -1,4 +1,6 @@
 <script lang="ts">
+  import type { LayoutProps } from "./$types";
+
   import "@unocss/reset/tailwind.css";
   import "uno.css";
   import "@fontsource-variable/fira-code";
@@ -7,14 +9,12 @@
   import { dev } from "$app/env";
   import * as env from "$app/env/public";
   import { onNavigate } from "$app/navigation";
-  import { page as pageState } from "$app/state";
+  import { page } from "$app/state";
   import CmdK from "$lib/components/command/CmdK.svelte";
   import { initMetadataStore, resetMetadata } from "$lib/seo";
   import { Toaster } from "svelte-sonner";
-  import { toStore } from "svelte/store";
 
-  // Bridge Kit state to the existing store syntax without losing navigation updates.
-  const page = toStore(() => ({ ...pageState }));
+  const { children }: LayoutProps = $props();
 
   const metadata = initMetadataStore();
   onNavigate(() => resetMetadata(metadata));
@@ -24,9 +24,9 @@
   // @ts-ignore
   const originTrialToken = env.PUBLIC_ORIGIN_TRIAL_TOKEN;
 
-  $: ogTitle = $metadata.ogTitle;
-  $: ogImage = `${$page.url.origin === "http://sveltekit-prerender" ? __PRERENDER_ORIGIN__ : $page.url.origin}/og${$page.url.pathname}`;
-  $: ogDescription = $metadata.ogDescription; ;
+  const ogTitle = $derived($metadata.ogTitle);
+  const ogImage = $derived(`${page.url.origin === "http://sveltekit-prerender" ? __PRERENDER_ORIGIN__ : page.url.origin}/og${page.url.pathname}`);
+  const ogDescription = $derived($metadata.ogDescription);
 </script>
 
 <svelte:head>
@@ -55,7 +55,7 @@
 
 <Toaster theme="dark" toastOptions={{ class: "text-xs font-mono" }} />
 
-<slot />
+{@render children()}
 
 <CmdK />
 

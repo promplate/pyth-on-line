@@ -7,26 +7,22 @@
 
   import Dependency from "./Dependency.svelte";
   import ScriptBlock from "./ScriptBlock.svelte";
-  import { page as pageState } from "$app/state";
+  import { page } from "$app/state";
   import UseCopy from "$lib/components/console/UseCopy.svelte";
   import Router from "$lib/components/markdown/Router.svelte";
   import WithMarkdown from "$lib/components/reusable/WithMarkdown.svelte";
   import { fromNow } from "$lib/date";
   import { updateMetadata } from "$lib/seo";
   import { Avatar } from "bits-ui";
-  import { toStore } from "svelte/store";
   import { fly } from "svelte/transition";
 
-  // Bridge Kit state to the existing store syntax without losing navigation updates.
-  const page = toStore(() => ({ ...pageState }));
+  const { data }: { data: PageData } = $props();
+  const payload = $derived(data.payload as Payload);
 
-  export let data: PageData;
-  const payload = data.payload as Payload;
+  updateMetadata(() => ({ ogTitle: `${payload.owner}/${payload.repo} · ${payload.filePath}` }));
 
-  updateMetadata({ ogTitle: `${payload.owner}/${payload.repo} · ${payload.filePath}` });
-
-  $: currentUrl = $page.url.href;
-  $: runCommand = `uv run ${currentUrl}`;
+  const currentUrl = $derived(page.url.href);
+  const runCommand = $derived(`uv run ${currentUrl}`);
 
   function getSourceLabel(type: string) {
     switch (type) {
@@ -39,19 +35,19 @@
     }
   }
 
-  $: sourceLabel = getSourceLabel(payload.dependencySource.type);
+  const sourceLabel = $derived(getSourceLabel(payload.dependencySource.type));
 
-  const sourceLink = payload.dependencySource.path
+  const sourceLink = $derived(payload.dependencySource.path
     ? `https://github.com/${payload.owner}/${payload.repo}/blob/${payload.ref}/${payload.dependencySource.path}`
-    : null;
+    : null);
 
-  const pyprojectLinks = payload.pyprojectPaths.map(item => ({
+  const pyprojectLinks = $derived(payload.pyprojectPaths.map(item => ({
     ...item,
     href: `https://github.com/${payload.owner}/${payload.repo}/blob/${payload.ref}/${item.path}`,
-  }));
+  })));
 
-  const repoLink = `https://github.com/${payload.owner}/${payload.repo}`;
-  const refLink = `${repoLink}/tree/${payload.ref}`;
+  const repoLink = $derived(`https://github.com/${payload.owner}/${payload.repo}`);
+  const refLink = $derived(`${repoLink}/tree/${payload.ref}`);
 </script>
 
 <div id="gh-py-root" class="m-4 w-[calc(100%-2rem)] col self-center 2xl:(m-14) lg:(m-10 max-w-4xl) md:(m-8 w-[calc(100%-4rem)] row) sm:(m-6 w-[calc(100%-3rem)]) xl:(m-12 max-w-5xl) <md:gap-1">
@@ -121,7 +117,7 @@
         <span class="text-[0.68rem] text-neutral-5 tracking-wider uppercase">pyproject.toml</span>
         {#if pyprojectLinks.length > 0}
           <ul class="col gap-2">
-            {#each pyprojectLinks as item}
+            {#each pyprojectLinks as item (item.path)}
               {#if item.exists}
                 <li>
                   <a href={item.href} target="_blank" class="row items-baseline justify-between gap-0.5 ws-nowrap px-2 py-0.7 text-xs font-jb" class:active={item.used} class:inactive={!item.used}>
@@ -184,7 +180,7 @@
           </div>
           {#if payload.repository.recentIssues.length > 0}
             <ul class="col gap-1.5">
-              {#each payload.repository.recentIssues as issue}
+              {#each payload.repository.recentIssues as issue (issue.number)}
                 <li>
                   <a href={issue.url} target="_blank" class="block truncate rounded-md px-2 py-1.5 text-xs text-neutral-4 ring-0.6 ring-white/5 hover:(bg-white/5 text-white)">
                     <span class="text-neutral-6">#{issue.number}</span>
@@ -236,7 +232,7 @@
         </a>
       </div>
       <UseCopy text={runCommand} let:handleClick>
-        <button class="max-w-full w-fit row items-center gap-2 rounded-lg bg-white/4 px-2.5 py-1.5 text-sm text-neutral-2 ring-1 ring-white/7 hover:bg-white/6" on:click={handleClick}>
+        <button class="max-w-full w-fit row items-center gap-2 rounded-lg bg-white/4 px-2.5 py-1.5 text-sm text-neutral-2 ring-1 ring-white/7 hover:bg-white/6" onclick={handleClick}>
           <div class="i-si-copy-alt-line size-3.5 shrink-0" />
           <code class="max-w-full overflow-hidden text-ellipsis ws-nowrap text-xs text-neutral-3 font-jb">{runCommand}</code>
         </button>
@@ -252,7 +248,7 @@
         <div class="row items-center gap-3">
           <span class="text-xs text-neutral-5">Last changed {fromNow(payload.repository.fileLastUpdatedAt)}</span>
           <UseCopy text={payload.content} let:handleClick>
-            <button class="row items-center gap-1.5 rounded-md bg-white/7 px-2.5 py-1.5 text-xs text-neutral-3 ring-1 ring-white/10 hover:bg-white/10" on:click={handleClick}>
+            <button class="row items-center gap-1.5 rounded-md bg-white/7 px-2.5 py-1.5 text-xs text-neutral-3 ring-1 ring-white/10 hover:bg-white/10" onclick={handleClick}>
               <div class="i-si-copy-alt-line size-3.5" />
               Copy
             </button>
