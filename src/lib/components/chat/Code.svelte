@@ -17,6 +17,8 @@
   }
 </script>
 
-<WithCodeActions {node} {run} fadeIn let:code>
-  <CodeBlock lang={code.lang ?? "text"} code={code.value} />
+<WithCodeActions {node} {run} fadeIn>
+  {#snippet children(code)}
+    <CodeBlock lang={code.lang ?? "text"} code={code.value} />
+  {/snippet}
 </WithCodeActions>

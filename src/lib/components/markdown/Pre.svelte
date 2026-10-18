@@ -7,6 +7,8 @@
   export let node: Node;
 </script>
 
-<WithCodeActions {node} let:code>
-  <CodeBlock lang={code.lang ?? "text"} code={code.value} />
+<WithCodeActions {node}>
+  {#snippet children(code)}
+    <CodeBlock lang={code.lang ?? "text"} code={code.value} />
+  {/snippet}
 </WithCodeActions>

@@ -55,6 +55,8 @@
   }
 </script>
 
-<WithCodeActions {node} {run} runnable={valid} let:code>
-  <CodeBlock {lang} code={code.value} {items} />
+<WithCodeActions {node} {run} runnable={valid}>
+  {#snippet children(code)}
+    <CodeBlock {lang} code={code.value} {items} />
+  {/snippet}
 </WithCodeActions>
