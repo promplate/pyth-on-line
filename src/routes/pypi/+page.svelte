@@ -13,11 +13,13 @@
   const { data }: { data: PageData } = $props();
   const searchState = getSearchState();
   let additionalResults = $state.raw<PageData["results"]>([]);
-  const results = $derived([...data.results, ...additionalResults]);
+  const packageKey = (name: string) => name.toLowerCase().replace(/[-_.]+/g, "-");
+  const results = $derived([...new Map([...data.results, ...additionalResults].map(item => [packageKey(item.name), item])).values()]);
 
   let loadingMore = false;
 
-  const enough = $derived(data.total !== null && data.total <= results.length);
+  // Pagination counts received records even when ranked pages overlap in the rendered list.
+  const enough = $derived(data.total !== null && data.total <= data.results.length + additionalResults.length);
 
   let ref: HTMLDivElement;
   let index = 1;
@@ -83,13 +85,13 @@
     <div class="m-4 flex flex-col gap-2">
       <h1 class="text-lg text-neutral-3 font-275 lg:text-xl">Welcome to the PyPI Explorer</h1>
       <!-- svelte-ignore a11y-autofocus -->
-      <input autofocus onkeydown={({ key }) => key === "Enter" && goto(`/pypi?q=${searchState.query}`)} placeholder="search something ..." class="w-full b-b-(1 neutral-6) bg-transparent py-1 text-neutral-3 outline-none focus:b-b-neutral-5 lg:text-lg placeholder-neutral-6" bind:value={searchState.query} type="text">
+      <input autofocus onkeydown={({ key }) => key === "Enter" && goto(`/pypi?q=${searchState.query}`)} placeholder="search something ..." class="w-full b-b-(1 neutral-6) bg-transparent py-1 text-neutral-3 outline-none focus:b-b-neutral-5 lg:text-lg placeholder-neutral-6" bind:value={() => searchState.query, searchState.setQuery} type="text">
     </div>
   </div>
 {/if}
 
 <div class="relative my-4 flex flex-col gap-3 transition-opacity">
-  {#each results as { name, version, description = "", updated } (name)}
+  {#each results as { name, version, description = "", updated } (packageKey(name))}
     <Button.Root class="flex flex-col gap-1 px-3 py-2 ring-(1.2 neutral-8) hover:ring-neutral-5" href="/pypi/{name}">
       <div class="flex flex-row items-center gap-1.5 ws-nowrap">
         <h2 class="text-lg text-neutral-1">{name}</h2>
