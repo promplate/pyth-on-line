@@ -25,7 +25,7 @@
   const originTrialToken = env.PUBLIC_ORIGIN_TRIAL_TOKEN;
 
   $: ogTitle = $metadata.ogTitle;
-  const ogImage = `${$page.url.origin.replace("http://sveltekit-prerender", "")}/og${$page.url.pathname}`;
+  $: ogImage = `${$page.url.origin === "http://sveltekit-prerender" ? __PRERENDER_ORIGIN__ : $page.url.origin}/og${$page.url.pathname}`;
   $: ogDescription = $metadata.ogDescription; ;
 </script>
 
