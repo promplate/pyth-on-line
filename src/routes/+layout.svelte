@@ -1,4 +1,6 @@
 <script lang="ts">
+  import type { LayoutProps } from "./$types";
+
   import "@unocss/reset/tailwind.css";
   import "uno.css";
   import "@fontsource-variable/fira-code";
@@ -6,11 +8,13 @@
 
   import { dev } from "$app/environment";
   import { onNavigate } from "$app/navigation";
-  import { page } from "$app/stores";
+  import { page } from "$app/state";
   import * as env from "$env/static/public";
   import CmdK from "$lib/components/command/CmdK.svelte";
   import { initMetadataStore, resetMetadata } from "$lib/seo";
   import { Toaster } from "svelte-sonner";
+
+  const { children }: LayoutProps = $props();
 
   const metadata = initMetadataStore();
   onNavigate(() => resetMetadata(metadata));
@@ -20,9 +24,9 @@
   // @ts-ignore
   const originTrialToken = env.PUBLIC_ORIGIN_TRIAL_TOKEN;
 
-  $: ogTitle = $metadata.ogTitle;
-  const ogImage = `${$page.url.origin.replace("http://sveltekit-prerender", "")}/og${$page.url.pathname}`;
-  $: ogDescription = $metadata.ogDescription; ;
+  const ogTitle = $derived($metadata.ogTitle);
+  const ogImage = $derived(`${page.url.origin.replace("http://sveltekit-prerender", "")}/og${page.url.pathname}`);
+  const ogDescription = $derived($metadata.ogDescription);
 </script>
 
 <svelte:head>
@@ -30,7 +34,7 @@
     {@html headScripts}
   {/if}
   {#if originTrialToken}
-    <meta http-equiv="origin-trial" content={originTrialToken} />
+    <meta http-equiv={"origin-trial" as any} content={originTrialToken} />
   {/if}
 
   <title>{ogTitle}</title>
@@ -51,7 +55,7 @@
 
 <Toaster theme="dark" toastOptions={{ class: "text-xs font-mono" }} />
 
-<slot />
+{@render children()}
 
 <CmdK />
 
