@@ -2,20 +2,27 @@
   import type { WorkspaceAPI } from "$py/workspace/workspace";
 
   import getPy from "$lib/pyodide";
-  import { onDestroy, onMount } from "svelte";
+  import { onMount } from "svelte";
 
   export let sources: Record<string, string>;
 
   let workspace: WorkspaceAPI;
 
-  onMount(async () => {
-    const py = await getPy({ workspace: true });
-    workspace = py.pyimport("workspace.WorkspaceAPI")(py.toPy(sources));
-  });
+  onMount(() => {
+    let disposed = false;
 
-  onDestroy(() => {
-    workspace?.close();
-    workspace?.destroy();
+    // Pyodide is shared; skip late resource creation without cancelling its initialization.
+    getPy({ workspace: true }).then((py) => {
+      if (disposed)
+        return;
+      workspace = py.pyimport("workspace.WorkspaceAPI")(py.toPy(sources));
+    });
+
+    return () => {
+      disposed = true;
+      workspace?.close();
+      workspace?.destroy();
+    };
   });
 </script>
 
