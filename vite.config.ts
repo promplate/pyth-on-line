@@ -1,10 +1,11 @@
+import { sveltekitOG } from "@ethercorps/sveltekit-og/plugin";
 import { sveltekit } from "@sveltejs/kit/vite";
 import dir2json from "rollup-plugin-flatten-dir";
 import Unocss from "unocss/vite";
 import { defineConfig } from "vite";
 
 export default defineConfig({
-  plugins: [Unocss(), sveltekit(), dir2json({ include: ["**/*.py", "**/*.j2", "**/pyproject.toml", "**/README.md"] })],
+  plugins: [Unocss(), sveltekitOG(), sveltekit(), dir2json({ include: ["**/*.py", "**/*.j2", "**/pyproject.toml", "**/README.md"] })],
   assetsInclude: ["src/python/**/*"],
   server: { allowedHosts: true },
   optimizeDeps: {
