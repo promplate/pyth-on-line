@@ -13,7 +13,7 @@
   // Bridge Kit state to the existing store syntax without losing navigation updates.
   const page = toStore(() => ({ ...pageState }));
 
-  const origin = $page.url.origin.replace("http://sveltekit-prerender", "");
+  const origin = $page.url.origin === "http://sveltekit-prerender" ? __PRERENDER_ORIGIN__ : $page.url.origin;
   const url = `${origin}/hmr/mcp`;
 
   const placeholders = {
