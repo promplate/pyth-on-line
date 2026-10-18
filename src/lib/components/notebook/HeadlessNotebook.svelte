@@ -2,16 +2,24 @@
   import type { NotebookAPI } from "$py/notebook/notebook";
 
   import getPy from "$lib/pyodide";
-  import { onDestroy, onMount } from "svelte";
+  import { onMount } from "svelte";
 
   let pyNotebook: NotebookAPI;
 
-  onMount(async () => {
-    const py = await getPy({ notebook: true });
-    pyNotebook = py.pyimport("notebook.NotebookAPI")() as NotebookAPI;
-  });
+  onMount(() => {
+    let disposed = false;
 
-  onDestroy(() => pyNotebook?.destroy());
+    getPy({ notebook: true }).then((py) => {
+      if (disposed)
+        return;
+      pyNotebook = py.pyimport("notebook.NotebookAPI")() as NotebookAPI;
+    });
+
+    return () => {
+      disposed = true;
+      pyNotebook?.destroy();
+    };
+  });
 </script>
 
 <slot {pyNotebook} />

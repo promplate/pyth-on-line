@@ -16,7 +16,7 @@
   import WithConsoleCommands from "./WithConsoleCommands.svelte";
   import getPy from "$lib/pyodide";
   import { needScroll, scrollToBottom } from "$lib/utils/scroll";
-  import { afterUpdate, beforeUpdate, onDestroy, onMount } from "svelte";
+  import { afterUpdate, beforeUpdate, onMount } from "svelte";
 
   export let ready = false;
   export let status: Status = "complete";
@@ -32,16 +32,22 @@
     status = pyConsole.incomplete ? "incomplete" : "complete";
   }
 
-  onMount(async () => {
-    const py = await getPy({ console: true });
-    pyConsole = (py.pyimport("console.console")).ConsoleAPI((syncLog));
-    complete = pyConsole.complete;
-    ready = true;
-  });
+  onMount(() => {
+    let disposed = false;
 
-  onDestroy(() => {
-    pyConsole?.close();
-    pyConsole?.destroy();
+    getPy({ console: true }).then((py) => {
+      if (disposed)
+        return;
+      pyConsole = (py.pyimport("console.console")).ConsoleAPI((syncLog));
+      complete = pyConsole.complete;
+      ready = true;
+    });
+
+    return () => {
+      disposed = true;
+      pyConsole?.close();
+      pyConsole?.destroy();
+    };
   });
 
   let autoscroll = false;
