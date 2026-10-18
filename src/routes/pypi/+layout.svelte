@@ -10,7 +10,7 @@
   import { onDestroy, untrack } from "svelte";
 
   const { children }: LayoutProps = $props();
-  const searchState = $state({ query: untrack(() => page.url.searchParams.get("q") ?? "") });
+  const searchState = $state({ query: untrack(() => page.url.searchParams.get("q") ?? ""), setQuery });
   setSearchState(searchState);
   let progress = $state.raw<Spring<number>>();
   let reset = $state<() => Spring<number>>();
