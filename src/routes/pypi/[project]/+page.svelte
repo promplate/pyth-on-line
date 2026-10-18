@@ -4,11 +4,11 @@
   import BaseMarkdown from "$lib/components/markdown/BaseMarkdown.svelte";
   import { updateMetadata } from "$lib/seo";
 
-  export let data: PageData;
+  const { data }: { data: PageData } = $props();
 
-  const { name, version, description, updated, tags, readme } = data;
+  const { name, version, description, updated, tags, readme } = $derived(data);
 
-  updateMetadata({ ogTitle: `${name} - PyPI Package`, ogDescription: description || `View details and documentation for ${name} on PyPI.` });
+  updateMetadata(() => ({ ogTitle: `${name} - PyPI Package`, ogDescription: description || `View details and documentation for ${name} on PyPI.` }));
 </script>
 
 <div class="flex flex-col gap-2">
