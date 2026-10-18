@@ -6,10 +6,10 @@
   import "@fontsource-variable/fira-code";
   import "@fontsource-variable/inter";
 
-  import { dev } from "$app/environment";
+  import { dev } from "$app/env";
+  import * as env from "$app/env/public";
   import { onNavigate } from "$app/navigation";
   import { page } from "$app/state";
-  import * as env from "$env/static/public";
   import CmdK from "$lib/components/command/CmdK.svelte";
   import { initMetadataStore, resetMetadata } from "$lib/seo";
   import { Toaster } from "svelte-sonner";
@@ -25,7 +25,7 @@
   const originTrialToken = env.PUBLIC_ORIGIN_TRIAL_TOKEN;
 
   const ogTitle = $derived($metadata.ogTitle);
-  const ogImage = $derived(`${page.url.origin.replace("http://sveltekit-prerender", "")}/og${page.url.pathname}`);
+  const ogImage = $derived(`${page.url.origin === "http://sveltekit-prerender" ? __PRERENDER_ORIGIN__ : page.url.origin}/og${page.url.pathname}`);
   const ogDescription = $derived($metadata.ogDescription);
 </script>
 

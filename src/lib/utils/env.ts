@@ -1,5 +1,6 @@
-import * as env from "$env/static/public";
+import * as env from "$app/env/public";
 
 export function getEnv() {
-  return Object.fromEntries(Object.entries(env as Record<string, string>).map(([k, v]) => [k.replace("PUBLIC_", ""), v]));
+  // Kit declares optional variables even when absent; Pyodide's ENV only accepts strings.
+  return Object.fromEntries(Object.entries(env).filter((entry): entry is [string, string] => entry[1] !== undefined).map(([k, v]) => [k.replace("PUBLIC_", ""), v]));
 }

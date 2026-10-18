@@ -3,7 +3,7 @@ import type { GistResponse } from "./common";
 
 import { transformFiles } from "./common";
 import { json } from "@sveltejs/kit";
-import { env } from "$env/dynamic/private";
+import * as env from "$app/env/private";
 import { forwardResponseHeaders } from "$lib/utils/headers";
 
 export const GET: RequestHandler = async ({ params: { gist_id }, fetch, cookies }) => {

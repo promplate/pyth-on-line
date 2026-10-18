@@ -32,7 +32,8 @@
 
   function search() {
     if (!disableSearch) {
-      goto(`/pypi?q=${searchState.query}`, { keepFocus: true });
+      // Kit 3 combines focus and scroll resets; retain input focus but reset the results' scroll.
+      goto(`/pypi?q=${searchState.query}`, { reset: false }).then(() => window.scrollTo(0, 0));
     }
   }
 

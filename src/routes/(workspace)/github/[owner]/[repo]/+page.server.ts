@@ -1,6 +1,6 @@
 import type { PageServerLoad } from "./$types";
 
-import { env } from "$env/dynamic/private";
+import * as env from "$app/env/private";
 import { unzip } from "unzipit";
 
 async function getRepoFiles(repo: string, access_token = env.GITHUB_TOKEN): Promise<{ [path: string]: string }> {

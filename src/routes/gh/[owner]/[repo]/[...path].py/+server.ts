@@ -4,7 +4,7 @@ import type { DependencySource, Payload } from "./types";
 import { findDependencies, parsePep723, prependPep723 } from "./pep723";
 import { buildQuery, collectDirectories } from "./query";
 import { error, json, text } from "@sveltejs/kit";
-import { env } from "$env/dynamic/private";
+import * as env from "$app/env/private";
 import { gql } from "$lib/github/client";
 
 interface RepoData {

@@ -5,7 +5,7 @@ import watchfiles from "../../../python/watchfiles";
 import { indexURL, preloadPackages } from "../common";
 import { setupWatcher } from "./fs";
 import loader from "./loader.py?raw";
-import { dev } from "$app/environment";
+import { dev } from "$app/env";
 import { cacheSingleton } from "$lib/utils/cache";
 import { getEnv } from "$lib/utils/env";
 import { withToast } from "$lib/utils/toast";
