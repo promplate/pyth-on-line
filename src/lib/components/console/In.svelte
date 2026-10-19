@@ -4,6 +4,7 @@
   import ButtonGroup from "./ButtonGroup.svelte";
   import Copy from "./Copy.svelte";
   import Highlight from "./Highlight.svelte";
+  import { fromAction } from "svelte/attachments";
 
   const { text = "", onclick }: { text?: string; onclick?: (event: MouseEvent) => void } = $props();
 </script>
@@ -21,7 +22,7 @@
       <Copy {text} />
       <WithTooltip tips="Run">
         {#snippet children(builder)}
-          <button class="i-mingcute-play-fill" {...builder} {onclick} use:builder.action />
+          <button class="i-mingcute-play-fill" {...builder} {onclick} {@attach fromAction((node: HTMLElement) => builder.action(node), () => undefined)} />
         {/snippet}
       </WithTooltip>
     </ButtonGroup>

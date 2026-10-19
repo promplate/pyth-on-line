@@ -4,6 +4,7 @@
 
   import UseCopy from "../console/UseCopy.svelte";
   import WithTooltip from "../reusable/WithTooltip.svelte";
+  import { fromAction } from "svelte/attachments";
 
   const { node, run = null, fadeIn = false, runnable = null, children }: {
     node: Node;
@@ -28,7 +29,7 @@
         {#snippet children(handleClick)}
           <WithTooltip tips="Copy">
             {#snippet children(builder)}
-              <button onclick={handleClick} {...builder} use:builder.action><div class="i-icon-park-twotone-copy" /></button>
+              <button onclick={handleClick} {...builder} {@attach fromAction((node: HTMLElement) => builder.action(node), () => undefined)}><div class="i-icon-park-twotone-copy" /></button>
             {/snippet}
           </WithTooltip>
         {/snippet}
@@ -36,7 +37,7 @@
       {#if canRun && run}
         <WithTooltip tips="Run">
           {#snippet children(builder)}
-            <button onclick={() => run(code.value)} {...builder} use:builder.action><div class="i-mingcute-play-fill" /></button>
+            <button onclick={() => run(code.value)} {...builder} {@attach fromAction((node: HTMLElement) => builder.action(node), () => undefined)}><div class="i-mingcute-play-fill" /></button>
           {/snippet}
         </WithTooltip>
       {/if}
