@@ -7,10 +7,12 @@
   export let text: string;
 </script>
 
-<HeadlessNotebook let:pyNotebook>
-  <WithMarkdown>
-    {#snippet children(parse)}
-      <Router node={parse(text)} {OverrideCode} codeProps={{ pyNotebook }} inlineCodeProps={{ watch: pyNotebook?.watch }} />
-    {/snippet}
-  </WithMarkdown>
+<HeadlessNotebook>
+  {#snippet children(pyNotebook)}
+    <WithMarkdown>
+      {#snippet children(parse)}
+        <Router node={parse(text)} {OverrideCode} codeProps={{ pyNotebook }} inlineCodeProps={{ watch: pyNotebook?.watch }} />
+      {/snippet}
+    </WithMarkdown>
+  {/snippet}
 </HeadlessNotebook>
