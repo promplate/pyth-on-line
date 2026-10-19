@@ -30,11 +30,13 @@
     <div class="i-svg-spinners-90-ring-with-bg op-50" />
   </div>
 {:else}
-  <HeadlessNotebook let:pyNotebook>
-    <WithMarkdown>
-      {#snippet children(parse)}
-        <Router node={parse(text)} {OverrideCode} codeProps={{ pyNotebook, heuristics: true }} inlineCodeProps={{ watch: pyNotebook?.watch }} />
-      {/snippet}
-    </WithMarkdown>
+  <HeadlessNotebook>
+    {#snippet children(pyNotebook)}
+      <WithMarkdown>
+        {#snippet children(parse)}
+          <Router node={parse(text)} {OverrideCode} codeProps={{ pyNotebook, heuristics: true }} inlineCodeProps={{ watch: pyNotebook?.watch }} />
+        {/snippet}
+      </WithMarkdown>
+    {/snippet}
   </HeadlessNotebook>
 {/if}

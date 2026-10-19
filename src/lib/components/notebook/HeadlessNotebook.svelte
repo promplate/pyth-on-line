@@ -1,10 +1,14 @@
 <script lang="ts">
   import type { NotebookAPI } from "$py/notebook/notebook";
+  import type { Snippet } from "svelte";
 
   import getPy from "$lib/pyodide";
   import { onMount } from "svelte";
 
-  let pyNotebook: NotebookAPI;
+  const { children }: { children: Snippet<[NotebookAPI | undefined]> } = $props();
+
+  // Pyodide owns this handle, so only track its replacement, not its internals.
+  let pyNotebook = $state.raw<NotebookAPI>();
 
   onMount(() => {
     let disposed = false;
@@ -22,4 +26,4 @@
   });
 </script>
 
-<slot {pyNotebook} />
+{@render children(pyNotebook)}
