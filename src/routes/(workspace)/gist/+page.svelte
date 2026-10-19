@@ -1,13 +1,13 @@
 <script lang="ts">
-  import type { PageData } from "./$types";
+  import type { PageProps } from "./$types";
 
   import GitHubUser from "$lib/components/GitHubUser.svelte";
   import { fromNow } from "$lib/date";
   import { updateMetadata } from "$lib/seo";
 
-  export let data: PageData;
+  const { data }: PageProps = $props();
 
-  const { avatarUrl, name, login, total, gists } = data;
+  const { avatarUrl, name, login, total, gists } = $derived(data);
 
   updateMetadata({ ogTitle: "Open Your GitHub Gists", ogDescription: "Explore and run GitHub gists as interactive Python workspaces in your browser." });
 </script>
