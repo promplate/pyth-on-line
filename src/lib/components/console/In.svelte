@@ -5,7 +5,7 @@
   import Copy from "./Copy.svelte";
   import Highlight from "./Highlight.svelte";
 
-  export let text = "";
+  const { text = "", onclick }: { text?: string; onclick?: (event: MouseEvent) => void } = $props();
 </script>
 
 {#if text !== ""}
@@ -20,7 +20,7 @@
     <ButtonGroup>
       <Copy {text} />
       <WithTooltip tips="Run" let:builder>
-        <button on:click class="i-mingcute-play-fill" {...builder} use:builder.action />
+        <button class="i-mingcute-play-fill" {...builder} {onclick} use:builder.action />
       </WithTooltip>
     </ButtonGroup>
   </div>
