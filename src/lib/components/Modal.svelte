@@ -1,9 +1,15 @@
 <script lang="ts">
+  import type { Snippet } from "svelte";
+
   import { tick } from "svelte";
 
-  export let show: boolean;
-  export let closeOnClickOutside = false;
-  export let cleanup: (() => any) | null = null;
+  let { show = $bindable(), closeOnClickOutside = false, cleanup = null, children, backdrop }: {
+    show: boolean;
+    closeOnClickOutside?: boolean;
+    cleanup?: (() => any) | null;
+    children?: Snippet<[() => void]>;
+    backdrop?: Snippet<[() => void]>;
+  } = $props();
 
   function close() {
     show = false;
@@ -11,17 +17,19 @@
   }
 </script>
 
-<slot name="backdrop" {close}>
+{#if backdrop}
+  {@render backdrop(close)}
+{:else}
   {#if closeOnClickOutside}
-    <div role="presentation" class="fixed inset-0 transition duration-1000" class:show class:pointer-events-none={!show} on:click={close} />
+    <div role="presentation" class={["fixed inset-0 transition duration-1000", { show, "pointer-events-none": !show }]} onclick={close} />
   {:else}
-    <div class="pointer-events-none fixed inset-0 transition duration-1000" class:show />
+    <div class={["pointer-events-none fixed inset-0 transition duration-1000", { show }]} />
   {/if}
-</slot>
+{/if}
 
 {#if show}
   <div class="pointer-events-none fixed inset-0 grid place-items-center [&>*]:pointer-events-auto">
-    <slot {close} />
+    {@render children?.(close)}
   </div>
 {/if}
 
