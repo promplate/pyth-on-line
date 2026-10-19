@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { show as showMenu } from "$lib/components/command/CmdK.svelte";
+  import { commandMenu } from "$lib/components/command/state.svelte";
   import FeatureCard from "$lib/components/FeatureCard.svelte";
   import Hero from "$lib/components/Hero.svelte";
 </script>
@@ -12,7 +12,7 @@
       </div>
       <div class="flex flex-row flex-wrap gap-3 sm:(max-w-3xl self-center)">
         <FeatureCard icon="i-lucide-folder-dot" href="/playground" title="Open a playground" description="Open an isolated workspace of this site's python sources" />
-        <FeatureCard icon="i-solar-command-bold-duotone" onclick={() => $showMenu = true} title="Try the shortcut menu" description="Press Ctrl/Cmd + K to open it" />
+        <FeatureCard icon="i-solar-command-bold-duotone" onclick={() => commandMenu.show = true} title="Try the shortcut menu" description="Press Ctrl/Cmd + K to open it" />
         <FeatureCard icon="i-mdi-github-face" href="/github" title="Clone a GitHub repo" description="Open an isolated workspace from a specified GitHub repository" />
         <FeatureCard icon="i-ph-terminal-window-duotone" href="/console" title="Start an immersive console" description="Run Python 3.13 in an interactive console directly in your browser without installation" />
         <FeatureCard icon="i-hugeicons-hand-pointing-right-01" href="/about" title="Take a quick tour" description="Start a dedicated jupyter-like notebook to have a glance of our features" />
