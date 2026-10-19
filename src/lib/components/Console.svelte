@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { AutoComplete, Item, Status } from "./console/HeadlessConsole.svelte";
   import type { ConsoleAPI } from "$py/console/console";
+  import type { Snippet } from "svelte";
   import type { ClipboardEventHandler, KeyboardEventHandler } from "svelte/elements";
 
   import { Err, In, Out, Repr } from "./console";
@@ -9,26 +10,25 @@
   import Modal from "./Modal.svelte";
   import { pyodideReady } from "$lib/stores";
   import { patchSource, reformatInputSource } from "$lib/utils/formatSource";
-  import { onMount } from "svelte";
+  import { onMount, untrack } from "svelte";
 
-  // eslint-disable-next-line no-undef-init
-  export let container: HTMLElement | undefined = undefined;
+  const { container, class: klass = "p-3", children }: { container?: HTMLElement; class?: string; children?: Snippet<[{ ready: boolean }]> } = $props();
 
-  let autofocus = false;
+  let autofocus = $state(false);
 
-  let log: Item[] = [];
+  let log = $state.raw<Item[]>([]);
 
   const history: string[] = [];
   let index = -1;
 
-  let input = "";
+  let input = $state("");
   let inputRef: HTMLInputElement;
 
-  let pyConsole: ConsoleAPI;
-  let complete: AutoComplete;
-  let status: Status = "complete";
+  let pyConsole = $state.raw<ConsoleAPI>();
+  let complete = $state.raw<AutoComplete>();
+  let status = $state<Status>("complete");
 
-  let focusedError: { traceback: string; code: string } | undefined;
+  let focusedError = $state.raw<{ traceback: string; code: string }>();
 
   function showErrorExplain(index: number) {
     if (log[index]?.type !== "err")
@@ -55,18 +55,22 @@
     }
   });
 
-  $: if ($pyodideReady && pyConsole) {
-    if (location.hash) {
+  $effect(() => {
+    if ($pyodideReady && pyConsole && location.hash) {
       const source = atob(decodeURIComponent(location.hash.slice(1)));
-      pushBlock(source);
+      // Only readiness should trigger startup code, not state read while executing it.
+      untrack(() => pushBlock(source));
     }
-  }
+  });
 
   async function pushMany(lines: string[], wait = true, hidden = false, finallySetInput = "") {
+    const api = pyConsole;
+    if (!api)
+      return;
     let promise: Promise<any> | null = null;
     for (const line of lines) {
       if (hidden) {
-        promise = pyConsole.push(line, true).future;
+        promise = api.push(line, true).future;
       }
       else {
         promise && (input = line);
@@ -84,7 +88,7 @@
     await pushMany(lines.slice(0, -1), wait, hidden, lines.at(-1));
   }
 
-  let ready = false;
+  let ready = $state(false);
 
   function pushHistory(source: string) {
     if (source.trim() && source !== history[0]) {
@@ -102,15 +106,17 @@
   }
 
   function focusToInput(start?: number, end?: number) {
+    if (!inputRef)
+      return;
     inputRef.scrollIntoView({ block: "center" });
     inputRef.focus();
     if (start !== undefined) {
-      requestAnimationFrame(() => inputRef.setSelectionRange(start, end ?? start));
+      requestAnimationFrame(() => inputRef?.setSelectionRange(start, end ?? start));
     }
   }
 
   const onPaste: ClipboardEventHandler<Document> = async (event) => {
-    if (!((event.target! as Node).contains(inputRef)))
+    if (!pyConsole || !((event.target! as Node).contains(inputRef)))
       return;
     event.preventDefault();
     const text = event.clipboardData?.getData("text") ?? "";
@@ -169,6 +175,8 @@
           focusToInput(start, end);
         }
         else {
+          if (!complete)
+            break;
           const [results, position] = complete(input.slice(0, selectionStart!));
           if (results.length === 1) {
             const [result] = results;
@@ -187,7 +195,7 @@
       }
 
       case "Backspace": {
-        if (inputRef.selectionStart === 0 && inputRef.selectionEnd === 0 && status === "incomplete") {
+        if (inputRef.selectionStart === 0 && inputRef.selectionEnd === 0 && status === "incomplete" && pyConsole) {
           input = pyConsole.pop();
           history.at(0) === input && history.shift();
           index = -1;
@@ -202,10 +210,10 @@
     }
   };
 
-  $: extras = ` ${$$restProps.class ?? "p-3"}`;
+  const extras = $derived(` ${klass}`);
 </script>
 
-<svelte:document on:keydown={onKeyDown} on:paste={onPaste} />
+<svelte:document onkeydown={onKeyDown} onpaste={onPaste} />
 
 <div class="w-full @container">
   <div class="w-full flex flex-col gap-0.7 overflow-x-scroll whitespace-pre-wrap break-all text-neutral-3 font-mono [&>div:hover]:(rounded-sm bg-white/2) [&>div]:(px-1.7 py-0.6 -mx-1.7 -my-0.6) {extras}">
@@ -223,9 +231,9 @@
             <Repr {text} />
           {/if}
         {/each}
-        <div class="group flex flex-row" class:animate-pulse={loading || !ready}>
+        <div class={["group flex flex-row", { "animate-pulse": loading || !ready }]}>
           <ConsolePrompt prompt={status === "incomplete" ? "..." : ">>>"} />
-          <!-- svelte-ignore a11y-autofocus -->
+          <!-- svelte-ignore a11y_autofocus -->
           <input {autofocus} bind:this={inputRef} class="w-full bg-transparent outline-none" bind:value={input} type="text" autocapitalize="off" spellcheck="false" autocomplete="off" autocorrect="off" />
         </div>
       {/snippet}
@@ -237,9 +245,11 @@
 {#await import("./ErrorExplainer.svelte") then { default: ErrorExplainer }}
   <Modal show={!!focusedError} cleanup={() => focusedError = undefined}>
     {#snippet children(close)}
-      <ErrorExplainer errorInfo={focusedError} {close} {pushBlock} {pyConsole} />
+      {#if pyConsole}
+        <ErrorExplainer errorInfo={focusedError} {close} {pushBlock} {pyConsole} />
+      {/if}
     {/snippet}
   </Modal>
 {/await}
 
-<slot {ready} />
+{@render children?.({ ready })}
