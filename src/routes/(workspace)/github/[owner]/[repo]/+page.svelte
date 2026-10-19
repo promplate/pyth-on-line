@@ -6,6 +6,6 @@
   const { data, params }: PageProps = $props();
 </script>
 
-{#key `${params.owner}/${params.repo}`}
+{#key `${params.owner}/${params.repo}`.toLowerCase()}
   <Workspace sources={data.sources} />
 {/key}
