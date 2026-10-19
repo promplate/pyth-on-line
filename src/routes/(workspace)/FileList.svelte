@@ -3,14 +3,12 @@
 
   import Tree from "./Tree.svelte";
   import { unflatten } from "$lib/utils/list2tree";
+  import { untrack } from "svelte";
 
-  export let files: string[] = [];
+  // File updates must not overwrite a selection the user has already made.
+  let { files = [], focusedFile = $bindable(untrack(() => files[0] ?? null)), title = "Files" }: { files?: string[]; focusedFile?: string | null; title?: string } = $props();
 
-  export let focusedFile = files.length ? files![0] : null;
-
-  export let title = "Files";
-
-  $: root = { name: "", children: unflatten(files), type: "folder" } as Folder;
+  const root: Folder = $derived({ name: "", children: unflatten(files), type: "folder" });
 </script>
 
 <div class="relative h-full select-none gap-1 overflow-y-scroll">

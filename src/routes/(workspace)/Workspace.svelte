@@ -13,7 +13,7 @@
     return Object.keys(sources).find(name => name.toUpperCase().startsWith("README")) ?? Object.keys(sources)[0];
   }
 
-  let focusedFile: keyof typeof sources = getDefaultFile();
+  let focusedFile: keyof typeof sources | null = getDefaultFile() ?? null;
   let container: HTMLElement;
 
   registerCommandGroup("Workspace", Object.keys(sources).map(name => ({
@@ -37,14 +37,17 @@
         <SetupWorkspace {sources}>
           {#snippet children(workspace, failed)}
             <Pane defaultSize={70} minSize={10} class="relative">
-              <FileContent onsave={(content) => {
-                if (!workspace) {
-                  toastMarkdown(failed ? "Workspace initialization failed. Changes have not been saved." : "Workspace is still loading. Try saving again once it is ready.", failed ? "error" : "warning");
-                  return;
-                }
-                workspace.save(focusedFile, content.replaceAll("\r\n", "\n"));
-                toastMarkdown(`\`${focusedFile}\` saved`);
-              }} bind:content={sources[focusedFile]} lang={focusedFile.slice(focusedFile.lastIndexOf(".") + 1)} />
+              {#if focusedFile !== null}
+                {@const path = focusedFile}
+                <FileContent onsave={(content) => {
+                  if (!workspace) {
+                    toastMarkdown(failed ? "Workspace initialization failed. Changes have not been saved." : "Workspace is still loading. Try saving again once it is ready.", failed ? "error" : "warning");
+                    return;
+                  }
+                  workspace.save(path, content.replaceAll("\r\n", "\n"));
+                  toastMarkdown(`\`${path}\` saved`);
+                }} bind:content={sources[path]} lang={path.slice(path.lastIndexOf(".") + 1)} />
+              {/if}
             </Pane>
             <PaneResizer class="group">
               <div class="my-1 h-0.11em w-full bg-white/10 transition group-active:bg-current group-hover:bg-white/30" />
