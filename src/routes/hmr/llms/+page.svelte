@@ -191,14 +191,16 @@
 
   {#if !loading}
     <main transition:fly={{ y: 5 }} class="mt-1 max-w-full overflow-x-hidden" style:--un-prose-hr="#ffffff20">
-      <WithMarkdown let:parse>
-        {#if viewMode === "rendered"}
-          <Router node={parse(content)} />
-        {:else}
-          <section class="text-sm [&_code_*]:!font-jb">
-            <CodeBlock lang="markdown" code={content} />
-          </section>
-        {/if}
+      <WithMarkdown>
+        {#snippet children(parse)}
+          {#if viewMode === "rendered"}
+            <Router node={parse(content)} />
+          {:else}
+            <section class="text-sm [&_code_*]:!font-jb">
+              <CodeBlock lang="markdown" code={content} />
+            </section>
+          {/if}
+        {/snippet}
       </WithMarkdown>
     </main>
   {/if}

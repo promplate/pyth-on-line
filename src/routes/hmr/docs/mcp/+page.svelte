@@ -109,8 +109,10 @@
   </div>
 
   <main class="mt-1 max-w-full">
-    <WithMarkdown let:parse>
-      <Router node={parse(text)} />
+    <WithMarkdown>
+      {#snippet children(parse)}
+        <Router node={parse(text)} />
+      {/snippet}
     </WithMarkdown>
   </main>
 

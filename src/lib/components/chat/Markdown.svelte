@@ -10,6 +10,8 @@
   export let inspect: typeof ConsoleAPI.prototype.inspect;
 </script>
 
-<WithMarkdown let:parse>
-  <Router node={parse(text)} {OverrideCode} codeProps={{ runCode }} inlineCodeProps={{ inspect }} />
+<WithMarkdown>
+  {#snippet children(parse)}
+    <Router node={parse(text)} {OverrideCode} codeProps={{ runCode }} inlineCodeProps={{ inspect }} />
+  {/snippet}
 </WithMarkdown>
