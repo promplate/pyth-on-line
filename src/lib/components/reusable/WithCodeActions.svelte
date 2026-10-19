@@ -20,7 +20,7 @@
 </script>
 
 {#if code.value}
-  <div class="group relative flex flex-col animate-(duration-150 ease-out)" class:animate-fade-in={fadeIn}>
+  <div class={["group relative flex flex-col animate-(duration-150 ease-out)", { "animate-fade-in": fadeIn }]}>
 
     {@render children(code)}
 

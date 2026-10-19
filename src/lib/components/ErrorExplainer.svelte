@@ -44,7 +44,7 @@
 </script>
 
 <div class="mt-10 h-full max-w-[calc(100vw-40px)] w-full sm:mt-30vh lg:max-w-xl sm:max-w-lg sm:w-3/4">
-  <div in:scale|global={{ start: 0.9, easing: cubicOut }} out:scale|global={{ start: 0.95, easing: cubicIn }} use:draggable={{ applyUserSelectHack: false, cancel: ref, bounds: { left: 20, top: 20, right: 20, bottom: 20 } }} class="max-h-[calc(100vh-40px)] flex flex-col cursor-grab gap-3 rounded bg-neutral-8/60 p-3 ring-0.9 ring-white/20 backdrop-blur-md xl:max-w-3xl sm:gap-4 lg:p-4 sm:p-3.5 lg:ring-1.3 sm:ring-1.1" class:!pb-0={output}>
+  <div in:scale|global={{ start: 0.9, easing: cubicOut }} out:scale|global={{ start: 0.95, easing: cubicIn }} use:draggable={{ applyUserSelectHack: false, cancel: ref, bounds: { left: 20, top: 20, right: 20, bottom: 20 } }} class={["max-h-[calc(100vh-40px)] flex flex-col cursor-grab gap-3 rounded bg-neutral-8/60 p-3 ring-0.9 ring-white/20 backdrop-blur-md xl:max-w-3xl sm:gap-4 lg:p-4 sm:p-3.5 lg:ring-1.3 sm:ring-1.1", { "!pb-0": output }]}>
     <div class="flex flex-row select-none items-center justify-between">
       <div class="flex flex-row items-center gap-1.5 rounded bg-emerald-3/10 px-1.5 py-1 text-emerald-3/80">
         <div class="i-majesticons-lightbulb-shine text-base text-emerald-3" />
