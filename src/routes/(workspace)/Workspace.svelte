@@ -37,7 +37,7 @@
         <SetupWorkspace {sources}>
           {#snippet children(workspace, failed)}
             <Pane defaultSize={70} minSize={10} class="relative">
-              <FileContent on:save={({ detail: content }) => {
+              <FileContent onsave={(content) => {
                 if (!workspace) {
                   toastMarkdown(failed ? "Workspace initialization failed. Changes have not been saved." : "Workspace is still loading. Try saving again once it is ready.", failed ? "error" : "warning");
                   return;
