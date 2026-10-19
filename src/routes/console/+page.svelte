@@ -1,8 +1,8 @@
 <script lang="ts">
   import Console from "$lib/components/Console.svelte";
   import Modal from "$lib/components/Modal.svelte";
+  import { pyodideState } from "$lib/pyodide/state.svelte";
   import { updateMetadata } from "$lib/seo";
-  import { pyodideReady } from "$lib/stores";
   import { cubicIn, cubicOut } from "svelte/easing";
   import { scale } from "svelte/transition";
 
@@ -14,7 +14,7 @@
   <Console class="rounded bg-white/3 p-5 <lg:(p-4 text-sm) <sm:(p-3 text-xs)">
     {#snippet children({ ready })}
 
-      <Modal show={!$pyodideReady || !ready}>
+      <Modal show={!pyodideState.ready || !ready}>
         <div in:scale|global={{ easing: cubicOut, start: 0.8 }} out:scale|global={{ easing: cubicIn, start: 0.9 }} class="rounded-lg bg-white/3 p-4 text-white/70">
           <div class="i-svg-spinners-90-ring-with-bg text-xl" />
         </div>

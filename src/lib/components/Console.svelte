@@ -8,7 +8,7 @@
   import HeadlessConsole from "./console/HeadlessConsole.svelte";
   import ConsolePrompt from "./ConsolePrompt.svelte";
   import Modal from "./Modal.svelte";
-  import { pyodideReady } from "$lib/stores";
+  import { pyodideState } from "$lib/pyodide/state.svelte";
   import { patchSource, reformatInputSource } from "$lib/utils/formatSource";
   import { onMount, untrack } from "svelte";
 
@@ -60,7 +60,7 @@
   });
 
   $effect(() => {
-    if ($pyodideReady && pyConsole && location.hash) {
+    if (pyodideState.ready && pyConsole && location.hash) {
       const source = atob(decodeURIComponent(location.hash.slice(1)));
       // Only readiness should trigger startup code, not state read while executing it.
       untrack(() => pushBlock(source));
