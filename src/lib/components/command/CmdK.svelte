@@ -39,35 +39,37 @@
   }
 }} />
 
-<Modal bind:show={$show} closeOnClickOutside let:close cleanup={() => $input = ""}>
+<Modal bind:show={$show} closeOnClickOutside cleanup={() => $input = ""}>
+  {#snippet children(close)}
 
-  <Command.Root loop onKeydown={e => e.key === "Escape" && close()} class="pointer-events-auto max-w-80vw w-md flex flex-col b-(1 neutral-7) rounded-lg bg-neutral-8/70 p-2em pb-0 backdrop-blur-lg lg:w-lg <lg:text-sm">
+    <Command.Root loop onKeydown={e => e.key === "Escape" && close()} class="pointer-events-auto max-w-80vw w-md flex flex-col b-(1 neutral-7) rounded-lg bg-neutral-8/70 p-2em pb-0 backdrop-blur-lg lg:w-lg <lg:text-sm">
 
-    {#if $prefixes.length}
-      <div class="mb-1 flex flex-row items-center gap-1.5 text-xs text-white/80 font-mono">
-        <div class="select-none font-bold">&gt;</div>
-        {#each $prefixes as prefix}
-          <div class="rounded bg-white/5 px-1.5 py-0.5">{prefix}</div>
-        {/each}
-      </div>
-    {/if}
-
-    <Command.Input autofocus bind:value={$input} class="w-full ws-nowrap bg-transparent py-2 outline-none placeholder-(text-white/30)" placeholder={$placeholder || "Type a command or search..."} />
-
-    <Command.Separator alwaysRender class="mt-1.5 b-1 b-white/10" />
-
-    <Command.List class="max-h-60vh overflow-y-scroll px-2 pb-2em pt-3 -mx-2">
-
-      {#if !$prefixes.length}
-        <Command.Empty>No results found.</Command.Empty>
+      {#if $prefixes.length}
+        <div class="mb-1 flex flex-row items-center gap-1.5 text-xs text-white/80 font-mono">
+          <div class="select-none font-bold">&gt;</div>
+          {#each $prefixes as prefix}
+            <div class="rounded bg-white/5 px-1.5 py-0.5">{prefix}</div>
+          {/each}
+        </div>
       {/if}
 
-      {#each $items.length ? $items : rootItems as item}
-        <Item {item} callback={close} />
-      {/each}
+      <Command.Input autofocus bind:value={$input} class="w-full ws-nowrap bg-transparent py-2 outline-none placeholder-(text-white/30)" placeholder={$placeholder || "Type a command or search..."} />
 
-    </Command.List>
+      <Command.Separator alwaysRender class="mt-1.5 b-1 b-white/10" />
 
-  </Command.Root>
+      <Command.List class="max-h-60vh overflow-y-scroll px-2 pb-2em pt-3 -mx-2">
 
+        {#if !$prefixes.length}
+          <Command.Empty>No results found.</Command.Empty>
+        {/if}
+
+        {#each $items.length ? $items : rootItems as item}
+          <Item {item} callback={close} />
+        {/each}
+
+      </Command.List>
+
+    </Command.Root>
+
+  {/snippet}
 </Modal>
