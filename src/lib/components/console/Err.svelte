@@ -4,7 +4,7 @@
   import Copy from "./Copy.svelte";
   import MaybeAnsi from "./MaybeANSI.svelte";
 
-  export let text: string;
+  const { text, onclick }: { text: string; onclick?: (event: MouseEvent) => void } = $props();
 </script>
 
 <div class="group relative whitespace-normal">
@@ -15,7 +15,7 @@
   <ButtonGroup>
     <Copy {text} />
     <WithTooltip tips="Ask AI" let:builder>
-      <button on:click class="i-majesticons-lightbulb-shine" {...builder} use:builder.action />
+      <button class="i-majesticons-lightbulb-shine" {...builder} {onclick} use:builder.action />
     </WithTooltip>
   </ButtonGroup>
 
