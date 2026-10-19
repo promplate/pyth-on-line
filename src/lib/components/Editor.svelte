@@ -1,5 +1,5 @@
 <script module>
-  let firstLoad = $state(true);
+  let firstLoad = true;
 </script>
 
 <script lang="ts">
@@ -15,6 +15,8 @@
 
   let { source = $bindable(), showLineNum = false, wrap = false, lang, onsave }: { source: string; showLineNum?: boolean; wrap?: boolean; lang: string; onsave?: (source: string) => void } = $props();
 
+  // Keep an in-flight instance loading even when another editor finishes first.
+  const showInitialLoading = firstLoad;
   let editor = $state.raw<monaco.editor.IStandaloneCodeEditor>();
   let core: typeof monaco;
 
@@ -89,9 +91,9 @@
   });
 </script>
 
-<div bind:this={container} class={["h-full w-full overflow-hidden transition-opacity duration-400", { "op-0": !editor && firstLoad }]} />
+<div bind:this={container} class={["h-full w-full overflow-hidden transition-opacity duration-400", { "op-0": !editor && showInitialLoading }]} />
 
-{#if !editor && firstLoad}
+{#if !editor && showInitialLoading}
   <div class="absolute inset-0 grid place-items-center @container" out:fade>
     <div class="flex flex-row items-center gap-2 op-80">
       <div class="i-svg-spinners-90-ring-with-bg" />
