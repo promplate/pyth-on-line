@@ -4,7 +4,7 @@
   import OverrideCode from "./Code.svelte";
   import HeadlessNotebook from "$lib/components/notebook/HeadlessNotebook.svelte";
 
-  export let text: string;
+  const { text }: { text: string } = $props();
 </script>
 
 <HeadlessNotebook>

@@ -4,7 +4,7 @@
   import WithCodeActions from "../reusable/WithCodeActions.svelte";
   import CodeBlock from "$lib/components/CodeBlock.svelte";
 
-  export let node: Node;
+  const { node }: { node: Node } = $props();
 </script>
 
 <WithCodeActions {node}>
