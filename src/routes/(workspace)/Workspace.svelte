@@ -6,15 +6,19 @@
   import SetupWorkspace from "$lib/components/reusable/WorkspaceLifecycle.svelte";
   import { toastMarkdown } from "$lib/utils/toast";
   import { Pane, PaneGroup, PaneResizer } from "paneforge";
+  import { untrack } from "svelte";
 
-  export let sources: Record<string, string> = {};
+  const { sources: initialSources = {} }: { sources?: Record<string, string> } = $props();
+
+  // Each project owns an editable snapshot; same-project reloads must not overwrite local edits.
+  const sources = $state(untrack(() => ({ ...initialSources })));
 
   function getDefaultFile() {
     return Object.keys(sources).find(name => name.toUpperCase().startsWith("README")) ?? Object.keys(sources)[0];
   }
 
-  let focusedFile: keyof typeof sources | null = getDefaultFile() ?? null;
-  let container: HTMLElement;
+  let focusedFile = $state<string | null>(untrack(() => getDefaultFile() ?? null));
+  let container = $state<HTMLElement>();
 
   registerCommandGroup("Workspace", Object.keys(sources).map(name => ({
     text: `Open ${name}`,
