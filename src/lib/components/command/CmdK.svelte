@@ -1,4 +1,4 @@
-<script context="module" lang="ts">
+<script module lang="ts">
   import type { Item as AnyItem } from "./Item.svelte";
 
   import { writable } from "svelte/store";
@@ -29,10 +29,10 @@
     ],
   } as Group;
 
-  $: rootItems = [...Object.entries($commands).map(([text, children]) => ({ type: "group", text, children } as Group)), navigations];
+  const rootItems = $derived([...Object.entries($commands).map(([text, children]) => ({ type: "group", text, children } as Group)), navigations]);
 </script>
 
-<svelte:document on:keydown={(e) => {
+<svelte:document onkeydown={(e) => {
   if (e.key === "k" && e.ctrlKey) {
     $show = !$show;
     e.preventDefault();
