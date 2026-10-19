@@ -26,7 +26,7 @@
 
   let pyConsole: ConsoleAPI;
   let complete: AutoComplete;
-  let status: Status;
+  let status: Status = "complete";
 
   let focusedError: { traceback: string; code: string } | undefined;
 
@@ -44,7 +44,8 @@
     focusedError = { traceback, code };
   }
 
-  let push: (source: string) => Promise<any>;
+  let headless: ReturnType<typeof HeadlessConsole>;
+  const push = (source: string) => headless.push(source);
 
   onMount(() => {
     history.unshift(...(JSON.parse(localStorage.getItem("console-history") || "[]") as string[]));
@@ -83,7 +84,7 @@
     await pushMany(lines.slice(0, -1), wait, hidden, lines.at(-1));
   }
 
-  let ready: boolean;
+  let ready = false;
 
   function pushHistory(source: string) {
     if (source.trim() && source !== history[0]) {
@@ -209,23 +210,25 @@
 <div class="w-full @container">
   <div class="w-full flex flex-col gap-0.7 overflow-x-scroll whitespace-pre-wrap break-all text-neutral-3 font-mono [&>div:hover]:(rounded-sm bg-white/2) [&>div]:(px-1.7 py-0.6 -mx-1.7 -my-0.6) {extras}">
 
-    <HeadlessConsole {container} bind:ready bind:log bind:push bind:complete bind:pyConsole bind:status let:loading>
-      {#each log as { type, text }, index}
-        {#if type === "out"}
-          <Out {text} />
-        {:else if type === "in"}
-          <In {text} onclick={() => push(text)} />
-        {:else if type === "err"}
-          <Err {text} onclick={() => showErrorExplain(index)} />
-        {:else if type === "repr"}
-          <Repr {text} />
-        {/if}
-      {/each}
-      <div class="group flex flex-row" class:animate-pulse={loading || !ready}>
-        <ConsolePrompt prompt={status === "incomplete" ? "..." : ">>>"} />
-        <!-- svelte-ignore a11y-autofocus -->
-        <input {autofocus} bind:this={inputRef} class="w-full bg-transparent outline-none" bind:value={input} type="text" autocapitalize="off" spellcheck="false" autocomplete="off" autocorrect="off" />
-      </div>
+    <HeadlessConsole bind:this={headless} {container} bind:ready bind:log bind:complete bind:pyConsole bind:status>
+      {#snippet children({ loading })}
+        {#each log as { type, text }, index}
+          {#if type === "out"}
+            <Out {text} />
+          {:else if type === "in"}
+            <In {text} onclick={() => push(text)} />
+          {:else if type === "err"}
+            <Err {text} onclick={() => showErrorExplain(index)} />
+          {:else if type === "repr"}
+            <Repr {text} />
+          {/if}
+        {/each}
+        <div class="group flex flex-row" class:animate-pulse={loading || !ready}>
+          <ConsolePrompt prompt={status === "incomplete" ? "..." : ">>>"} />
+          <!-- svelte-ignore a11y-autofocus -->
+          <input {autofocus} bind:this={inputRef} class="w-full bg-transparent outline-none" bind:value={input} type="text" autocapitalize="off" spellcheck="false" autocomplete="off" autocorrect="off" />
+        </div>
+      {/snippet}
     </HeadlessConsole>
 
   </div>

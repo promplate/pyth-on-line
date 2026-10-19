@@ -6,7 +6,7 @@
   import getPy from "$lib/pyodide";
   import { tick } from "svelte";
 
-  export let pyConsole: ConsoleAPI;
+  const { pyConsole }: { pyConsole?: ConsoleAPI } = $props();
 
   const installTitle = "Install Packages";
 
@@ -47,7 +47,7 @@
     {
       text: "Clear Console",
       handler() {
-        pyConsole.clear();
+        pyConsole?.clear();
       },
     },
   ]);
