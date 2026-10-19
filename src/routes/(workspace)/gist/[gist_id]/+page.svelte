@@ -1,11 +1,11 @@
 <script lang="ts">
-  import type { PageData } from "./$types";
+  import type { PageProps } from "./$types";
 
   import Workspace from "../../Workspace.svelte";
 
-  export let data: PageData;
-
-  const { sources } = data;
+  const { data, params }: PageProps = $props();
 </script>
 
-<Workspace {sources} />
+{#key params.gist_id}
+  <Workspace sources={data.sources} />
+{/key}
