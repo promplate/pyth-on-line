@@ -44,6 +44,7 @@
     focusedError = { traceback, code };
   }
 
+  let disposed = false;
   let headless: ReturnType<typeof HeadlessConsole>;
   const push = (source: string) => headless.push(source);
 
@@ -53,6 +54,9 @@
       autofocus = true;
       focusToInput();
     }
+    return () => {
+      disposed = true;
+    };
   });
 
   $effect(() => {
@@ -65,20 +69,26 @@
 
   async function pushMany(lines: string[], wait = true, hidden = false, finallySetInput = "") {
     const api = pyConsole;
-    if (!api)
+    if (disposed || !api)
       return;
     let promise: Promise<any> | null = null;
     for (const line of lines) {
+      if (disposed)
+        return;
       if (hidden) {
         promise = api.push(line, true).future;
       }
       else {
         promise && (input = line);
         wait && (await promise);
+        if (disposed)
+          return;
         pushHistory(line);
         promise = push(line);
       }
     }
+    if (disposed)
+      return;
     input = finallySetInput;
     wait && (await promise);
   }
@@ -106,7 +116,7 @@
   }
 
   function focusToInput(start?: number, end?: number) {
-    if (!inputRef)
+    if (disposed || !inputRef)
       return;
     inputRef.scrollIntoView({ block: "center" });
     inputRef.focus();
