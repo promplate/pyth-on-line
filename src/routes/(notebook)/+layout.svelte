@@ -1,5 +1,9 @@
 <script lang="ts">
+  import type { Snippet } from "svelte";
+
   import { Button } from "bits-ui";
+
+  const { children }: { children?: Snippet } = $props();
 </script>
 
 <div class="m-4 w-[calc(100%-2rem)] self-center 2xl:(m-10 w-4xl) lg:(m-7 w-2xl) md:m-6 sm:(m-5 w-xl) xl:(m-8 w-3xl) [&>article]:(lg:text-3.75 xl:text-base)">
@@ -11,5 +15,5 @@
 
   <hr class="invisible h-6">
 
-  <slot />
+  {@render children?.()}
 </div>
