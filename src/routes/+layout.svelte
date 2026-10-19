@@ -6,56 +6,24 @@
   import "@fontsource-variable/fira-code";
   import "@fontsource-variable/inter";
 
-  import { dev } from "$app/env";
-  import * as env from "$app/env/public";
   import { onNavigate } from "$app/navigation";
-  import { page } from "$app/state";
   import CmdK from "$lib/components/command/CmdK.svelte";
-  import { initMetadataStore, resetMetadata } from "$lib/seo";
+  import Head from "$lib/components/Head.svelte";
+  import { initMetadata, resetMetadata } from "$lib/seo";
   import { Toaster } from "svelte-sonner";
 
   const { children }: LayoutProps = $props();
 
-  const metadata = initMetadataStore();
+  const metadata = initMetadata();
   onNavigate(() => resetMetadata(metadata));
-
-  // @ts-ignore
-  const headScripts = atob(env.PUBLIC_HEAD_SCRIPTS ?? "");
-  // @ts-ignore
-  const originTrialToken = env.PUBLIC_ORIGIN_TRIAL_TOKEN;
-
-  const ogTitle = $derived($metadata.ogTitle);
-  const ogImage = $derived(`${page.url.origin === "http://sveltekit-prerender" ? __PRERENDER_ORIGIN__ : page.url.origin}/og${page.url.pathname}`);
-  const ogDescription = $derived($metadata.ogDescription);
 </script>
-
-<svelte:head>
-  {#if headScripts && !dev}
-    {@html headScripts}
-  {/if}
-  {#if originTrialToken}
-    <meta http-equiv={"origin-trial" as any} content={originTrialToken} />
-  {/if}
-
-  <title>{ogTitle}</title>
-  <meta property="og:title" content={ogTitle} />
-  <meta property="twitter:title" content={ogTitle} />
-
-  <meta property="twitter:card" content="summary_large_image" />
-
-  <meta property="og:image" content={ogImage} />
-  <meta property="twitter:image" content={ogImage} />
-
-  <meta property="description" content={ogDescription} />
-  <meta property="og:description" content={ogDescription} />
-  <meta property="twitter:description" content={ogDescription} />
-
-  <meta name="theme-color" content="#171717" />
-</svelte:head>
 
 <Toaster theme="dark" toastOptions={{ class: "text-xs font-mono" }} />
 
 {@render children()}
+
+<!-- Svelte hoists svelte:head; a child component lets SSR read metadata after page setup. -->
+<Head {metadata} />
 
 <CmdK />
 
