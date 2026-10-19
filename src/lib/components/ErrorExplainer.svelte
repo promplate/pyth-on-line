@@ -5,46 +5,52 @@
   import WithTooltip from "./reusable/WithTooltip.svelte";
   import { draggable } from "@neodrag/svelte";
   import { explain } from "$lib/pyodide/api/explain";
-  import { onMount } from "svelte";
+  import { getAbortSignal } from "svelte";
   import { fromAction } from "svelte/attachments";
   import { cubicIn, cubicOut } from "svelte/easing";
   import { scale } from "svelte/transition";
 
   interface ErrorInfo { traceback: string; code: string }
 
-  export let errorInfo: ErrorInfo | undefined;
-  export let pushBlock: (source: string) => any;
-  export let pyConsole: ConsoleAPI;
-  export let close: () => any;
+  const { errorInfo, pushBlock, pyConsole, close }: { errorInfo: ErrorInfo | undefined; pushBlock: (source: string) => any; pyConsole: ConsoleAPI; close: () => any } = $props();
 
-  let output = "";
-  let error: Error | undefined;
+  let output = $state("");
+  let error = $state<Error>();
+  let attempt = $state(0);
+  // Regeneration shares the same cancellation scope as prop changes and unmount.
+  const request = $derived({ info: errorInfo, attempt });
 
-  async function runExplain({ traceback, code }: ErrorInfo) {
+  async function runExplain({ traceback, code }: ErrorInfo, signal: AbortSignal) {
     try {
-      for await (const delta of explain(traceback, code))
+      for await (const delta of explain(traceback, code, signal)) {
+        if (signal.aborted)
+          break;
         output += delta;
+      }
     }
     catch (e) {
-      error = e as Error;
+      if (!signal.aborted)
+        error = e as Error;
     }
   }
 
   function invoke() {
-    if (errorInfo) {
-      output = "";
-      error = undefined;
-      runExplain(errorInfo);
-    }
+    attempt++;
   }
 
-  onMount(invoke);
+  $effect(() => {
+    const { info } = request;
+    output = "";
+    error = undefined;
+    if (info)
+      runExplain(info, getAbortSignal());
+  });
 
-  let ref: HTMLDivElement;
+  let ref = $state<HTMLDivElement>();
 </script>
 
 <div class="mt-10 h-full max-w-[calc(100vw-40px)] w-full sm:mt-30vh lg:max-w-xl sm:max-w-lg sm:w-3/4">
-  <div in:scale|global={{ start: 0.9, easing: cubicOut }} out:scale|global={{ start: 0.95, easing: cubicIn }} use:draggable={{ applyUserSelectHack: false, cancel: ref, bounds: { left: 20, top: 20, right: 20, bottom: 20 } }} class={["max-h-[calc(100vh-40px)] flex flex-col cursor-grab gap-3 rounded bg-neutral-8/60 p-3 ring-0.9 ring-white/20 backdrop-blur-md xl:max-w-3xl sm:gap-4 lg:p-4 sm:p-3.5 lg:ring-1.3 sm:ring-1.1", { "!pb-0": output }]}>
+  <div in:scale|global={{ start: 0.9, easing: cubicOut }} out:scale|global={{ start: 0.95, easing: cubicIn }} {@attach fromAction(draggable, () => ({ applyUserSelectHack: false, cancel: ref, bounds: { left: 20, top: 20, right: 20, bottom: 20 } }))} class={["max-h-[calc(100vh-40px)] flex flex-col cursor-grab gap-3 rounded bg-neutral-8/60 p-3 ring-0.9 ring-white/20 backdrop-blur-md xl:max-w-3xl sm:gap-4 lg:p-4 sm:p-3.5 lg:ring-1.3 sm:ring-1.1", { "!pb-0": output }]}>
     <div class="flex flex-row select-none items-center justify-between">
       <div class="flex flex-row items-center gap-1.5 rounded bg-emerald-3/10 px-1.5 py-1 text-emerald-3/80">
         <div class="i-majesticons-lightbulb-shine text-base text-emerald-3" />
@@ -55,14 +61,14 @@
       <div class="flex flex-row [&>button:active]:scale-90 [&>button]:(rounded p-1.5 text-white/80 transition-colors)">
         <WithTooltip tips="Regenerate">
           {#snippet children(builder)}
-            <button class="hover:(bg-cyan-3/10 text-cyan-3/80)" on:click={invoke} {...builder} {@attach fromAction((node: HTMLElement) => builder.action(node), () => undefined)}>
+            <button class="hover:(bg-cyan-3/10 text-cyan-3/80)" onclick={invoke} {...builder} {@attach fromAction((node: HTMLElement) => builder.action(node), () => undefined)}>
               <div class="i-mingcute-refresh-2-fill" />
             </button>
           {/snippet}
         </WithTooltip>
         <WithTooltip tips="Close">
           {#snippet children(builder)}
-            <button class="hover:(bg-red-3/10 text-red-3/80)" on:click={close} {...builder} {@attach fromAction((node: HTMLElement) => builder.action(node), () => undefined)}>
+            <button class="hover:(bg-red-3/10 text-red-3/80)" onclick={close} {...builder} {@attach fromAction((node: HTMLElement) => builder.action(node), () => undefined)}>
               <div class="i-mingcute-close-fill" />
             </button>
           {/snippet}
