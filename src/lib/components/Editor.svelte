@@ -1,4 +1,4 @@
-<script context="module">
+<script module>
   let firstLoad = true;
 </script>
 
@@ -8,27 +8,22 @@
   import { show as showMenu } from "./command/CmdK.svelte";
   import { shikiToMonaco } from "@shikijs/monaco";
   import { getHighlighter } from "$lib/highlight";
-  import { createEventDispatcher, onDestroy, onMount } from "svelte";
+  import { onDestroy, onMount } from "svelte";
   import { fade } from "svelte/transition";
 
   let container: HTMLDivElement;
 
-  export let source: string;
-  export let showLineNum = false;
-  export let wrap = false;
-  export let lang: string;
+  let { source = $bindable(), showLineNum = false, wrap = false, lang, onsave }: { source: string; showLineNum?: boolean; wrap?: boolean; lang: string; onsave?: (source: string) => void } = $props();
 
-  let editor: monaco.editor.IStandaloneCodeEditor;
+  // Keep an in-flight instance loading even when another editor finishes first.
+  const showInitialLoading = firstLoad;
+  let editor = $state.raw<monaco.editor.IStandaloneCodeEditor>();
   let core: typeof monaco;
 
   async function loadLanguage(language: string) {
     core.languages.register({ id: language });
     shikiToMonaco(await getHighlighter(language), core);
   }
-
-  const dispatch = createEventDispatcher<{
-    save: string;
-  }>();
 
   onMount(async () => {
     [core] = await Promise.all([import("monaco-editor-core"), getHighlighter(lang)]);
@@ -37,7 +32,7 @@
     if (!container)
       return;
 
-    editor = core.editor.create(container, {
+    const instance = core.editor.create(container, {
       value: source,
       language: lang,
       theme: "vitesse-dark",
@@ -58,17 +53,26 @@
       automaticLayout: true,
     });
 
+    editor = instance;
     firstLoad = false;
 
-    editor.onDidChangeModelContent(() => source = editor.getValue());
+    instance.onDidChangeModelContent(() => source = instance.getValue());
 
-    editor.addCommand(core.KeyMod.CtrlCmd | core.KeyCode.KeyS, () => dispatch("save", source));
-    editor.addCommand(core.KeyMod.CtrlCmd | core.KeyCode.KeyK, () => $showMenu = true);
+    // Actions scope keybindings to this editor; addCommand registers global shortcuts.
+    const saveAction = instance.addAction({ id: "save", label: "Save", keybindings: [core.KeyMod.CtrlCmd | core.KeyCode.KeyS], run: () => onsave?.(source) });
+    const menuAction = instance.addAction({ id: "shortcut-menu", label: "Open shortcut menu", keybindings: [core.KeyMod.CtrlCmd | core.KeyCode.KeyK], run: () => {
+      $showMenu = true;
+    } });
+    instance.onDidDispose(() => {
+      saveAction.dispose();
+      menuAction.dispose();
+    });
   });
 
+  // Async onMount cannot return cleanup; dispose this instance when its component is destroyed.
   onDestroy(() => editor?.dispose());
 
-  function reload(source: string, language = lang) {
+  function reload(editor: monaco.editor.IStandaloneCodeEditor, source: string, language = lang) {
     if (language !== editor.getModel()!.getLanguageId()) {
       core.editor.setModelLanguage(editor.getModel()!, language);
       loadLanguage(language);
@@ -80,12 +84,16 @@
     }
   }
 
-  $: editor && reload(source, lang);
+  // Synchronize Monaco with bound props without replacing its model or editor instance.
+  $effect(() => {
+    if (editor)
+      reload(editor, source, lang);
+  });
 </script>
 
-<div bind:this={container} class="h-full w-full overflow-hidden transition-opacity duration-400" class:op-0={!editor && firstLoad} />
+<div bind:this={container} class={["h-full w-full overflow-hidden transition-opacity duration-400", { "op-0": !editor && showInitialLoading }]} />
 
-{#if !editor && firstLoad}
+{#if !editor && showInitialLoading}
   <div class="absolute inset-0 grid place-items-center @container" out:fade>
     <div class="flex flex-row items-center gap-2 op-80">
       <div class="i-svg-spinners-90-ring-with-bg" />
