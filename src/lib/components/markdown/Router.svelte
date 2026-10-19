@@ -74,8 +74,10 @@
 
 {:else if node.type === "table"}
 
-  <Table {node} let:child>
-    <Router node={child} {OverrideCode} {codeProps} {inlineCodeProps} />
+  <Table {node}>
+    {#snippet children(child)}
+      <Router node={child} {OverrideCode} {codeProps} {inlineCodeProps} />
+    {/snippet}
   </Table>
 
 {:else if "children" in node && getTagName(node)}

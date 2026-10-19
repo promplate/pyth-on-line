@@ -1,9 +1,10 @@
 <script lang="ts">
   import type { Node, Table } from "mdast";
+  import type { Snippet } from "svelte";
 
-  export let node: Node;
+  const { node, children }: { node: Node; children?: Snippet<[Node]> } = $props();
 
-  $: table = node as Table;
+  const table = $derived(node as Table);
 </script>
 
 <table>
@@ -13,7 +14,7 @@
       {#each table.children[0].children as cell}
         <th>
           {#each cell.children as child}
-            <slot {child} />
+            {@render children?.(child)}
           {/each}
         </th>
       {/each}
@@ -26,7 +27,7 @@
         {#each row.children as cell}
           <td>
             {#each cell.children as child}
-              <slot {child} />
+              {@render children?.(child)}
             {/each}
           </td>
         {/each}
