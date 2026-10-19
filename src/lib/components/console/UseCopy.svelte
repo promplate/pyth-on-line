@@ -1,14 +1,16 @@
 <script lang="ts">
+  import type { Snippet } from "svelte";
+
   import { toastMarkdown } from "$lib/utils/toast";
 
-  export let text: string;
+  const { text, children }: { text: string; children: Snippet<[() => Promise<void>]> } = $props();
 
   async function handleClick() {
-    text = text.trimEnd();
-    navigator.clipboard.writeText(text);
-    const n = text.split("\n").length;
+    const source = text.trimEnd();
+    navigator.clipboard.writeText(source);
+    const n = source.split("\n").length;
     toastMarkdown(`successfully copied \`${n}\` ${n === 1 ? "line" : "lines"} to clipboard`);
   }
 </script>
 
-<slot {handleClick} />
+{@render children(handleClick)}
