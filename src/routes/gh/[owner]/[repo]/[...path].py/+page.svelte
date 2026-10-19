@@ -233,11 +233,13 @@
           uv
         </a>
       </div>
-      <UseCopy text={runCommand} let:handleClick>
-        <button class="max-w-full w-fit row items-center gap-2 rounded-lg bg-white/4 px-2.5 py-1.5 text-sm text-neutral-2 ring-1 ring-white/7 hover:bg-white/6" onclick={handleClick}>
-          <div class="i-si-copy-alt-line size-3.5 shrink-0" />
-          <code class="max-w-full overflow-hidden text-ellipsis ws-nowrap text-xs text-neutral-3 font-jb">{runCommand}</code>
-        </button>
+      <UseCopy text={runCommand}>
+        {#snippet children(handleClick)}
+          <button class="max-w-full w-fit row items-center gap-2 rounded-lg bg-white/4 px-2.5 py-1.5 text-sm text-neutral-2 ring-1 ring-white/7 hover:bg-white/6" onclick={handleClick}>
+            <div class="i-si-copy-alt-line size-3.5 shrink-0" />
+            <code class="max-w-full overflow-hidden text-ellipsis ws-nowrap text-xs text-neutral-3 font-jb">{runCommand}</code>
+          </button>
+        {/snippet}
       </UseCopy>
     </section>
 
@@ -249,11 +251,13 @@
         </div>
         <div class="row items-center gap-3">
           <span class="text-xs text-neutral-5">Last changed {fromNow(payload.repository.fileLastUpdatedAt)}</span>
-          <UseCopy text={payload.content} let:handleClick>
-            <button class="row items-center gap-1.5 rounded-md bg-white/7 px-2.5 py-1.5 text-xs text-neutral-3 ring-1 ring-white/10 hover:bg-white/10" onclick={handleClick}>
-              <div class="i-si-copy-alt-line size-3.5" />
-              Copy
-            </button>
+          <UseCopy text={payload.content}>
+            {#snippet children(handleClick)}
+              <button class="row items-center gap-1.5 rounded-md bg-white/7 px-2.5 py-1.5 text-xs text-neutral-3 ring-1 ring-white/10 hover:bg-white/10" onclick={handleClick}>
+                <div class="i-si-copy-alt-line size-3.5" />
+                Copy
+              </button>
+            {/snippet}
           </UseCopy>
         </div>
       </div>

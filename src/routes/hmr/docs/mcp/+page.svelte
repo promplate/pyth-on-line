@@ -36,21 +36,25 @@
         <CodeBlock lang="json" code={httpConfigStr} />
       </div>
       <div class="col gap-0.7 text-neutral-4 [&>:where(button,a)]:(w-full row items-center gap-2 rounded-lg px-2 py-1.5 filter-grayscale -ml-2) [&>:where(button,a):hover]:(bg-white/7 text-white filter-none) [&>:where(button,a):focus-visible]:(outline-none ring-1.2 ring-neutral-2 ring-inset) ![&>:where(button,a):active]:(bg-neutral-2 text-neutral-8 shadow-lg shadow-neutral-2/20)">
-        <UseCopy text={httpConfigStr} let:handleClick>
-          <button onclick={handleClick}>
-            <div class="i-si-copy-alt-fill size-4" />
-            Copy to clipboard
-          </button>
+        <UseCopy text={httpConfigStr}>
+          {#snippet children(handleClick)}
+            <button onclick={handleClick}>
+              <div class="i-si-copy-alt-fill size-4" />
+              Copy to clipboard
+            </button>
+          {/snippet}
         </UseCopy>
         <a target="_blank" href="https://cursor.com/en/install-mcp?name=hmr-docs&config={btoa(JSON.stringify({ url }))}">
           <div class="size-4 translate-0.2 scale-110">{@html cursor.replace(/#\d{3}/g, "currentColor").replaceAll("lobe-icons-cursorundefined-fill", "fill1")}</div>
           Install in Cursor
         </a>
-        <UseCopy text="claude mcp add --transport http hmr-docs {url}" let:handleClick>
-          <button onclick={handleClick}>
-            <div class="i-logos-claude-icon size-4" />
-            Add to Claude Code
-          </button>
+        <UseCopy text="claude mcp add --transport http hmr-docs {url}">
+          {#snippet children(handleClick)}
+            <button onclick={handleClick}>
+              <div class="i-logos-claude-icon size-4" />
+              Add to Claude Code
+            </button>
+          {/snippet}
         </UseCopy>
         <a href="vscode:mcp/install?{encodeURIComponent(JSON.stringify({ name: "hmr-docs", type: "http", url }))}">
           <div class="i-vscode-icons-file-type-vscode size-4" />
@@ -69,21 +73,25 @@
         <CodeBlock lang="json" code={stdioConfigStr} />
       </div>
       <div class="col gap-0.7 text-neutral-4 [&>:where(button,a)]:(w-full row items-center gap-2 rounded-lg px-2 py-1.5 filter-grayscale -ml-2) [&>:where(button,a):hover]:(bg-white/7 text-white filter-none) [&>:where(button,a):focus-visible]:(outline-none ring-1.2 ring-neutral-2 ring-inset) ![&>:where(button,a):active]:(bg-neutral-2 text-neutral-8 shadow-lg shadow-neutral-2/20)">
-        <UseCopy text={stdioConfigStr} let:handleClick>
-          <button onclick={handleClick}>
-            <div class="i-si-copy-alt-fill size-4" />
-            Copy to clipboard
-          </button>
+        <UseCopy text={stdioConfigStr}>
+          {#snippet children(handleClick)}
+            <button onclick={handleClick}>
+              <div class="i-si-copy-alt-fill size-4" />
+              Copy to clipboard
+            </button>
+          {/snippet}
         </UseCopy>
         <a target="_blank" href="https://cursor.com/en/install-mcp?name=hmr-docs&config={btoa(JSON.stringify({ command: "npx", args: ["mcp-remote", url] }))}">
           <div class="size-4 translate-0.2 scale-110">{@html cursor.replace(/#\d{3}/g, "currentColor").replaceAll("lobe-icons-cursorundefined-fill", "fill2")}</div>
           Install in Cursor (stdio)
         </a>
-        <UseCopy text="claude mcp add --transport stdio hmr-docs npx mcp-remote {url}" let:handleClick>
-          <button onclick={handleClick}>
-            <div class="i-logos-claude-icon size-4" />
-            Add to Claude Code (stdio)
-          </button>
+        <UseCopy text="claude mcp add --transport stdio hmr-docs npx mcp-remote {url}">
+          {#snippet children(handleClick)}
+            <button onclick={handleClick}>
+              <div class="i-logos-claude-icon size-4" />
+              Add to Claude Code (stdio)
+            </button>
+          {/snippet}
         </UseCopy>
         <a href="vscode:mcp/install?{encodeURIComponent(JSON.stringify({ name: "hmr-docs", type: "stdio", command: "npx", args: ["mcp-remote", url] }))}">
           <div class="i-vscode-icons-file-type-vscode size-4" />

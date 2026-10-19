@@ -84,17 +84,21 @@
       </div>
 
       <div class="col gap-0.7 text-neutral-4 [&>:where(button,a)]:(w-full row items-center gap-2 rounded-lg px-2 py-1.5 -ml-2) [&>:w\here(button,a):hover]:(bg-white/7 text-white filter-none) [&>:where(button,a):focus-visible]:(outline-none ring-1.2 ring-neutral-2 ring-inset) ![&>:where(button,a):active]:(bg-neutral-2 text-neutral-8 shadow-lg shadow-neutral-2/20)">
-        <UseCopy text={url} let:handleClick>
-          <button onclick={handleClick}>
-            <div class="i-si-copy-alt-line size-4" />
-            Copy URL
-          </button>
+        <UseCopy text={url}>
+          {#snippet children(handleClick)}
+            <button onclick={handleClick}>
+              <div class="i-si-copy-alt-line size-4" />
+              Copy URL
+            </button>
+          {/snippet}
         </UseCopy>
-        <UseCopy text={content} let:handleClick>
-          <button onclick={handleClick}>
-            <div class="i-si-copy-alt-fill size-4" />
-            Copy Content
-          </button>
+        <UseCopy text={content}>
+          {#snippet children(handleClick)}
+            <button onclick={handleClick}>
+              <div class="i-si-copy-alt-fill size-4" />
+              Copy Content
+            </button>
+          {/snippet}
         </UseCopy>
       </div>
 
