@@ -6,7 +6,7 @@
   import CodeBlock from "$lib/components/CodeBlock.svelte";
   import { patchSource } from "$lib/utils/formatSource";
 
-  const { node, pyNotebook, heuristics = false }: { node: Node; pyNotebook: NotebookAPI; heuristics?: boolean } = $props();
+  const { node, pyNotebook, heuristics = false }: { node: Node; pyNotebook?: NotebookAPI; heuristics?: boolean } = $props();
 
   let items = $state.raw<Item[]>([]);
 
@@ -17,15 +17,18 @@
   }
 
   async function run(source: string) {
+    const notebook = pyNotebook;
+    if (!notebook)
+      return;
     if (source.startsWith(">>>")) {
-      pyNotebook.run(patchSource(source), sync, true);
+      notebook.run(patchSource(source), sync, true);
     }
     else {
-      pyNotebook.run(source, sync);
+      notebook.run(source, sync);
     }
   }
 
-  function isPython(pyNotebook: NotebookAPI, source: string) {
+  function isPython(pyNotebook: NotebookAPI | undefined, source: string) {
     if (!heuristics)
       return false;
     if (source.startsWith(">>>"))
@@ -50,7 +53,7 @@
   });
 </script>
 
-<WithCodeActions {node} {run} runnable={valid}>
+<WithCodeActions {node} run={pyNotebook ? run : null} runnable={valid}>
   {#snippet children(code)}
     <CodeBlock {lang} code={code.value} {items} />
   {/snippet}
