@@ -3,15 +3,20 @@
   import SparklesText from "./SparklesText.svelte";
   import { navigating } from "$app/state";
   import { updateMetadata } from "$lib/seo";
-  import { onMount } from "svelte";
+  import { onMount, untrack } from "svelte";
 
   updateMetadata({
     ogTitle: "HMR - Hot Module Reload for Python",
     ogDescription: "Next-generation hot module replacement for Python development",
   });
 
-  let highlighted = !navigating.from;
-  highlighted && onMount(() => setTimeout(() => highlighted = false, 500));
+  let highlighted = $state(untrack(() => !navigating.from));
+  onMount(() => {
+    if (!highlighted)
+      return;
+    const timeout = setTimeout(() => highlighted = false, 500);
+    return () => clearTimeout(timeout);
+  });
 </script>
 
 <div class="grid h-100dvh place-items-center">
