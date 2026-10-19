@@ -2,7 +2,7 @@
   import ButtonGroup from "./ButtonGroup.svelte";
   import Copy from "./Copy.svelte";
 
-  export let text: string;
+  const { text }: { text: string } = $props();
 </script>
 
 <div class="group relative whitespace-normal">
