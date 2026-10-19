@@ -5,10 +5,11 @@
   import getPy from "$lib/pyodide";
   import { onMount } from "svelte";
 
-  const { sources, children }: { sources: Record<string, string>; children: Snippet<[WorkspaceAPI | undefined]> } = $props();
+  const { sources, children }: { sources: Record<string, string>; children: Snippet<[WorkspaceAPI | undefined, boolean]> } = $props();
 
   // Pyodide owns this handle; only its replacement should be reactive.
   let workspace = $state.raw<WorkspaceAPI>();
+  let failed = $state(false);
 
   onMount(() => {
     let disposed = false;
@@ -18,6 +19,11 @@
       if (disposed)
         return;
       workspace = py.pyimport("workspace.WorkspaceAPI")(py.toPy(sources));
+    }).catch((error) => {
+      if (disposed)
+        return;
+      console.error("Failed to initialize workspace", error);
+      failed = true;
     });
 
     return () => {
@@ -28,4 +34,4 @@
   });
 </script>
 
-{@render children(workspace)}
+{@render children(workspace, failed)}

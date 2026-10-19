@@ -35,11 +35,13 @@
     <Pane defaultSize={80} minSize={10}>
       <PaneGroup direction="vertical">
         <SetupWorkspace {sources}>
-          {#snippet children(workspace)}
+          {#snippet children(workspace, failed)}
             <Pane defaultSize={70} minSize={10} class="relative">
               <FileContent on:save={({ detail: content }) => {
-                if (!workspace)
+                if (!workspace) {
+                  toastMarkdown(failed ? "Workspace initialization failed. Changes have not been saved." : "Workspace is still loading. Try saving again once it is ready.", failed ? "error" : "warning");
                   return;
+                }
                 workspace.save(focusedFile, content.replaceAll("\r\n", "\n"));
                 toastMarkdown(`\`${focusedFile}\` saved`);
               }} bind:content={sources[focusedFile]} lang={focusedFile.slice(focusedFile.lastIndexOf(".") + 1)} />
