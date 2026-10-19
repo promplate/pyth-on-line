@@ -7,14 +7,18 @@
 
   const { data }: PageProps = $props();
   const token = $derived(data.access_token);
+  let redirected = false;
 
   $effect(() => {
     if (!token)
       return;
 
-    // Only a new callback token should redirect, not state read by auth or navigation.
     untrack(() => {
       $accessToken = token;
+      // New tokens can arrive before goto resolves; consume the return path only once.
+      if (redirected)
+        return;
+      redirected = true;
       goto(sessionStorage.getItem("continue") ?? "/github");
       sessionStorage.removeItem("continue");
     });
