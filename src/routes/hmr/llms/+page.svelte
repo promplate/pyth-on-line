@@ -72,10 +72,12 @@
       <div class="mb-3 col shrink-0 gap-1.5 text-xs">
         <div class="row items-center gap-1.5">
           <h1 class="text-base text-neutral-2 font-semibold">LLM-Friendly Docs ✨</h1>
-          <WithTooltip tips="about llms.txt spec" let:builder>
-            <a href="https://llmstxt.org/" target="_blank" class="" {...builder} use:builder.action>
-              <div class="i-mdi-help-circle-outline mb-0.1 size-4 text-neutral-6 hover:text-neutral-3" />
-            </a>
+          <WithTooltip tips="about llms.txt spec">
+            {#snippet children(builder)}
+              <a href="https://llmstxt.org/" target="_blank" class="" {...builder} use:builder.action>
+                <div class="i-mdi-help-circle-outline mb-0.1 size-4 text-neutral-6 hover:text-neutral-3" />
+              </a>
+            {/snippet}
           </WithTooltip>
         </div>
         <p>

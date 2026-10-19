@@ -19,8 +19,10 @@
     <Highlight {text}></Highlight>
     <ButtonGroup>
       <Copy {text} />
-      <WithTooltip tips="Run" let:builder>
-        <button class="i-mingcute-play-fill" {...builder} {onclick} use:builder.action />
+      <WithTooltip tips="Run">
+        {#snippet children(builder)}
+          <button class="i-mingcute-play-fill" {...builder} {onclick} use:builder.action />
+        {/snippet}
       </WithTooltip>
     </ButtonGroup>
   </div>

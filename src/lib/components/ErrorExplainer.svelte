@@ -52,15 +52,19 @@
         </div>
       </div>
       <div class="flex flex-row [&>button:active]:scale-90 [&>button]:(rounded p-1.5 text-white/80 transition-colors)">
-        <WithTooltip tips="Regenerate" let:builder>
-          <button class="hover:(bg-cyan-3/10 text-cyan-3/80)" on:click={invoke} {...builder} use:builder.action>
-            <div class="i-mingcute-refresh-2-fill" />
-          </button>
+        <WithTooltip tips="Regenerate">
+          {#snippet children(builder)}
+            <button class="hover:(bg-cyan-3/10 text-cyan-3/80)" on:click={invoke} {...builder} use:builder.action>
+              <div class="i-mingcute-refresh-2-fill" />
+            </button>
+          {/snippet}
         </WithTooltip>
-        <WithTooltip tips="Close" let:builder>
-          <button class="hover:(bg-red-3/10 text-red-3/80)" on:click={close} {...builder} use:builder.action>
-            <div class="i-mingcute-close-fill" />
-          </button>
+        <WithTooltip tips="Close">
+          {#snippet children(builder)}
+            <button class="hover:(bg-red-3/10 text-red-3/80)" on:click={close} {...builder} use:builder.action>
+              <div class="i-mingcute-close-fill" />
+            </button>
+          {/snippet}
         </WithTooltip>
       </div>
     </div>

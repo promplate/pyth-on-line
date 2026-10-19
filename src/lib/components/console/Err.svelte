@@ -14,8 +14,10 @@
 
   <ButtonGroup>
     <Copy {text} />
-    <WithTooltip tips="Ask AI" let:builder>
-      <button class="i-majesticons-lightbulb-shine" {...builder} {onclick} use:builder.action />
+    <WithTooltip tips="Ask AI">
+      {#snippet children(builder)}
+        <button class="i-majesticons-lightbulb-shine" {...builder} {onclick} use:builder.action />
+      {/snippet}
     </WithTooltip>
   </ButtonGroup>
 

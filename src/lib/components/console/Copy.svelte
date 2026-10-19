@@ -7,8 +7,10 @@
 
 <UseCopy {text}>
   {#snippet children(handleClick)}
-    <WithTooltip tips="Copy" let:builder>
-      <button onclick={handleClick} class="i-icon-park-twotone-copy" {...builder} use:builder.action />
+    <WithTooltip tips="Copy">
+      {#snippet children(builder)}
+        <button onclick={handleClick} class="i-icon-park-twotone-copy" {...builder} use:builder.action />
+      {/snippet}
     </WithTooltip>
   {/snippet}
 </UseCopy>

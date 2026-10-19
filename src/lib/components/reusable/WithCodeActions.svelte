@@ -26,14 +26,18 @@
     <div class="absolute right-0.9em top-0.9em flex flex-row-reverse gap-0.3em transition group-not-hover:(pointer-events-none op-0) [&>button]:(rounded bg-white/5 p-0.6em text-0.725em transition) [&>button:hover]:(bg-white/10)">
       <UseCopy text={code.value}>
         {#snippet children(handleClick)}
-          <WithTooltip let:builder tips="Copy">
-            <button onclick={handleClick} {...builder} use:builder.action><div class="i-icon-park-twotone-copy" /></button>
+          <WithTooltip tips="Copy">
+            {#snippet children(builder)}
+              <button onclick={handleClick} {...builder} use:builder.action><div class="i-icon-park-twotone-copy" /></button>
+            {/snippet}
           </WithTooltip>
         {/snippet}
       </UseCopy>
       {#if canRun && run}
-        <WithTooltip let:builder tips="Run">
-          <button onclick={() => run(code.value)} {...builder} use:builder.action><div class="i-mingcute-play-fill" /></button>
+        <WithTooltip tips="Run">
+          {#snippet children(builder)}
+            <button onclick={() => run(code.value)} {...builder} use:builder.action><div class="i-mingcute-play-fill" /></button>
+          {/snippet}
         </WithTooltip>
       {/if}
     </div>
