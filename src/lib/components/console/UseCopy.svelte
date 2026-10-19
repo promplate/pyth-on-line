@@ -7,7 +7,13 @@
 
   async function handleClick() {
     const source = text.trimEnd();
-    navigator.clipboard.writeText(source);
+    try {
+      await navigator.clipboard.writeText(source);
+    }
+    catch {
+      toastMarkdown("failed to copy to clipboard", "error");
+      return;
+    }
     const n = source.split("\n").length;
     toastMarkdown(`successfully copied \`${n}\` ${n === 1 ? "line" : "lines"} to clipboard`);
   }
