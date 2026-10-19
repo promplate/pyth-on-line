@@ -1,12 +1,14 @@
 <script lang="ts">
   import type { WorkspaceAPI } from "$py/workspace/workspace";
+  import type { Snippet } from "svelte";
 
   import getPy from "$lib/pyodide";
   import { onMount } from "svelte";
 
-  export let sources: Record<string, string>;
+  const { sources, children }: { sources: Record<string, string>; children: Snippet<[WorkspaceAPI | undefined]> } = $props();
 
-  let workspace: WorkspaceAPI;
+  // Pyodide owns this handle; only its replacement should be reactive.
+  let workspace = $state.raw<WorkspaceAPI>();
 
   onMount(() => {
     let disposed = false;
@@ -26,4 +28,4 @@
   });
 </script>
 
-<slot sync={workspace?.sync} save={workspace?.save} />
+{@render children(workspace)}

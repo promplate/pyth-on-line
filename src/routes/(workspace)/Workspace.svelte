@@ -34,21 +34,25 @@
     </PaneResizer>
     <Pane defaultSize={80} minSize={10}>
       <PaneGroup direction="vertical">
-        <SetupWorkspace {sources} let:save>
-          <Pane defaultSize={70} minSize={10} class="relative">
-            <FileContent on:save={({ detail: content }) => {
-              save(focusedFile, content.replaceAll("\r\n", "\n"));
-              toastMarkdown(`\`${focusedFile}\` saved`);
-            }} bind:content={sources[focusedFile]} lang={focusedFile.slice(focusedFile.lastIndexOf(".") + 1)} />
-          </Pane>
-          <PaneResizer class="group">
-            <div class="my-1 h-0.11em w-full bg-white/10 transition group-active:bg-current group-hover:bg-white/30" />
-          </PaneResizer>
-          <Pane defaultSize={30} minSize={10}>
-            <div class="h-full w-full overflow-y-scroll" bind:this={container}>
-              <Console class="p-2 text-xs [&>div:hover]:rounded-r-none @2xl:(text-13px line-height-18px) @7xl:text-sm" {container} />
-            </div>
-          </Pane>
+        <SetupWorkspace {sources}>
+          {#snippet children(workspace)}
+            <Pane defaultSize={70} minSize={10} class="relative">
+              <FileContent on:save={({ detail: content }) => {
+                if (!workspace)
+                  return;
+                workspace.save(focusedFile, content.replaceAll("\r\n", "\n"));
+                toastMarkdown(`\`${focusedFile}\` saved`);
+              }} bind:content={sources[focusedFile]} lang={focusedFile.slice(focusedFile.lastIndexOf(".") + 1)} />
+            </Pane>
+            <PaneResizer class="group">
+              <div class="my-1 h-0.11em w-full bg-white/10 transition group-active:bg-current group-hover:bg-white/30" />
+            </PaneResizer>
+            <Pane defaultSize={30} minSize={10}>
+              <div class="h-full w-full overflow-y-scroll" bind:this={container}>
+                <Console class="p-2 text-xs [&>div:hover]:rounded-r-none @2xl:(text-13px line-height-18px) @7xl:text-sm" {container} />
+              </div>
+            </Pane>
+          {/snippet}
         </SetupWorkspace>
       </PaneGroup>
     </Pane>
