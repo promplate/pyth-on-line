@@ -4,8 +4,7 @@
   import WithCodeActions from "../reusable/WithCodeActions.svelte";
   import CodeBlock from "$lib/components/CodeBlock.svelte";
 
-  export let node: Node;
-  export let runCode: ((source: string) => any) | undefined;
+  const { node, runCode }: { node: Node; runCode: ((source: string) => any) | undefined } = $props();
 
   function run(source: string) {
     source = source.trimEnd();

@@ -5,9 +5,7 @@
   import WithMarkdown from "../reusable/WithMarkdown.svelte";
   import OverrideCode from "./Code.svelte";
 
-  export let text: string;
-  export let runCode: (source: string) => any;
-  export let inspect: typeof ConsoleAPI.prototype.inspect;
+  const { text, runCode, inspect }: { text: string; runCode: (source: string) => any; inspect: typeof ConsoleAPI.prototype.inspect } = $props();
 </script>
 
 <WithMarkdown>
