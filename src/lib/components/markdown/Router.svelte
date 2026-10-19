@@ -6,13 +6,15 @@
   import InlineCode from "./InlineCode.svelte";
   import Link from "./Link.svelte";
   import Code from "./Pre.svelte";
+  import Router from "./Router.svelte";
   import Table from "./Table.svelte";
 
-  export let node: Node;
-
-  export let OverrideCode: Component<any> | null = null;
-  export let codeProps: Record<string, any> = {};
-  export let inlineCodeProps: Record<string, any> = {};
+  const { node, OverrideCode = null, codeProps = {}, inlineCodeProps = {} }: {
+    node: Node;
+    OverrideCode?: Component<any> | null;
+    codeProps?: Record<string, any>;
+    inlineCodeProps?: Record<string, any>;
+  } = $props();
 
   function getTagName(node: Node) {
     switch (node.type) {
@@ -43,19 +45,20 @@
     }
   }
 
-  $: children = (node as Parent).children;
+  const children = $derived((node as Parent).children);
+  const CodeComponent = $derived(OverrideCode ?? Code);
 
 </script>
 
 {#if node.type === "root"}
 
   {#each children as child}
-    <svelte:self node={child} {OverrideCode} {codeProps} {inlineCodeProps} />
+    <Router node={child} {OverrideCode} {codeProps} {inlineCodeProps} />
   {/each}
 
 {:else if node.type === "code"}
 
-  <svelte:component this={OverrideCode ?? Code} {node} {...codeProps} />
+  <CodeComponent {node} {...codeProps} />
 
 {:else if node.type === "inlineCode"}
 
@@ -65,21 +68,21 @@
 
   <Link {node}>
     {#each children as child}
-      <svelte:self node={child} {OverrideCode} {codeProps} {inlineCodeProps} />
+      <Router node={child} {OverrideCode} {codeProps} {inlineCodeProps} />
     {/each}
   </Link>
 
 {:else if node.type === "table"}
 
   <Table {node} let:child>
-    <svelte:self node={child} {OverrideCode} {codeProps} {inlineCodeProps} />
+    <Router node={child} {OverrideCode} {codeProps} {inlineCodeProps} />
   </Table>
 
 {:else if "children" in node && getTagName(node)}
 
   <svelte:element this={getTagName(node)}>
     {#each children as child}
-      <svelte:self node={child} {OverrideCode} {codeProps} {inlineCodeProps} />
+      <Router node={child} {OverrideCode} {codeProps} {inlineCodeProps} />
     {/each}
   </svelte:element>
 
