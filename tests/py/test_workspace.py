@@ -34,10 +34,11 @@ def test_workspace_modules_are_unloaded(monkeypatch, tmp_path):
             "workspace_package/__init__.py": "",
             "workspace_package/child.py": f"value = {value!r}",
             "workspace_namespace/child.py": f"value = {value!r}",
+            "workspace_namespace/nested/child.py": f"value = {value!r}",
             "workspace_external.py": "value = 'shadowed'",
         }
         with closing(api(sources)) as workspace:
-            for name in ("workspace_sample", "workspace_package.child", "workspace_namespace.child"):
+            for name in ("workspace_sample", "workspace_package.child", "workspace_namespace.child", "workspace_namespace.nested.child"):
                 assert import_module(name).value == value
             assert import_module("workspace_external") is external
             directory = workspace.directory.name
@@ -45,7 +46,15 @@ def test_workspace_modules_are_unloaded(monkeypatch, tmp_path):
         assert Path.cwd() == original_cwd
         assert directory not in sys.path
         assert not Path(directory).exists()
-        for name in ("workspace_sample", "workspace_package", "workspace_package.child", "workspace_namespace", "workspace_namespace.child"):
+        for name in (
+            "workspace_sample",
+            "workspace_package",
+            "workspace_package.child",
+            "workspace_namespace",
+            "workspace_namespace.child",
+            "workspace_namespace.nested",
+            "workspace_namespace.nested.child",
+        ):
             assert name not in sys.modules
         assert sys.modules["workspace_external"] is external
         assert sys.modules["workspace_missing"] is None

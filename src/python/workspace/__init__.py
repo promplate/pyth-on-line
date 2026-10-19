@@ -24,14 +24,17 @@ class WorkspaceAPI:
         self.files = list(sources)
 
     def close(self):
-        # Only evict imports from this workspace, not unrelated modules with matching names.
+        # Resolve namespace paths while their parents are still in sys.modules.
+        to_unload = []
         for name, module in list(sys.modules.items()):
             if not isinstance(module, ModuleType):
                 continue
             attrs = vars(module)
             locations = [attrs.get("__file__"), *attrs.get("__path__", ())]
             if any(location and Path(location).is_relative_to(self.directory.name) for location in locations):
-                del sys.modules[name]
+                to_unload.append(name)
+        for name in to_unload:
+            del sys.modules[name]
 
         try:
             chdir(self._original_working_dir)
