@@ -64,10 +64,12 @@
           </a>
         </div>
         {#if payload.repository.description}
-          <WithMarkdown let:parse>
-            <div class="[&_a:hover]:text-white [&>*_a]:text-neutral-3 [&>*>*]:text-neutral-5 first:[&_p]:mt-0 last:[&_p]:mb-0">
-              <Router node={parse(payload.repository.description)} />
-            </div>
+          <WithMarkdown>
+            {#snippet children(parse)}
+              <div class="[&_a:hover]:text-white [&>*_a]:text-neutral-3 [&>*>*]:text-neutral-5 first:[&_p]:mt-0 last:[&_p]:mb-0">
+                <Router node={parse(payload.repository.description)} />
+              </div>
+            {/snippet}
           </WithMarkdown>
         {/if}
         {#if payload.repository.stargazers > 0 || payload.repository.forks > 0 || payload.repository.watchers > 1}

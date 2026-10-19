@@ -5,6 +5,8 @@
   export let text: string;
 </script>
 
-<WithMarkdown let:parse>
-  <Router node={parse(text)} />
+<WithMarkdown>
+  {#snippet children(parse)}
+    <Router node={parse(text)} />
+  {/snippet}
 </WithMarkdown>
