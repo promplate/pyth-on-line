@@ -2,6 +2,7 @@
   import type { Snippet } from "svelte";
 
   import { Tooltip } from "bits-ui";
+  import { fromAction } from "svelte/attachments";
   import { scale } from "svelte/transition";
 
   // Bits UI 0.22 exposes trigger builders through its legacy slot type.
@@ -10,12 +11,13 @@
   const { disableHoverableContent = true, tips, children }: { disableHoverableContent?: boolean; tips: string; children: Snippet<[TriggerBuilder]> } = $props();
 </script>
 
+<!-- Read actions only on mount; Melt replaces builder attributes when open state changes. -->
 <Tooltip.Root openDelay={400} closeDelay={0} {disableHoverableContent}>
   <Tooltip.Trigger asChild let:builder>
     {@render children(builder)}
   </Tooltip.Trigger>
   <Tooltip.Content sideOffset={4} asChild let:builder>
-    <div transition:scale={{ start: 0.95, duration: 300 }} class="rounded bg-neutral-2/10 px-0.5em py-0.3em text-xs text-neutral-3 backdrop-blur-sm" {...builder} use:builder.action>
+    <div transition:scale={{ start: 0.95, duration: 300 }} class="rounded bg-neutral-2/10 px-0.5em py-0.3em text-xs text-neutral-3 backdrop-blur-sm" {...builder} {@attach fromAction((node: HTMLElement) => builder.action(node), () => undefined)}>
       {tips}
     </div>
   </Tooltip.Content>

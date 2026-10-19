@@ -6,6 +6,7 @@
   import { draggable } from "@neodrag/svelte";
   import { explain } from "$lib/pyodide/api/explain";
   import { onMount } from "svelte";
+  import { fromAction } from "svelte/attachments";
   import { cubicIn, cubicOut } from "svelte/easing";
   import { scale } from "svelte/transition";
 
@@ -54,14 +55,14 @@
       <div class="flex flex-row [&>button:active]:scale-90 [&>button]:(rounded p-1.5 text-white/80 transition-colors)">
         <WithTooltip tips="Regenerate">
           {#snippet children(builder)}
-            <button class="hover:(bg-cyan-3/10 text-cyan-3/80)" on:click={invoke} {...builder} use:builder.action>
+            <button class="hover:(bg-cyan-3/10 text-cyan-3/80)" on:click={invoke} {...builder} {@attach fromAction((node: HTMLElement) => builder.action(node), () => undefined)}>
               <div class="i-mingcute-refresh-2-fill" />
             </button>
           {/snippet}
         </WithTooltip>
         <WithTooltip tips="Close">
           {#snippet children(builder)}
-            <button class="hover:(bg-red-3/10 text-red-3/80)" on:click={close} {...builder} use:builder.action>
+            <button class="hover:(bg-red-3/10 text-red-3/80)" on:click={close} {...builder} {@attach fromAction((node: HTMLElement) => builder.action(node), () => undefined)}>
               <div class="i-mingcute-close-fill" />
             </button>
           {/snippet}

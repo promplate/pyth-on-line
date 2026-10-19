@@ -14,6 +14,7 @@
   import { updateMetadata } from "$lib/seo";
   import { Label, Separator, Switch, Tabs } from "bits-ui";
   import { onDestroy } from "svelte";
+  import { fromAction } from "svelte/attachments";
   import { fly } from "svelte/transition";
 
   updateMetadata({ ogTitle: "LLM-Friendly Docs for HMR", ogDescription: "HMR library documentation in llms.txt format for AI assistants" });
@@ -74,7 +75,7 @@
           <h1 class="text-base text-neutral-2 font-semibold">LLM-Friendly Docs ✨</h1>
           <WithTooltip tips="about llms.txt spec">
             {#snippet children(builder)}
-              <a href="https://llmstxt.org/" target="_blank" class="" {...builder} use:builder.action>
+              <a href="https://llmstxt.org/" target="_blank" class="" {...builder} {@attach fromAction((node: HTMLElement) => builder.action(node), () => undefined)}>
                 <div class="i-mdi-help-circle-outline mb-0.1 size-4 text-neutral-6 hover:text-neutral-3" />
               </a>
             {/snippet}
