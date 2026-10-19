@@ -1,9 +1,9 @@
 <script lang="ts">
   import type { DepLineData } from "./types";
 
-  export let data: DepLineData;
+  const { data }: { data: DepLineData } = $props();
 
-  const { prefix, quote, name, extras, versionParts, marker, suffix } = data;
+  const { prefix, quote, name, extras, versionParts, marker, suffix } = $derived(data);
 
   function getOperatorClass(spec: string): string {
     if (spec.includes("~="))
