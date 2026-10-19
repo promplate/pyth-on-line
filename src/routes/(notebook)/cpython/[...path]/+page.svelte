@@ -12,12 +12,14 @@
 
   let text = $state("");
   let loading = $state(true);
+  let failed = $state(false);
 
   $effect(() => {
     const html = data.html;
     const pathname = page.url.pathname;
     let disposed = false;
     loading = true;
+    failed = false;
 
     getPy({ web: true }).then(async (py) => {
       // Navigation can finish before Pyodide startup or conversion; only the current page may publish.
@@ -29,8 +31,11 @@
       text = nextText;
       loading = false;
     }).catch((error) => {
-      if (!disposed)
-        console.error(error);
+      if (disposed)
+        return;
+      failed = true;
+      loading = false;
+      console.error(error);
     });
 
     return () => {
@@ -39,7 +44,11 @@
   });
 </script>
 
-{#if loading}
+{#if failed}
+  <div role="alert" class="grid h-50vh w-full place-items-center rounded-md bg-white/3">
+    Unable to load Python documentation. Reload the page to try again.
+  </div>
+{:else if loading}
   <div class="grid h-50vh w-full place-items-center rounded-md bg-white/3">
     <div class="i-svg-spinners-90-ring-with-bg op-50" />
   </div>
