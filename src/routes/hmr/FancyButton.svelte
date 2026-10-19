@@ -5,7 +5,7 @@
   let first = highlighted;
 </script>
 
-<a {href} class="fancy-button group" class:highlighted class:first>
+<a {href} class={["fancy-button group", { highlighted, first }]}>
   <span class="fancy-button-text">{text}</span>
   <div class="fancy-button-overlay">
     <span>{text}</span>

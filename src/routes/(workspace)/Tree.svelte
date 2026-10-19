@@ -76,7 +76,7 @@
 
       {#each tree as item}
         {#if item.type === "file"}
-          <button style:--depth="{depth + 0.8}em" class:!bg-neutral-8={focusedFile === getPath(item)} on:click={() => (focusedFile = getPath(item))}>
+          <button style:--depth="{depth + 0.8}em" class={{ "!bg-neutral-8": focusedFile === getPath(item) }} on:click={() => (focusedFile = getPath(item))}>
             <div class={getFileIcon(item)} />
             <div>{item.name}</div>
           </button>

@@ -50,7 +50,7 @@
 {#if show || showing}
   <Portal>
     {@const hiding = !show || !showing}
-    <div on:transitionend={() => [(showing = show), !show && onHide()]} class:op-0={hiding} class:pointer-events-none={hiding} class="fixed transition-opacity" style:top style:left bind:this={div}>
+    <div on:transitionend={() => [(showing = show), !show && onHide()]} class={["fixed transition-opacity", { "op-0": hiding, "pointer-events-none": hiding }]} style:top style:left bind:this={div}>
       <slot />
     </div>
   </Portal>
