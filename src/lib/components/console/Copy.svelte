@@ -3,7 +3,7 @@
   import UseCopy from "./UseCopy.svelte";
   import { fromAction } from "svelte/attachments";
 
-  export let text: string;
+  const { text }: { text: string } = $props();
 </script>
 
 <UseCopy {text}>

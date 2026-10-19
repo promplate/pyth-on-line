@@ -1,7 +1,7 @@
 <script lang="ts">
   import Highlight from "./Highlight.svelte";
 
-  export let text: string;
+  const { text }: { text: string } = $props();
 
   // eslint-disable-next-line no-control-regex
   const ansiPattern = /\x1B\[[0-9;]*[mK]/;
