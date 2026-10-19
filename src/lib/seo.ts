@@ -1,28 +1,22 @@
-import type { Writable } from "svelte/store";
-
+import { defaultMetadata, Metadata } from "./metadata.svelte";
 import { afterNavigate } from "$app/navigation";
-import { createContext } from "svelte";
-import { writable } from "svelte/store";
-
-const defaultMetadata = {
-  ogTitle: "Python Online",
-  ogDescription: "A simple online python console",
-};
+import { createContext, untrack } from "svelte";
 
 type SEOMetadata = typeof defaultMetadata;
-const [getMetadata, setMetadata] = createContext<Writable<SEOMetadata>>();
+const [getMetadata, setMetadata] = createContext<Metadata>();
 
-export function initMetadataStore() {
-  return setMetadata(writable(defaultMetadata));
+export function initMetadata() {
+  return setMetadata(new Metadata());
 }
 
-export function resetMetadata(store: Writable<SEOMetadata>) {
-  store.set(defaultMetadata);
+export function resetMetadata(metadata: Metadata) {
+  Object.assign(metadata, defaultMetadata);
 }
 
 export function updateMetadata(metadata: Partial<SEOMetadata> | (() => Partial<SEOMetadata>)) {
-  const store = getMetadata();
-  const update = () => store.update(current => ({ ...current, ...(typeof metadata === "function" ? metadata() : metadata) }));
+  const current = getMetadata();
+  // Route callbacks are evaluated at setup/navigation, independently of the rendering reaction.
+  const update = () => untrack(() => Object.assign(current, typeof metadata === "function" ? metadata() : metadata));
   update();
   afterNavigate(update);
 }
