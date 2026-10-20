@@ -18,7 +18,7 @@
   } as Group;
 
   const rootItems = $derived([...Object.entries(commandMenu.commands).map(([text, children]) => ({ type: "group", text, children } as Group)), navigations]);
-  const items = $derived(commandMenu.getItems?.(commandMenu.input) ?? rootItems);
+  const items = $derived(commandMenu.getItems?.(commandMenu.input));
 </script>
 
 <svelte:document onkeydown={(e) => {
@@ -52,9 +52,16 @@
           <Command.Empty>No results found.</Command.Empty>
         {/if}
 
-        {#each items as item}
-          <Item {item} callback={close} />
-        {/each}
+        {#if items}
+          {#each items as item}
+            <Item {item} callback={close} />
+          {/each}
+        {:else}
+          <!-- Group wrappers are derived anew; each registration keeps its children array. -->
+          {#each rootItems as item (item.children)}
+            <Item {item} callback={close} />
+          {/each}
+        {/if}
 
       </Command.List>
 
