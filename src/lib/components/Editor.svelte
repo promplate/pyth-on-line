@@ -5,7 +5,7 @@
 <script lang="ts">
   import type monaco from "monaco-editor-core";
 
-  import { show as showMenu } from "./command/CmdK.svelte";
+  import { commandMenu } from "./command/state.svelte";
   import { shikiToMonaco } from "@shikijs/monaco";
   import { getHighlighter } from "$lib/highlight";
   import { onDestroy, onMount } from "svelte";
@@ -61,7 +61,7 @@
     // Actions scope keybindings to this editor; addCommand registers global shortcuts.
     const saveAction = instance.addAction({ id: "save", label: "Save", keybindings: [core.KeyMod.CtrlCmd | core.KeyCode.KeyS], run: () => onsave?.(source) });
     const menuAction = instance.addAction({ id: "shortcut-menu", label: "Open shortcut menu", keybindings: [core.KeyMod.CtrlCmd | core.KeyCode.KeyK], run: () => {
-      $showMenu = true;
+      commandMenu.show = true;
     } });
     instance.onDidDispose(() => {
       saveAction.dispose();
