@@ -17,6 +17,7 @@ dependencies = [
     "numpy~=2.2",
     "pandas~=2.2",
     "trio~=0.32.0",
+    "hottest",
 ]
 
 [tool.pdm]
@@ -78,6 +79,7 @@ filterwarnings = ["error"]
 
 [tool.uv.sources]
 hmr = { workspace = true }
+hottest = { workspace = true }
 
 [tool.uv.workspace]
 members = ["packages/*"]

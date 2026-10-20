@@ -1,0 +1,25 @@
+[project]
+name = "hottest"
+version = "0.1.0"
+readme = "README.md"
+license = { text = "MIT" }
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Testing",
+    "Typing :: Typed",
+]
+keywords = ["testing", "hmr", "hot-reload", "vitest"]
+requires-python = ">=3.12"
+description = "Test framework with Vitest-like HMR (hot reload)"
+scripts = { hottest = "hottest.__main__:main" }
+dependencies = ["termcolor>=2"]
+
+[build-system]
+requires = ["uv-build~=0.9"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-root = ""
