@@ -1,25 +1,13 @@
 <script lang="ts">
-  import { spring } from "svelte/motion";
+  import type { Snippet } from "svelte";
 
-  export let show = false;
-
-  export let progress = newStore();
-
-  function newStore() {
-    return spring(0, {
-      stiffness: 0.1,
-      damping: 1,
-      precision: 0.001,
-    });
-  }
-
-  export let reset = () => progress = newStore();
+  const { show = false, progress = 0, onhide, children }: { show?: boolean; progress?: number; onhide?: () => void; children?: Snippet<[number]> } = $props();
 </script>
 
-<slot value={$progress} />
+{@render children?.(progress)}
 
-<div on:transitionend={() => !show && reset()} class={["relative h-2px overflow-hidden rounded-full", { hide: !show }]}>
-  <div class="absolute left-0 h-full rounded-full bg-neutral-2" style:right="{100 - $progress * 100}%" />
+<div ontransitionend={() => !show && onhide?.()} class={["relative h-2px overflow-hidden rounded-full", { hide: !show }]}>
+  <div class="absolute left-0 h-full rounded-full bg-neutral-2" style:right="{100 - progress * 100}%" />
 </div>
 
 <style>
