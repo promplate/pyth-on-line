@@ -14,7 +14,7 @@
       return;
 
     untrack(() => {
-      $accessToken = token;
+      accessToken.current = token;
       // New tokens can arrive before goto resolves; consume the return path only once.
       if (redirected)
         return;

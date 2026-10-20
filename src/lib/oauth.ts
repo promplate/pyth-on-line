@@ -1,6 +1,6 @@
 import * as env from "$app/env/public";
 import { persisted } from "svelte-persisted-store";
-import { derived, readable } from "svelte/store";
+import { fromStore } from "svelte/store";
 
 // eslint-disable-next-line ts/ban-ts-comment
 // @ts-ignore
@@ -24,6 +24,9 @@ export function login() {
   location.replace(getOauthUrl(location.origin));
 }
 
-export const accessToken = persisted<string | undefined>(`gh-${SCOPES}`, undefined);
+// Keep the persistence library's store behind a rune-aware adapter.
+export const accessToken = fromStore(persisted<string | undefined>(`gh-${SCOPES}`, undefined));
 
-export const canLogin = client_id ? derived(accessToken, $accessToken => !$accessToken) : readable(false);
+export function canLogin() {
+  return Boolean(client_id) && !accessToken.current;
+}
