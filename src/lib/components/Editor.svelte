@@ -87,6 +87,7 @@
       if (editor)
         reload(editor, source, lang);
     });
+    $effect(() => editor?.updateOptions({ lineNumbers: showLineNum ? "interval" : "off", wordWrap: wrap ? "on" : "off" }));
     return () => editor?.dispose();
   }
 </script>
