@@ -47,7 +47,8 @@
         {item.text}
       </h6>
       <div {...group.attrs} class="flex flex-col">
-        {#each item.children as child}
+        <!-- Registered items keep their identity; labels may repeat. -->
+        {#each item.children as child (child)}
           <Self item={child} {callback} />
         {/each}
       </div>
