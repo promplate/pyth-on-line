@@ -6,7 +6,7 @@
   import { page } from "$app/state";
   import { updateMetadata } from "$lib/seo";
   import { Button } from "bits-ui";
-  import { onMount, tick } from "svelte";
+  import { tick } from "svelte";
 
   updateMetadata({ ogTitle: "PyPI Explorer", ogDescription: "Search and explore Python packages from the PyPI directly in your browser." });
 
@@ -61,17 +61,17 @@
     }
   }
 
-  onMount(() => {
+  function observeResults(node: HTMLDivElement) {
     const observer = new IntersectionObserver(([{ isIntersecting }]) => {
       intersecting = isIntersecting;
       intersecting && startLoadingMore();
     });
-    observer.observe(ref);
+    observer.observe(node);
     return () => {
       generation++;
       observer.disconnect();
     };
-  });
+  }
 </script>
 
 {#if page.url.searchParams.get("q")}
@@ -103,5 +103,5 @@
       <h3 class="text-xs text-neutral-5 sm:text-sm">{description}</h3>
     </Button.Root>
   {/each}
-  <div bind:this={ref} class="pointer-events-none invisible absolute bottom-0 h-250vh w-full"></div>
+  <div bind:this={ref} {@attach observeResults} class="pointer-events-none invisible absolute bottom-0 h-250vh w-full"></div>
 </div>
