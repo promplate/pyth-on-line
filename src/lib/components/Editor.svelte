@@ -8,10 +8,8 @@
   import { commandMenu } from "./command/state.svelte";
   import { shikiToMonaco } from "@shikijs/monaco";
   import { getHighlighter } from "$lib/highlight";
-  import { onDestroy, onMount } from "svelte";
+  import { getAbortSignal, untrack } from "svelte";
   import { fade } from "svelte/transition";
-
-  let container: HTMLDivElement;
 
   let { source = $bindable(), showLineNum = false, wrap = false, lang, onsave }: { source: string; showLineNum?: boolean; wrap?: boolean; lang: string; onsave?: (source: string) => void } = $props();
 
@@ -25,11 +23,11 @@
     shikiToMonaco(await getHighlighter(language), core);
   }
 
-  onMount(async () => {
+  async function initializeEditor(container: HTMLDivElement, signal: AbortSignal) {
     [core] = await Promise.all([import("monaco-editor-core"), getHighlighter(lang)]);
     await loadLanguage(lang);
 
-    if (!container)
+    if (signal.aborted)
       return;
 
     const instance = core.editor.create(container, {
@@ -67,10 +65,7 @@
       saveAction.dispose();
       menuAction.dispose();
     });
-  });
-
-  // Async onMount cannot return cleanup; dispose this instance when its component is destroyed.
-  onDestroy(() => editor?.dispose());
+  }
 
   function reload(editor: monaco.editor.IStandaloneCodeEditor, source: string, language = lang) {
     if (language !== editor.getModel()!.getLanguageId()) {
@@ -84,14 +79,19 @@
     }
   }
 
-  // Synchronize Monaco with bound props without replacing its model or editor instance.
-  $effect(() => {
-    if (editor)
-      reload(editor, source, lang);
-  });
+  function attachEditor(container: HTMLDivElement) {
+    const signal = getAbortSignal();
+    // Prop changes should update the existing model, not restart initialization.
+    untrack(() => initializeEditor(container, signal));
+    $effect(() => {
+      if (editor)
+        reload(editor, source, lang);
+    });
+    return () => editor?.dispose();
+  }
 </script>
 
-<div bind:this={container} class={["h-full w-full overflow-hidden transition-opacity duration-400", { "op-0": !editor && showInitialLoading }]} />
+<div {@attach attachEditor} class={["h-full w-full overflow-hidden transition-opacity duration-400", { "op-0": !editor && showInitialLoading }]} />
 
 {#if !editor && showInitialLoading}
   <div class="absolute inset-0 grid place-items-center @container" out:fade>
