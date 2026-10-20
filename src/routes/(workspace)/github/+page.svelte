@@ -38,7 +38,7 @@
     <a href="/github/{input}" class={["w-fit", { "cursor-text": !valid }]} onclick={e => !valid && ([e.preventDefault(), ref?.focus()])} in:fly|global={{ duration: 500, x: 5, delay: 500 }}>
       <div class={["i-tabler-brand-github text-lg text-zinc-4 transition-color", { "text-zinc-1": valid }]} />
       <input class={["w-50 bg-transparent outline-none placeholder:(text-inherit op-30)", { "animate-pulse": !input }]} placeholder="Your GitHub repo" bind:this={ref} onclick={e => [e.preventDefault(), ref?.focus()]} bind:value={input} onkeydown={e => e.key === "Enter" && ref?.parentElement?.click()}>
-      {#if $canLogin}
+      {#if canLogin()}
         <button class="translate-x-1 rounded bg-zinc-2/12 p-1.5 transition-background-color hover:bg-zinc-2/20" onclick={login} title="Login to access your private repositories">
           <div class="i-lets-icons-sign-in-circle" />
         </button>
