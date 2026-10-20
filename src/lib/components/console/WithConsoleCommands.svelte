@@ -56,7 +56,11 @@
     disposed = true;
     if (frame !== undefined)
       cancelAnimationFrame(frame);
-    resetInstall();
+    if (commandMenu.getItems === installItems) {
+      resetInstall();
+      commandMenu.input = "";
+      commandMenu.show = false;
+    }
   });
 
   registerCommandGroup("Console", [
