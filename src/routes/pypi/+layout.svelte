@@ -1,6 +1,5 @@
 <script lang="ts">
   import type { LayoutProps } from "./$types";
-  import type { Spring } from "svelte/motion";
 
   import { setSearchState } from "./store";
   import { afterNavigate, beforeNavigate, goto, preloadData } from "$app/navigation";
@@ -8,24 +7,39 @@
   import Progress from "$lib/components/Progress.svelte";
   import { Button } from "bits-ui";
   import { onDestroy, untrack } from "svelte";
+  import { spring } from "svelte/motion";
+  import { fromStore } from "svelte/store";
 
   const { children }: LayoutProps = $props();
   const searchState = $state({ query: untrack(() => page.url.searchParams.get("q") ?? ""), setQuery });
   setSearchState(searchState);
-  let progress = $state.raw<Spring<number>>();
-  let reset = $state<() => Spring<number>>();
+  let progress = $state.raw(createProgress());
+  const progressState = $derived(fromStore(progress));
   let preloadTimer: ReturnType<typeof setTimeout>;
-  onDestroy(() => clearTimeout(preloadTimer));
+  onDestroy(() => {
+    clearTimeout(preloadTimer);
+    progress.set(0, { hard: true });
+  });
+
+  // Keep legacy spring for mid-flight soft retargeting: https://github.com/sveltejs/svelte/pull/18955.
+  function createProgress() {
+    return spring(0, { stiffness: 0.1, damping: 1, precision: 0.001 });
+  }
+
+  function reset() {
+    progress.set(0, { hard: true });
+    progress = createProgress();
+  }
 
   beforeNavigate(() => {
-    reset?.();
-    progress?.set(0.25);
+    reset();
+    progress.set(0.25);
   });
 
   afterNavigate(() => {
     if (page.route.id === "/pypi")
       searchState.query = page.url.searchParams.get("q") ?? "";
-    progress?.set(2, { soft: 1 });
+    progress.set(2, { soft: 1 });
   });
 
   const disableSearch = $derived(Boolean(navigating.to) || (page.route.id === "/pypi" && searchState.query === page.url.searchParams.get("q")));
@@ -71,7 +85,7 @@
       <Button.Root href="https://github.com/promplate/pyth-on-line"><div class="i-mdi-github" /></Button.Root>
     </nav>
 
-    <Progress show={!!navigating.to} bind:progress bind:reset />
+    <Progress show={!!navigating.to} progress={progressState.current} onhide={reset} />
 
   </header>
 </section>
