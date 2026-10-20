@@ -2,7 +2,6 @@ import { defaultMetadata, Metadata } from "./metadata.svelte";
 import { afterNavigate } from "$app/navigation";
 import { createContext, untrack } from "svelte";
 
-type SEOMetadata = typeof defaultMetadata;
 const [getMetadata, setMetadata] = createContext<Metadata>();
 
 export function initMetadata() {
@@ -10,13 +9,13 @@ export function initMetadata() {
 }
 
 export function resetMetadata(metadata: Metadata) {
-  Object.assign(metadata, defaultMetadata);
+  metadata.source = defaultMetadata;
 }
 
-export function updateMetadata(metadata: Partial<SEOMetadata> | (() => Partial<SEOMetadata>)) {
+export function updateMetadata(metadata: Metadata["source"]) {
   const current = getMetadata();
-  // Route callbacks are evaluated at setup/navigation, independently of the rendering reaction.
-  const update = () => untrack(() => Object.assign(current, typeof metadata === "function" ? metadata() : metadata));
+  // Keep the getter reactive; evaluating it here would freeze route props until navigation.
+  const update = () => untrack(() => current.source = metadata);
   update();
   afterNavigate(update);
 }

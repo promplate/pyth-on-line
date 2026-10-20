@@ -4,6 +4,8 @@ export const defaultMetadata = {
 };
 
 export class Metadata {
-  ogTitle = $state(defaultMetadata.ogTitle);
-  ogDescription = $state(defaultMetadata.ogDescription);
+  source = $state.raw<Partial<typeof defaultMetadata> | (() => Partial<typeof defaultMetadata>)>(defaultMetadata);
+  #values = $derived(typeof this.source === "function" ? this.source() : this.source);
+  ogTitle = $derived(this.#values.ogTitle ?? defaultMetadata.ogTitle);
+  ogDescription = $derived(this.#values.ogDescription ?? defaultMetadata.ogDescription);
 }
