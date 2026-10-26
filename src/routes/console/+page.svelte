@@ -6,7 +6,7 @@
   import { cubicIn, cubicOut } from "svelte/easing";
   import { scale } from "svelte/transition";
 
-  updateMetadata({ ogTitle: "A Clean Python Console", ogDescription: "Run Python 3.13 in a standard but interactive console directly in your browser without installation." });
+  updateMetadata({ ogTitle: "A Clean Python Console", ogDescription: "Run Python 3.14 in a standard but interactive console directly in your browser without installation." });
 </script>
 
 <div class="m-4 w-auto flex flex-row gap-4 p-3 <lg:(m-3 gap-3 p-2 text-sm) <sm:(m-2 gap-2 p-1 text-xs)">
