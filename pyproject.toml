@@ -3,7 +3,7 @@ name = "pyth-on-line"
 version = "0"
 requires-python = ">=3.13"
 dependencies = [
-    "ruff~=0.14.0",
+    "ruff~=0.17.2",
     "webtypy~=0.1.7",
     "micropip~=0.11.0",
     # Keep the HMR test matrix installable on Python 3.13.
