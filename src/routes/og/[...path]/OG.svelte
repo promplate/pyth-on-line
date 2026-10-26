@@ -1,10 +1,7 @@
 <script lang="ts">
-  export let origin: string;
-  export let path: string;
-  export let title = "Pythonline: Python IDE with Pyodide";
-  export let subtitle = path;
+  const { origin, path, title = "Pythonline: Python IDE with Pyodide", subtitle = path }: { origin: string; path: string; title?: string; subtitle?: string } = $props();
 
-  const href = new URL(path, origin).href;
+  const href = $derived(new URL(path, origin).href);
 </script>
 
 <section

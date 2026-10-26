@@ -6,7 +6,8 @@
 import type lockfile from "pyodide/pyodide-lock.json";
 
 import { indexURL, preloadPackages } from "./lib/pyodide/common";
-import { build, files, prerendered, version } from "$service-worker";
+import { version } from "$app/env";
+import { immutable as build, assets as files, prerendered } from "$app/manifest";
 
 const sw = globalThis as unknown as ServiceWorkerGlobalScope;
 
@@ -17,7 +18,7 @@ const websiteAssets = [
   ...prerendered, // prerendered pages and endpoints
   ...build, // the app itself
   ...files, // everything in `static`
-];
+].map(({ path }) => new URL(path, sw.registration.scope).pathname);
 
 const pyodideAssets = [
   "pyodide.asm.js",
@@ -72,7 +73,7 @@ async function fetchWithProxyWithBody(request: Request) {
   if (request.body) {
     let body: BodyInit;
     let _;
-    if (request.duplex === "half")
+    if ("duplex" in request && request.duplex === "half")
       [_, body] = request.body.tee();
     else
       body = new Uint8Array(await request.arrayBuffer());

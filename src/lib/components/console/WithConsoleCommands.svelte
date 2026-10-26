@@ -1,53 +1,82 @@
 <script lang="ts">
+  import type { Cmd } from "../command/Item.svelte";
   import type { ConsoleAPI } from "$py/console/console";
 
-  import { input, items, placeholder, prefixes, show } from "../command/CmdK.svelte";
   import { registerCommandGroup } from "../command/helper";
+  import { commandMenu } from "../command/state.svelte";
   import getPy from "$lib/pyodide";
-  import { tick } from "svelte";
+  import { onMount, tick } from "svelte";
 
-  export let pyConsole: ConsoleAPI;
+  const { pyConsole }: { pyConsole?: ConsoleAPI } = $props();
 
   const installTitle = "Install Packages";
+  let frame: number | undefined;
+  let disposed = false;
+
+  // Selection closes the menu in finally; reopen it on the next frame.
+  function openMenu() {
+    if (disposed)
+      return;
+    if (frame !== undefined)
+      cancelAnimationFrame(frame);
+    frame = requestAnimationFrame(() => {
+      frame = undefined;
+      commandMenu.show = true;
+    });
+  }
+
+  const installItems = (input: string): Cmd[] => [{
+    async callback() {
+      resetInstall();
+      await tick();
+
+      const packages = input.split(" ").filter(Boolean);
+      if (packages.length) {
+        const py = await getPy();
+        py.pyimport("micropip.install")(packages);
+      }
+      else {
+        openMenu();
+      }
+    },
+    type: "cmd",
+    text: input ? `pip install ${input}` : "(cancel)",
+    alwaysRender: true,
+  }];
+
+  function resetInstall() {
+    if (commandMenu.getItems !== installItems)
+      return;
+    commandMenu.getItems = undefined;
+    commandMenu.prefixes = [];
+    commandMenu.placeholder = "";
+  }
+
+  onMount(() => () => {
+    disposed = true;
+    if (frame !== undefined)
+      cancelAnimationFrame(frame);
+    if (commandMenu.getItems === installItems) {
+      resetInstall();
+      commandMenu.input = "";
+      commandMenu.show = false;
+    }
+  });
 
   registerCommandGroup("Console", [
     {
       text: installTitle,
-      async handler() {
-        $prefixes = [installTitle];
-        $placeholder = "<package1> <package2> ...";
-
-        const unsubscribe = input.subscribe(($input) => {
-          $items = [{
-            async callback() {
-              $items = [];
-              $prefixes = [];
-              $placeholder = "";
-              unsubscribe();
-              await tick();
-
-              const packages = $input.split(" ").filter(Boolean);
-              if (packages?.length) {
-                const py = await getPy();
-                py.pyimport("micropip.install")(packages);
-              }
-              else {
-                requestAnimationFrame(() => $show = true);
-              }
-            },
-            type: "cmd",
-            text: $input ? `pip install ${$input}` : "(cancel)",
-            alwaysRender: true,
-          }];
-        });
-
-        requestAnimationFrame(() => $show = true);
+      handler() {
+        commandMenu.prefixes = [installTitle];
+        commandMenu.placeholder = "<package1> <package2> ...";
+        commandMenu.getItems = installItems;
+        openMenu();
       },
     },
     {
       text: "Clear Console",
       handler() {
-        pyConsole.clear();
+        pyConsole?.clear();
       },
     },
   ]);

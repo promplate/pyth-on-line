@@ -117,5 +117,3 @@ export const GET: RequestHandler = async (event) => {
 export const POST = handler;
 export const DELETE = handler;
 export const OPTIONS = handler;
-
-export const config = { runtime: "edge" };

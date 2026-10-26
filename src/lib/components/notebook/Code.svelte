@@ -6,26 +6,29 @@
   import CodeBlock from "$lib/components/CodeBlock.svelte";
   import { patchSource } from "$lib/utils/formatSource";
 
-  export let node: Node;
-  export let pyNotebook: NotebookAPI;
-  export let heuristics = false;
+  const { node, pyNotebook, heuristics = false }: { node: Node; pyNotebook?: NotebookAPI; heuristics?: boolean } = $props();
 
-  let items: Item[] = [];
+  let items = $state.raw<Item[]>([]);
+
+  const code = $derived(node as Code);
 
   function sync(newItems: Item[]) {
     items = newItems;
   }
 
   async function run(source: string) {
+    const notebook = pyNotebook;
+    if (!notebook)
+      return;
     if (source.startsWith(">>>")) {
-      pyNotebook.run(patchSource(source), sync, true);
+      notebook.run(patchSource(source), sync, true);
     }
     else {
-      pyNotebook.run(source, sync);
+      notebook.run(source, sync);
     }
   }
 
-  function isPython(pyNotebook: NotebookAPI, source: string) {
+  function isPython(pyNotebook: NotebookAPI | undefined, source: string) {
     if (!heuristics)
       return false;
     if (source.startsWith(">>>"))
@@ -35,26 +38,23 @@
     return false;
   }
 
-  $: valid = isPython(pyNotebook, (node as Code).value);
+  const valid = $derived(isPython(pyNotebook, code.value));
 
-  let lang: string;
-
-  $: {
-    const code = node as Code;
-    if (code.lang) {
-      lang = code.lang;
+  const lang = $derived.by(() => {
+    if (code.lang)
+      return code.lang;
+    try {
+      JSON.parse(code.value);
+      return "json";
     }
-    else {
-      try {
-        JSON.parse(code.value);
-      }
-      catch {
-        lang = valid ? "python" : "text";
-      }
+    catch {
+      return valid ? "python" : "text";
     }
-  }
+  });
 </script>
 
-<WithCodeActions {node} {run} runnable={valid} let:code>
-  <CodeBlock {lang} code={code.value} {items} />
+<WithCodeActions {node} run={pyNotebook ? run : null} runnable={valid}>
+  {#snippet children(code)}
+    <CodeBlock {lang} code={code.value} {items} />
+  {/snippet}
 </WithCodeActions>

@@ -3,8 +3,9 @@
   import ButtonGroup from "./ButtonGroup.svelte";
   import Copy from "./Copy.svelte";
   import MaybeAnsi from "./MaybeANSI.svelte";
+  import { fromAction } from "svelte/attachments";
 
-  export let text: string;
+  const { text, onclick }: { text: string; onclick?: (event: MouseEvent) => void } = $props();
 </script>
 
 <div class="group relative whitespace-normal">
@@ -14,8 +15,10 @@
 
   <ButtonGroup>
     <Copy {text} />
-    <WithTooltip tips="Ask AI" let:builder>
-      <button on:click class="i-majesticons-lightbulb-shine" {...builder} use:builder.action />
+    <WithTooltip tips="Ask AI">
+      {#snippet children(builder)}
+        <button class="i-majesticons-lightbulb-shine" {...builder} {onclick} {@attach fromAction((node: HTMLElement) => builder.action(node), () => undefined)} />
+      {/snippet}
     </WithTooltip>
   </ButtonGroup>
 

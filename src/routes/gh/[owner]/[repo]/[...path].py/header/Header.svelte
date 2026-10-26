@@ -3,7 +3,7 @@
 
   import DepLine from "./DepLine.svelte";
 
-  export let headerLines: HeaderLineData[];
+  const { headerLines }: { headerLines: HeaderLineData[] } = $props();
 </script>
 
 {#each headerLines as line, i}{#if line.kind === "dep"}<DepLine data={line.line} />{:else}{line.text}{/if}{i < headerLines.length - 1 ? "\n" : ""}{/each}

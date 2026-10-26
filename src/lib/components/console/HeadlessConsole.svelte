@@ -1,4 +1,4 @@
-<script context="module" lang="ts">
+<script module lang="ts">
   export interface Item {
     type: "out" | "err" | "in" | "repr";
     text: string;
@@ -12,58 +12,76 @@
 
 <script lang="ts">
   import type { ConsoleAPI } from "$py/console/console";
+  import type { Snippet } from "svelte";
 
   import WithConsoleCommands from "./WithConsoleCommands.svelte";
   import getPy from "$lib/pyodide";
   import { needScroll, scrollToBottom } from "$lib/utils/scroll";
-  import { afterUpdate, beforeUpdate, onDestroy, onMount } from "svelte";
+  import { onMount, tick } from "svelte";
 
-  export let ready = false;
-  export let status: Status = "complete";
-  export let log: Item[] = [];
-  export let pyConsole: ConsoleAPI;
-  export let complete: AutoComplete | undefined;
-  export let container: HTMLElement | undefined;
+  let { ready = $bindable(false), status = $bindable<Status>("complete"), log = $bindable<Item[]>([]), pyConsole = $bindable<ConsoleAPI>(), complete = $bindable<AutoComplete>(), container, children }: {
+    ready?: boolean;
+    status?: Status;
+    log?: Item[];
+    pyConsole?: ConsoleAPI;
+    complete?: AutoComplete;
+    container?: HTMLElement;
+    children: Snippet<[{ status: Status; loading: number }]>;
+  } = $props();
 
-  let loading = 0;
+  let loading = $state(0);
+  let disposed = false;
 
   function syncLog() {
+    if (disposed || !pyConsole)
+      return;
     log = pyConsole.get_items();
     status = pyConsole.incomplete ? "incomplete" : "complete";
   }
 
-  onMount(async () => {
-    const py = await getPy({ console: true });
-    pyConsole = (py.pyimport("console.console")).ConsoleAPI((syncLog));
-    complete = pyConsole.complete;
-    ready = true;
+  onMount(() => {
+    getPy({ console: true }).then((py) => {
+      if (disposed)
+        return;
+      pyConsole = (py.pyimport("console.console")).ConsoleAPI((syncLog)) as ConsoleAPI;
+      complete = pyConsole.complete;
+      ready = true;
+    });
+
+    return () => {
+      disposed = true;
+      pyConsole?.close();
+      pyConsole?.destroy();
+    };
   });
 
-  onDestroy(() => {
-    pyConsole?.close();
-    pyConsole?.destroy();
-  });
-
-  let autoscroll = false;
-
-  beforeUpdate(() => {
-    autoscroll = needScroll(container ?? document.documentElement, 500);
-  });
-
-  afterUpdate(() => {
-    autoscroll && scrollToBottom(container ?? document.documentElement);
+  $effect.pre(() => {
+    // Measure the old DOM before output or prompt state changes are rendered.
+    void [log, status, loading, ready];
+    const target = container ?? document.documentElement;
+    if (!needScroll(target, 500))
+      return;
+    tick().then(() => {
+      if (!disposed && target === (container ?? document.documentElement))
+        scrollToBottom(target);
+    });
   });
 
   export async function push(source: string, hidden = false) {
+    if (disposed || !pyConsole)
+      throw new Error("Console is not ready");
     const res = pyConsole.push(source, hidden);
     if (res.status === "complete") {
       loading++;
-      res.future.add_done_callback(() => loading--);
+      res.future.add_done_callback(() => {
+        if (!disposed)
+          loading--;
+      });
     }
     return res;
   }
 </script>
 
-<slot {status} {loading} />
+{@render children({ status, loading })}
 
 <WithConsoleCommands {pyConsole} />

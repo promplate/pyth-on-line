@@ -1,7 +1,7 @@
 import type { FS } from "./emscripten_fs";
 import type { PyodideInterface } from "pyodide";
 
-import { dev } from "$app/environment";
+import { dev } from "$app/env";
 
 export function setupWatcher(py: PyodideInterface) {
   const { trackingDelegate } = py.FS as unknown as FS;

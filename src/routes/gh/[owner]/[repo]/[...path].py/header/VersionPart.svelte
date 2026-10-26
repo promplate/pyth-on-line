@@ -1,6 +1,5 @@
 <script lang="ts">
-  export let text: string;
-  export let index: number;
+  const { text, index }: { text: string; index: number } = $props();
 
   function getOperatorClass(spec: string): string {
     if (spec.includes("~="))
@@ -18,7 +17,7 @@
     return "";
   }
 
-  $: cls = getOperatorClass(text);
+  const cls = $derived(getOperatorClass(text));
 </script>
 
 {#if index > 0}<span class="dim">,</span>{/if}<span class={cls}>{text}</span>

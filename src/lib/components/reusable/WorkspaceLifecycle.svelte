@@ -1,22 +1,37 @@
 <script lang="ts">
   import type { WorkspaceAPI } from "$py/workspace/workspace";
+  import type { Snippet } from "svelte";
 
   import getPy from "$lib/pyodide";
-  import { onDestroy, onMount } from "svelte";
+  import { onMount } from "svelte";
 
-  export let sources: Record<string, string>;
+  const { sources, children }: { sources: Record<string, string>; children: Snippet<[WorkspaceAPI | undefined, boolean]> } = $props();
 
-  let workspace: WorkspaceAPI;
+  // Pyodide owns this handle; only its replacement should be reactive.
+  let workspace = $state.raw<WorkspaceAPI>();
+  let failed = $state(false);
 
-  onMount(async () => {
-    const py = await getPy({ workspace: true });
-    workspace = py.pyimport("workspace.WorkspaceAPI")(py.toPy(sources));
-  });
+  onMount(() => {
+    let disposed = false;
 
-  onDestroy(() => {
-    workspace?.close();
-    workspace?.destroy();
+    // Pyodide is shared; skip late resource creation without cancelling its initialization.
+    getPy({ workspace: true }).then((py) => {
+      if (disposed)
+        return;
+      workspace = py.pyimport("workspace.WorkspaceAPI")(py.toPy(sources));
+    }).catch((error) => {
+      if (disposed)
+        return;
+      console.error("Failed to initialize workspace", error);
+      failed = true;
+    });
+
+    return () => {
+      disposed = true;
+      workspace?.close();
+      workspace?.destroy();
+    };
   });
 </script>
 
-<slot sync={workspace?.sync} save={workspace?.save} />
+{@render children(workspace, failed)}

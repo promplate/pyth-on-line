@@ -1,13 +1,13 @@
 <script lang="ts">
-  import type { PageData } from "./$types";
+  import type { PageProps } from "./$types";
 
   import GitHubUser from "$lib/components/GitHubUser.svelte";
   import { fromNow } from "$lib/date";
   import { updateMetadata } from "$lib/seo";
 
-  export let data: PageData;
+  const { data }: PageProps = $props();
 
-  const { avatarUrl, name, login, total, gists } = data;
+  const { avatarUrl, name, login, total, gists } = $derived(data);
 
   updateMetadata({ ogTitle: "Open Your GitHub Gists", ogDescription: "Explore and run GitHub gists as interactive Python workspaces in your browser." });
 </script>
@@ -22,7 +22,7 @@
     <GitHubUser url={avatarUrl} {name} {login} class="size-7 shrink-0 sm:size-10" />
   </div>
   <ul class="flex flex-row flex-wrap gap-3 text-sm">
-    {#each gists as { name, description, updatedAt, isPublic, stargazerCount, viewerHasStarred }}
+    {#each gists as { name, description, updatedAt, isPublic, stargazerCount, viewerHasStarred } (name)}
       <li class="contents">
         <a href="/gist/{name}" class="max-w-full flex flex-col gap-1.5 ws-nowrap rounded bg-neutral-8/30 px-2.5 py-2 outline-none ring-(1 neutral-7/30) transition hover:bg-neutral-8/80 focus:ring-(1.5 neutral-5) hover:ring-neutral-7/80">
           <div class="flex flex-row items-center justify-between gap-2">

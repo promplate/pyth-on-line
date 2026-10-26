@@ -4,9 +4,7 @@
   import Header from "./header/Header.svelte";
   import { highlight } from "$lib/highlight";
 
-  export let code: string;
-
-  code = code.replaceAll("\r", "");
+  const { code }: { code: string } = $props();
 
   interface Dep {
     name: string;
@@ -42,64 +40,68 @@
     return { name, extras, versionspec: afterExtras, marker };
   }
 
-  let headerLines: HeaderLineData[] = [];
-  let body = code;
-  let hasHeader = false;
+  const { headerLines, body, hasHeader } = $derived.by(() => {
+    const source = code.replaceAll("\r", "");
+    let headerLines: HeaderLineData[] = [];
+    let body = source;
+    let hasHeader = false;
 
-  const headerStartRegex = /^(?:\s*#\s*)?\/\/\/\s*script\s*$/m;
-  const headerEndRegex = /^(?:\s*#\s*)?\/\/\/\s*$/m;
+    const headerStartRegex = /^(?:\s*#\s*)?\/\/\/\s*script\s*$/m;
+    const headerEndRegex = /^(?:\s*#\s*)?\/\/\/\s*$/m;
 
-  const startMatch = code.match(headerStartRegex);
-  if (startMatch && startMatch.index !== undefined) {
-    const startIndex = startMatch.index;
-    const rest = code.slice(startIndex + startMatch[0].length);
-    const endMatch = rest.match(headerEndRegex);
+    const startMatch = source.match(headerStartRegex);
+    if (startMatch && startMatch.index !== undefined) {
+      const startIndex = startMatch.index;
+      const rest = source.slice(startIndex + startMatch[0].length);
+      const endMatch = rest.match(headerEndRegex);
 
-    if (endMatch && endMatch.index !== undefined) {
-      const endIndex = startIndex + startMatch[0].length + endMatch.index + endMatch[0].length;
-      const headerText = code.slice(startIndex, endIndex);
-      body = code.slice(endIndex).replace(/^\n/, "");
-      hasHeader = true;
+      if (endMatch && endMatch.index !== undefined) {
+        const endIndex = startIndex + startMatch[0].length + endMatch.index + endMatch[0].length;
+        const headerText = source.slice(startIndex, endIndex);
+        body = source.slice(endIndex).replace(/^\n/, "");
+        hasHeader = true;
 
-      const lines = headerText.split("\n");
-      let inDeps = false;
+        const lines = headerText.split("\n");
+        let inDeps = false;
 
-      headerLines = lines.map((line): HeaderLineData => {
-        const trimmed = line.trim();
+        headerLines = lines.map((line): HeaderLineData => {
+          const trimmed = line.trim();
 
-        if (trimmed.includes("dependencies = [")) {
-          inDeps = true;
-          return { kind: "text", text: line };
-        }
-
-        if (inDeps && /^#\s*\]/.test(trimmed)) {
-          inDeps = false;
-          return { kind: "text", text: line };
-        }
-
-        if (inDeps) {
-          const match = line.match(/^(#\s*)(["'])(.*)\2(,?)$/);
-          if (match) {
-            const [, prefix, quote, content, suffix] = match;
-            const dep = parseDep(content);
-            return {
-              kind: "dep",
-              line: {
-                prefix,
-                quote,
-                name: dep.name,
-                extras: dep.extras,
-                versionParts: parseVersionspec(dep.versionspec),
-                marker: dep.marker ? ` ; ${dep.marker}` : "",
-                suffix,
-              },
-            };
+          if (trimmed.includes("dependencies = [")) {
+            inDeps = true;
+            return { kind: "text", text: line };
           }
-        }
-        return { kind: "text", text: line };
-      });
+
+          if (inDeps && /^#\s*\]/.test(trimmed)) {
+            inDeps = false;
+            return { kind: "text", text: line };
+          }
+
+          if (inDeps) {
+            const match = line.match(/^(#\s*)(["'])(.*)\2(,?)$/);
+            if (match) {
+              const [, prefix, quote, content, suffix] = match;
+              const dep = parseDep(content);
+              return {
+                kind: "dep",
+                line: {
+                  prefix,
+                  quote,
+                  name: dep.name,
+                  extras: dep.extras,
+                  versionParts: parseVersionspec(dep.versionspec),
+                  marker: dep.marker ? ` ; ${dep.marker}` : "",
+                  suffix,
+                },
+              };
+            }
+          }
+          return { kind: "text", text: line };
+        });
+      }
     }
-  }
+    return { headerLines, body, hasHeader };
+  });
 </script>
 
 <pre class="not-prose relative overflow-x-scroll overflow-y-scroll rounded-md bg-#121212 leading-relaxed selection:bg-white/10 [&>pre]:!line-height-relaxed"

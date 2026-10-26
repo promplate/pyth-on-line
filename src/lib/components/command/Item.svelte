@@ -1,4 +1,4 @@
-<script context="module" lang="ts">
+<script module lang="ts">
   interface BaseItem {
     text: string;
     alwaysRender?: boolean;
@@ -23,14 +23,13 @@
 </script>
 
 <script lang="ts">
-  import { browser } from "$app/environment";
+  import Self from "./Item.svelte";
+  import { browser } from "$app/env";
   import { beforeNavigate, preloadData } from "$app/navigation";
   import { Command } from "cmdk-sv";
+  import { fromAction } from "svelte/attachments";
 
-  export let item: Item;
-
-  // eslint-disable-next-line no-undef-init
-  export let callback: (() => any) | undefined = undefined;
+  const { item, callback }: { item: Item; callback?: () => any } = $props();
 
   let acted = false;
 
@@ -41,14 +40,16 @@
 
 {#if item.type === "group"}
 
+  <!-- cmdk-sv 0.0.19 still exposes builders through legacy slots. -->
   <Command.Group asChild let:container let:heading let:group>
-    <div {...container.attrs} use:container.action class:hidden={container.attrs.hidden}>
+    <div {...container.attrs} {@attach fromAction((node: HTMLElement) => container.action(node))} class={{ hidden: container.attrs.hidden }}>
       <h6 {...heading.attrs} class="my-1 w-full flex flex-col text-xs tracking-widest op-40">
         {item.text}
       </h6>
       <div {...group.attrs} class="flex flex-col">
-        {#each item.children as child}
-          <svelte:self item={child} {callback} />
+        <!-- Registered items keep their identity; labels may repeat. -->
+        {#each item.children as child (child)}
+          <Self item={child} {callback} />
         {/each}
       </div>
     </div>
@@ -59,7 +60,7 @@
 
   <Command.Item value={item.text} onSelect={() => acted = true} asChild let:action let:attrs>
     {@const highlighted = attrs["data-selected"]}
-    <a href={item.href} use:action {...attrs} class:highlighted>
+    <a href={item.href} {@attach fromAction((node: HTMLElement) => action(node))} {...attrs} class={{ highlighted }}>
       <!-- eslint-disable-next-line no-sequences -->
       {(browser && highlighted && preloadData(item.href)), item.text}
     </a>
@@ -68,7 +69,7 @@
 {:else if item.type === "cmd"}
 
   <Command.Item value={item.text} onSelect={value => (async () => item.callback(value))().finally(callback)} alwaysRender={item.alwaysRender} asChild let:action let:attrs>
-    <button class="text-left" use:action {...attrs} class:highlighted={attrs["data-selected"]}>
+    <button class={["text-left", { highlighted: attrs["data-selected"] }]} {@attach fromAction((node: HTMLElement) => action(node))} {...attrs}>
       {item.text}
     </button>
   </Command.Item>

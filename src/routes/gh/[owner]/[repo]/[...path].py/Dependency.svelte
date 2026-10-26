@@ -1,5 +1,5 @@
 <script lang="ts">
-  export let dep: string;
+  const { dep }: { dep: string } = $props();
 
   interface ParsedDep {
     name: string;
@@ -93,14 +93,15 @@
     return parts;
   }
 
-  $: parsed = parseDep(dep);
-  $: versionParts = parseVersionspec(parsed.versionspec);
+  const parsed = $derived(parseDep(dep));
+  const versionParts = $derived(parseVersionspec(parsed.versionspec));
 </script>
 
 <a href="/pypi/{parsed.name}" class="block truncate rounded-md px-2 py-1.5 text-xs text-neutral-4 ring-0.6 ring-white/5 hover:(bg-white/5 text-white)">
   <span class="font-jb">
     <span>{parsed.name}</span>{#if parsed.extras}<span class="op-40">{parsed.extras}</span>{/if}{#if versionParts.length > 0}<span class="versionspec">
-      {#each versionParts as part (part.text + part.class)}
+      <!-- Conditions and comma tokens can repeat, so their text is not a unique key. -->
+      {#each versionParts as part (part)}
         {#if part.class === "separator"}
           <span class="op-40">{part.text}</span>
         {:else}

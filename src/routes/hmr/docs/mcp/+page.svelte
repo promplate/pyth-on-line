@@ -1,7 +1,7 @@
 <script lang="ts">
   import mcpDocs from "./MCP.md?raw";
   import cursor from "@lobehub/icons-static-svg/icons/cursor.svg?raw";
-  import { page } from "$app/stores";
+  import { page } from "$app/state";
   import CodeBlock from "$lib/components/CodeBlock.svelte";
   import UseCopy from "$lib/components/console/UseCopy.svelte";
   import Router from "$lib/components/markdown/Router.svelte";
@@ -9,21 +9,21 @@
   import { updateMetadata } from "$lib/seo";
   import { Separator } from "bits-ui";
 
-  const origin = $page.url.origin.replace("http://sveltekit-prerender", "");
-  const url = `${origin}/hmr/mcp`;
+  const origin = $derived(page.url.origin === "http://sveltekit-prerender" ? __PRERENDER_ORIGIN__ : page.url.origin);
+  const url = $derived(`${origin}/hmr/mcp`);
 
-  const placeholders = {
+  const placeholders = $derived({
     "{HOST}": origin,
     "{cursor-http}": btoa(JSON.stringify({ url })),
     "{cursor-stdio}": btoa(JSON.stringify({ command: "npx", args: ["mcp-remote", url] })),
     "{vscode-http}": encodeURIComponent(JSON.stringify({ name: "hmr-docs", type: "http", url })),
     "{vscode-stdio}": encodeURIComponent(JSON.stringify({ name: "hmr-docs", type: "stdio", command: "npx", args: ["mcp-remote", url] })),
-  };
+  });
 
-  const text = Object.entries(placeholders).reduce((acc, [key, value]) => acc.replaceAll(key, value), mcpDocs);
+  const text = $derived(Object.entries(placeholders).reduce((acc, [key, value]) => acc.replaceAll(key, value), mcpDocs));
 
-  const httpConfigStr = JSON.stringify({ type: "http", url }, null, 2);
-  const stdioConfigStr = JSON.stringify({ type: "stdio", command: "npx", args: ["mcp-remote", url] }, null, 2);
+  const httpConfigStr = $derived(JSON.stringify({ type: "http", url }, null, 2));
+  const stdioConfigStr = $derived(JSON.stringify({ type: "stdio", command: "npx", args: ["mcp-remote", url] }, null, 2));
 
   updateMetadata({ ogTitle: "The MCP Server for HMR", ogDescription: "Use the MCP server to provide HMR knowledge to various clients like Cursor, Claude Code, and GitHub Copilot." });
 </script>
@@ -36,21 +36,25 @@
         <CodeBlock lang="json" code={httpConfigStr} />
       </div>
       <div class="col gap-0.7 text-neutral-4 [&>:where(button,a)]:(w-full row items-center gap-2 rounded-lg px-2 py-1.5 filter-grayscale -ml-2) [&>:where(button,a):hover]:(bg-white/7 text-white filter-none) [&>:where(button,a):focus-visible]:(outline-none ring-1.2 ring-neutral-2 ring-inset) ![&>:where(button,a):active]:(bg-neutral-2 text-neutral-8 shadow-lg shadow-neutral-2/20)">
-        <UseCopy text={httpConfigStr} let:handleClick>
-          <button on:click={handleClick}>
-            <div class="i-si-copy-alt-fill size-4" />
-            Copy to clipboard
-          </button>
+        <UseCopy text={httpConfigStr}>
+          {#snippet children(handleClick)}
+            <button onclick={handleClick}>
+              <div class="i-si-copy-alt-fill size-4" />
+              Copy to clipboard
+            </button>
+          {/snippet}
         </UseCopy>
         <a target="_blank" href="https://cursor.com/en/install-mcp?name=hmr-docs&config={btoa(JSON.stringify({ url }))}">
           <div class="size-4 translate-0.2 scale-110">{@html cursor.replace(/#\d{3}/g, "currentColor").replaceAll("lobe-icons-cursorundefined-fill", "fill1")}</div>
           Install in Cursor
         </a>
-        <UseCopy text="claude mcp add --transport http hmr-docs {url}" let:handleClick>
-          <button on:click={handleClick}>
-            <div class="i-logos-claude-icon size-4" />
-            Add to Claude Code
-          </button>
+        <UseCopy text="claude mcp add --transport http hmr-docs {url}">
+          {#snippet children(handleClick)}
+            <button onclick={handleClick}>
+              <div class="i-logos-claude-icon size-4" />
+              Add to Claude Code
+            </button>
+          {/snippet}
         </UseCopy>
         <a href="vscode:mcp/install?{encodeURIComponent(JSON.stringify({ name: "hmr-docs", type: "http", url }))}">
           <div class="i-vscode-icons-file-type-vscode size-4" />
@@ -69,21 +73,25 @@
         <CodeBlock lang="json" code={stdioConfigStr} />
       </div>
       <div class="col gap-0.7 text-neutral-4 [&>:where(button,a)]:(w-full row items-center gap-2 rounded-lg px-2 py-1.5 filter-grayscale -ml-2) [&>:where(button,a):hover]:(bg-white/7 text-white filter-none) [&>:where(button,a):focus-visible]:(outline-none ring-1.2 ring-neutral-2 ring-inset) ![&>:where(button,a):active]:(bg-neutral-2 text-neutral-8 shadow-lg shadow-neutral-2/20)">
-        <UseCopy text={stdioConfigStr} let:handleClick>
-          <button on:click={handleClick}>
-            <div class="i-si-copy-alt-fill size-4" />
-            Copy to clipboard
-          </button>
+        <UseCopy text={stdioConfigStr}>
+          {#snippet children(handleClick)}
+            <button onclick={handleClick}>
+              <div class="i-si-copy-alt-fill size-4" />
+              Copy to clipboard
+            </button>
+          {/snippet}
         </UseCopy>
         <a target="_blank" href="https://cursor.com/en/install-mcp?name=hmr-docs&config={btoa(JSON.stringify({ command: "npx", args: ["mcp-remote", url] }))}">
           <div class="size-4 translate-0.2 scale-110">{@html cursor.replace(/#\d{3}/g, "currentColor").replaceAll("lobe-icons-cursorundefined-fill", "fill2")}</div>
           Install in Cursor (stdio)
         </a>
-        <UseCopy text="claude mcp add --transport stdio hmr-docs npx mcp-remote {url}" let:handleClick>
-          <button on:click={handleClick}>
-            <div class="i-logos-claude-icon size-4" />
-            Add to Claude Code (stdio)
-          </button>
+        <UseCopy text="claude mcp add --transport stdio hmr-docs npx mcp-remote {url}">
+          {#snippet children(handleClick)}
+            <button onclick={handleClick}>
+              <div class="i-logos-claude-icon size-4" />
+              Add to Claude Code (stdio)
+            </button>
+          {/snippet}
         </UseCopy>
         <a href="vscode:mcp/install?{encodeURIComponent(JSON.stringify({ name: "hmr-docs", type: "stdio", command: "npx", args: ["mcp-remote", url] }))}">
           <div class="i-vscode-icons-file-type-vscode size-4" />
@@ -109,8 +117,10 @@
   </div>
 
   <main class="mt-1 max-w-full">
-    <WithMarkdown let:parse>
-      <Router node={parse(text)} />
+    <WithMarkdown>
+      {#snippet children(parse)}
+        <Router node={parse(text)} />
+      {/snippet}
     </WithMarkdown>
   </main>
 

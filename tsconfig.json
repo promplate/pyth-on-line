@@ -1,5 +1,5 @@
 {
-  "extends": "./.svelte-kit/tsconfig.json",
+  "extends": "$app/tsconfig",
   "compilerOptions": {
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
@@ -10,5 +10,7 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true
-  }
+  },
+  "include": ["src", "*.ts", "*.js"],
+  "exclude": ["src/service-worker.ts"]
 }

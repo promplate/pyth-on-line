@@ -1,3 +1,3 @@
-import { writable } from "svelte/store";
+import { createContext } from "svelte";
 
-export const query = writable("");
+export const [getSearchState, setSearchState] = createContext<{ query: string; setQuery: (value: string) => void }>();

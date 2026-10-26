@@ -1,12 +1,10 @@
 <script lang="ts">
   import { Avatar } from "bits-ui";
 
-  export let url: string;
-  export let name: string | null = null;
-  export let login: string;
+  const { url, name = null, login, ...props }: Omit<Avatar.Props, "name" | "children"> & { url: string; name?: string | null; login: string } = $props();
 </script>
 
-<Avatar.Root {...$$restProps}>
+<Avatar.Root {...props}>
   <div class="grid size-full place-items-center overflow-hidden rounded-1/5 bg-neutral-1/5">
     <Avatar.Image src={url} alt={name ?? `@${login}`} />
     <Avatar.Fallback class="text-sm text-neutral-1/50">

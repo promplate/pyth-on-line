@@ -1,17 +1,29 @@
 <script lang="ts">
   import type { NotebookAPI } from "$py/notebook/notebook";
+  import type { Snippet } from "svelte";
 
   import getPy from "$lib/pyodide";
-  import { onDestroy, onMount } from "svelte";
+  import { onMount } from "svelte";
 
-  let pyNotebook: NotebookAPI;
+  const { children }: { children: Snippet<[NotebookAPI | undefined]> } = $props();
 
-  onMount(async () => {
-    const py = await getPy({ notebook: true });
-    pyNotebook = py.pyimport("notebook.NotebookAPI")() as NotebookAPI;
+  // Pyodide owns this handle, so only track its replacement, not its internals.
+  let pyNotebook = $state.raw<NotebookAPI>();
+
+  onMount(() => {
+    let disposed = false;
+
+    getPy({ notebook: true }).then((py) => {
+      if (disposed)
+        return;
+      pyNotebook = py.pyimport("notebook.NotebookAPI")() as NotebookAPI;
+    });
+
+    return () => {
+      disposed = true;
+      pyNotebook?.destroy();
+    };
   });
-
-  onDestroy(() => pyNotebook?.destroy());
 </script>
 
-<slot {pyNotebook} />
+{@render children(pyNotebook)}

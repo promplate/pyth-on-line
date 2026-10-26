@@ -2,9 +2,11 @@
   import WithMarkdown from "../reusable/WithMarkdown.svelte";
   import Router from "./Router.svelte";
 
-  export let text: string;
+  const { text }: { text: string } = $props();
 </script>
 
-<WithMarkdown let:parse>
-  <Router node={parse(text)} />
+<WithMarkdown>
+  {#snippet children(parse)}
+    <Router node={parse(text)} />
+  {/snippet}
 </WithMarkdown>

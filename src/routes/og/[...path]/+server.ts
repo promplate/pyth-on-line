@@ -1,9 +1,8 @@
 import type { RequestHandler } from "@sveltejs/kit";
-import type { SvelteComponent } from "svelte";
 
 import component from "./OG.svelte";
 import { ImageResponse } from "@ethercorps/sveltekit-og";
-import { cast } from "$lib/utils/typing";
+import { render } from "svelte/server";
 
 export const GET: RequestHandler = async ({ url: { origin }, params }) => {
   const path: string = params.path ?? "";
@@ -15,6 +14,6 @@ export const GET: RequestHandler = async ({ url: { origin }, params }) => {
     context.subtitle = "Powered by Pyodide, a WASM build of CPython";
   }
 
-  const html = cast<SvelteComponent>(component).render(context).html.replaceAll("class=", "tw=");
+  const html = render(component, { props: context }).body.replaceAll("class=", "tw=");
   return new ImageResponse(html);
 };

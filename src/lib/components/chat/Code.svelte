@@ -4,8 +4,7 @@
   import WithCodeActions from "../reusable/WithCodeActions.svelte";
   import CodeBlock from "$lib/components/CodeBlock.svelte";
 
-  export let node: Node;
-  export let runCode: ((source: string) => any) | undefined;
+  const { node, runCode }: { node: Node; runCode: ((source: string) => any) | undefined } = $props();
 
   function run(source: string) {
     source = source.trimEnd();
@@ -17,6 +16,8 @@
   }
 </script>
 
-<WithCodeActions {node} {run} fadeIn let:code>
-  <CodeBlock lang={code.lang ?? "text"} code={code.value} />
+<WithCodeActions {node} {run} fadeIn>
+  {#snippet children(code)}
+    <CodeBlock lang={code.lang ?? "text"} code={code.value} />
+  {/snippet}
 </WithCodeActions>

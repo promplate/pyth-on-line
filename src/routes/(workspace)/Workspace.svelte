@@ -6,15 +6,19 @@
   import SetupWorkspace from "$lib/components/reusable/WorkspaceLifecycle.svelte";
   import { toastMarkdown } from "$lib/utils/toast";
   import { Pane, PaneGroup, PaneResizer } from "paneforge";
+  import { untrack } from "svelte";
 
-  export let sources: Record<string, string> = {};
+  const { sources: initialSources = {} }: { sources?: Record<string, string> } = $props();
+
+  // Each project owns an editable snapshot; same-project reloads must not overwrite local edits.
+  const sources = $state(untrack(() => ({ ...initialSources })));
 
   function getDefaultFile() {
     return Object.keys(sources).find(name => name.toUpperCase().startsWith("README")) ?? Object.keys(sources)[0];
   }
 
-  let focusedFile: keyof typeof sources = getDefaultFile();
-  let container: HTMLElement;
+  let focusedFile = $state<string | null>(untrack(() => getDefaultFile() ?? null));
+  let container = $state<HTMLElement>();
 
   registerCommandGroup("Workspace", Object.keys(sources).map(name => ({
     text: `Open ${name}`,
@@ -34,21 +38,30 @@
     </PaneResizer>
     <Pane defaultSize={80} minSize={10}>
       <PaneGroup direction="vertical">
-        <SetupWorkspace {sources} let:save>
-          <Pane defaultSize={70} minSize={10} class="relative">
-            <FileContent on:save={({ detail: content }) => {
-              save(focusedFile, content.replaceAll("\r\n", "\n"));
-              toastMarkdown(`\`${focusedFile}\` saved`);
-            }} bind:content={sources[focusedFile]} lang={focusedFile.slice(focusedFile.lastIndexOf(".") + 1)} />
-          </Pane>
-          <PaneResizer class="group">
-            <div class="my-1 h-0.11em w-full bg-white/10 transition group-active:bg-current group-hover:bg-white/30" />
-          </PaneResizer>
-          <Pane defaultSize={30} minSize={10}>
-            <div class="h-full w-full overflow-y-scroll" bind:this={container}>
-              <Console class="p-2 text-xs [&>div:hover]:rounded-r-none @2xl:(text-13px line-height-18px) @7xl:text-sm" {container} />
-            </div>
-          </Pane>
+        <SetupWorkspace {sources}>
+          {#snippet children(workspace, failed)}
+            <Pane defaultSize={70} minSize={10} class="relative">
+              {#if focusedFile !== null}
+                {@const path = focusedFile}
+                <FileContent onsave={(content) => {
+                  if (!workspace) {
+                    toastMarkdown(failed ? "Workspace initialization failed. Changes have not been saved." : "Workspace is still loading. Try saving again once it is ready.", failed ? "error" : "warning");
+                    return;
+                  }
+                  workspace.save(path, content.replaceAll("\r\n", "\n"));
+                  toastMarkdown(`\`${path}\` saved`);
+                }} bind:content={sources[path]} lang={path.slice(path.lastIndexOf(".") + 1)} />
+              {/if}
+            </Pane>
+            <PaneResizer class="group">
+              <div class="my-1 h-0.11em w-full bg-white/10 transition group-active:bg-current group-hover:bg-white/30" />
+            </PaneResizer>
+            <Pane defaultSize={30} minSize={10}>
+              <div class="h-full w-full overflow-y-scroll" bind:this={container}>
+                <Console class="p-2 text-xs [&>div:hover]:rounded-r-none @2xl:(text-13px line-height-18px) @7xl:text-sm" {container} />
+              </div>
+            </Pane>
+          {/snippet}
         </SetupWorkspace>
       </PaneGroup>
     </Pane>

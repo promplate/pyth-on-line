@@ -1,17 +1,18 @@
 <script lang="ts">
-  export let href: string;
-  export let text: string;
-  export let highlighted: boolean = false;
-  let first = highlighted;
+  import { untrack } from "svelte";
+
+  const { href, text, highlighted = false }: { href: string; text: string; highlighted?: boolean } = $props();
+  // Only the initial highlight uses the longer transition; later prop changes must not restart it.
+  let first = $state(untrack(() => highlighted));
 </script>
 
-<a {href} class="fancy-button group" class:highlighted class:first>
+<a {href} class={["fancy-button group", { highlighted, first }]}>
   <span class="fancy-button-text">{text}</span>
   <div class="fancy-button-overlay">
     <span>{text}</span>
     <div class="i-lucide-arrow-right size-4 -translate-y-0.1" />
   </div>
-  <div class="fancy-button-particle" on:transitionend|once={() => (first = false)} />
+  <div class="fancy-button-particle" ontransitionend={first ? () => (first = false) : undefined} />
 </a>
 
 <style>

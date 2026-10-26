@@ -1,11 +1,11 @@
 <script lang="ts">
-  import type { PageServerData } from "./$types";
+  import type { PageProps } from "./$types";
 
   import Workspace from "../../../Workspace.svelte";
 
-  export let data: PageServerData;
-
-  const { sources } = data;
+  const { data, params }: PageProps = $props();
 </script>
 
-<Workspace {sources} />
+{#key `${params.owner}/${params.repo}`.toLowerCase()}
+  <Workspace sources={data.sources} />
+{/key}

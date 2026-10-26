@@ -1,57 +1,29 @@
 <script lang="ts">
+  import type { LayoutProps } from "./$types";
+
   import "@unocss/reset/tailwind.css";
   import "uno.css";
   import "@fontsource-variable/fira-code";
   import "@fontsource-variable/inter";
 
-  import { dev } from "$app/environment";
   import { onNavigate } from "$app/navigation";
-  import { page } from "$app/stores";
-  import * as env from "$env/static/public";
   import CmdK from "$lib/components/command/CmdK.svelte";
-  import { initMetadataStore, resetMetadata } from "$lib/seo";
+  import Head from "$lib/components/Head.svelte";
+  import { initMetadata, resetMetadata } from "$lib/seo";
   import { Toaster } from "svelte-sonner";
 
-  const metadata = initMetadataStore();
+  const { children }: LayoutProps = $props();
+
+  const metadata = initMetadata();
   onNavigate(() => resetMetadata(metadata));
-
-  // @ts-ignore
-  const headScripts = atob(env.PUBLIC_HEAD_SCRIPTS ?? "");
-  // @ts-ignore
-  const originTrialToken = env.PUBLIC_ORIGIN_TRIAL_TOKEN;
-
-  $: ogTitle = $metadata.ogTitle;
-  const ogImage = `${$page.url.origin.replace("http://sveltekit-prerender", "")}/og${$page.url.pathname}`;
-  $: ogDescription = $metadata.ogDescription; ;
 </script>
-
-<svelte:head>
-  {#if headScripts && !dev}
-    {@html headScripts}
-  {/if}
-  {#if originTrialToken}
-    <meta http-equiv="origin-trial" content={originTrialToken} />
-  {/if}
-
-  <title>{ogTitle}</title>
-  <meta property="og:title" content={ogTitle} />
-  <meta property="twitter:title" content={ogTitle} />
-
-  <meta property="twitter:card" content="summary_large_image" />
-
-  <meta property="og:image" content={ogImage} />
-  <meta property="twitter:image" content={ogImage} />
-
-  <meta property="description" content={ogDescription} />
-  <meta property="og:description" content={ogDescription} />
-  <meta property="twitter:description" content={ogDescription} />
-
-  <meta name="theme-color" content="#171717" />
-</svelte:head>
 
 <Toaster theme="dark" toastOptions={{ class: "text-xs font-mono" }} />
 
-<slot />
+{@render children()}
+
+<!-- Svelte hoists svelte:head; a child component lets SSR read metadata after page setup. -->
+<Head {metadata} />
 
 <CmdK />
 

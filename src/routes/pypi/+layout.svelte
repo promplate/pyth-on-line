@@ -1,38 +1,66 @@
 <script lang="ts">
-  import type { Spring } from "svelte/motion";
+  import type { LayoutProps } from "./$types";
 
-  import { query } from "./store";
-  import { browser } from "$app/environment";
+  import { setSearchState } from "./store";
   import { afterNavigate, beforeNavigate, goto, preloadData } from "$app/navigation";
-  import { navigating, page } from "$app/stores";
+  import { navigating, page } from "$app/state";
   import Progress from "$lib/components/Progress.svelte";
   import { Button } from "bits-ui";
+  import { onDestroy, untrack } from "svelte";
+  import { spring } from "svelte/motion";
+  import { fromStore } from "svelte/store";
 
-  let progress: Spring<number>;
-  let reset: () => any;
+  const { children }: LayoutProps = $props();
+  const searchState = $state({ query: untrack(() => page.url.searchParams.get("q") ?? ""), setQuery });
+  setSearchState(searchState);
+  let progress = $state.raw(createProgress());
+  const progressState = $derived(fromStore(progress));
+  let preloadTimer: ReturnType<typeof setTimeout>;
+  onDestroy(() => {
+    clearTimeout(preloadTimer);
+    progress.set(0, { hard: true });
+  });
 
-  $query = $page.url.searchParams.get("q") ?? "";
+  // Keep legacy spring for mid-flight soft retargeting: https://github.com/sveltejs/svelte/pull/18955.
+  function createProgress() {
+    return spring(0, { stiffness: 0.1, damping: 1, precision: 0.001 });
+  }
 
-  beforeNavigate(async () => {
+  function reset() {
+    progress.set(0, { hard: true });
+    progress = createProgress();
+  }
+
+  beforeNavigate(() => {
     reset();
     progress.set(0.25);
   });
 
   afterNavigate(() => {
+    if (page.route.id === "/pypi")
+      searchState.query = page.url.searchParams.get("q") ?? "";
     progress.set(2, { soft: 1 });
   });
 
-  $: disableSearch = Boolean($navigating) || ($page.route.id === "/pypi" && $query === $page.url.searchParams.get("q"));
+  const disableSearch = $derived(Boolean(navigating.to) || (page.route.id === "/pypi" && searchState.query === page.url.searchParams.get("q")));
 
   function search() {
     if (!disableSearch) {
-      goto(`/pypi?q=${$query}`, { keepFocus: true });
+      // Kit 3 combines focus and scroll resets; retain input focus but reset the results' scroll.
+      goto(`/pypi?q=${searchState.query}`, { reset: false }).then(() => window.scrollTo(0, 0));
     }
   }
 
-  $: if (browser && $query) {
-    const q = $query;
-    setTimeout(() => q === $query && preloadData(`/pypi?q=${q}`), 250);
+  function schedulePreload() {
+    clearTimeout(preloadTimer);
+    const q = searchState.query;
+    if (q)
+      preloadTimer = setTimeout(() => preloadData(`/pypi?q=${q}`), 250);
+  }
+
+  function setQuery(value: string) {
+    searchState.query = value;
+    schedulePreload();
   }
 </script>
 
@@ -44,27 +72,27 @@
         <Button.Root href="/">
           <div class="i-tabler-smart-home" />
         </Button.Root>
-        <Button.Root href={$page.route.id === "/pypi" ? `https://pypi.org/search?q=${$query}` : `https://pypi.org/project/${$page.params.project}/`} target="_blank">
+        <Button.Root href={page.route.id === "/pypi" ? `https://pypi.org/search?q=${searchState.query}` : `https://pypi.org/project/${page.params.project}/`} target="_blank">
           <div class="i-tabler-external-link" />
         </Button.Root>
       </div>
       <div class="max-w-50vw w-xs flex flex-row items-center rounded-sm bg-neutral-6/10 px-0.5em py-0.3em transition-background-color -my-0.3em lg:w-sm hover:bg-neutral-6/15 focus-within:!bg-neutral-6/21">
-        <input bind:value={$query} on:keydown={({ key }) => key === "Enter" && search()} class="w-full bg-transparent text-neutral-4 outline-none placeholder-neutral-6" placeholder="search" type="text">
-        <button disabled={disableSearch} on:click={search} class="p-0.3em text-neutral-5 -m-0.3em hover:text-neutral-4">
+        <input bind:value={() => searchState.query, setQuery} onkeydown={({ key }) => key === "Enter" && search()} class="w-full bg-transparent text-neutral-4 outline-none placeholder-neutral-6" placeholder="search" type="text">
+        <button disabled={disableSearch} onclick={search} class="p-0.3em text-neutral-5 -m-0.3em hover:text-neutral-4">
           <div class="i-mingcute-search-line" />
         </button>
       </div>
       <Button.Root href="https://github.com/promplate/pyth-on-line"><div class="i-mdi-github" /></Button.Root>
     </nav>
 
-    <Progress show={!!$navigating} bind:progress bind:reset />
+    <Progress show={!!navigating.to} progress={progressState.current} onhide={reset} />
 
   </header>
 </section>
 
-<div class:navigating={$navigating} class="mb-4 w-[calc(100%-2rem)] self-center transition-opacity duration-500 ease-out 2xl:(mb-10 w-4xl) lg:(mb-7 w-2xl) md:mb-6 sm:(mb-5 w-xl) xl:(mb-8 w-3xl) [&>article]:(lg:text-3.75 xl:text-base)">
+<div class={[{ navigating: navigating.to }, "mb-4 w-[calc(100%-2rem)] self-center transition-opacity duration-500 ease-out 2xl:(mb-10 w-4xl) lg:(mb-7 w-2xl) md:mb-6 sm:(mb-5 w-xl) xl:(mb-8 w-3xl) [&>article]:(lg:text-3.75 xl:text-base)"]}>
 
-  <slot />
+  {@render children()}
 
 </div>
 

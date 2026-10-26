@@ -1,11 +1,12 @@
 <script lang="ts">
   import type { Link, Node } from "mdast";
+  import type { Snippet } from "svelte";
 
-  export let node: Node;
+  const { node, children }: { node: Node; children?: Snippet } = $props();
 
-  $: link = node as Link;
+  const link = $derived(node as Link);
 </script>
 
 <a href={link.url} title={link.title}>
-  <slot />
+  {@render children?.()}
 </a>

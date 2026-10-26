@@ -1,24 +1,21 @@
-import type { Writable } from "svelte/store";
+import { defaultMetadata, Metadata } from "./metadata.svelte";
+import { afterNavigate } from "$app/navigation";
+import { createContext, untrack } from "svelte";
 
-import { getContext, setContext } from "svelte";
-import { writable } from "svelte/store";
+const [getMetadata, setMetadata] = createContext<Metadata>();
 
-const defaultMetadata = {
-  ogTitle: "Python Online",
-  ogDescription: "A simple online python console",
-};
-
-type SEOMetadata = typeof defaultMetadata;
-
-export function initMetadataStore() {
-  return setContext("seo-metadata", writable(defaultMetadata));
+export function initMetadata() {
+  return setMetadata(new Metadata());
 }
 
-export function resetMetadata(store: Writable<SEOMetadata>) {
-  store.set(defaultMetadata);
+export function resetMetadata(metadata: Metadata) {
+  metadata.source = defaultMetadata;
 }
 
-export function updateMetadata(metadata: Partial<SEOMetadata>) {
-  const store = getContext<Writable<SEOMetadata>>("seo-metadata");
-  store.update(current => ({ ...current, ...metadata }));
+export function updateMetadata(metadata: Metadata["source"]) {
+  const current = getMetadata();
+  // Keep the getter reactive; evaluating it here would freeze route props until navigation.
+  const update = () => untrack(() => current.source = metadata);
+  update();
+  afterNavigate(update);
 }
