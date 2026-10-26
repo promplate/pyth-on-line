@@ -21,7 +21,7 @@ const websiteAssets = [
 ].map(({ path }) => new URL(path, sw.registration.scope).pathname);
 
 const pyodideAssets = [
-  "pyodide.asm.js",
+  "pyodide.asm.mjs",
   "pyodide.asm.wasm",
   "python_stdlib.zip",
   "pyodide-lock.json",
