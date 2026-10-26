@@ -6,7 +6,9 @@ dependencies = [
     "ruff~=0.14.0",
     "webtypy~=0.1.7",
     "micropip~=0.11.0",
-    "pyodide-py==0.29.0",
+    # Keep the HMR test matrix installable on Python 3.13.
+    "pyodide-py==0.29.0; python_version < '3.14'",
+    "pyodide-py==314.0.7; python_version >= '3.14'",
     "promplate-pyodide~=0.0.4.0",
     "prek~=0.2.19",
     "pure-eval~=0.2.3",

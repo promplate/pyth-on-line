@@ -51,7 +51,7 @@
     "monaco-editor-core": "^0.55.1",
     "openai": "^6.49.0",
     "paneforge": "^0.0.6",
-    "pyodide": "0.29.0",
+    "pyodide": "314.0.7",
     "rollup-plugin-flatten-dir": "^1.0.1",
     "shiki": "^3.23.0",
     "smol-toml": "^1.9.1",
