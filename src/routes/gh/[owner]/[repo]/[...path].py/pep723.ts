@@ -1,4 +1,4 @@
-import { parse as parseToml } from "smol-toml";
+import { parse as parseToml, stringify as stringifyToml } from "smol-toml";
 
 export function parsePep723(content: string) {
   let inHeader = false;
@@ -30,12 +30,10 @@ export function parsePep723(content: string) {
 }
 
 export function prependPep723(file: string, dependencies: string[]) {
-  const escapedDeps = dependencies.map(dep => dep.replace(/"/g, "\\\""));
   const headerLines = [
     "# /// script",
-    "# dependencies = [",
-    ...escapedDeps.map(dep => `#   "${dep}",`),
-    "# ]",
+    // Serialize before adding comment prefixes so dependency newlines cannot become Python code.
+    ...stringifyToml({ dependencies }).trimEnd().split("\n").map(line => `# ${line}`),
     "# ///",
     "",
     "",
