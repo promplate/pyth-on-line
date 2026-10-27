@@ -41,6 +41,9 @@ class Subscribable:
                 last.dependencies.add(self)
 
     def notify(self):
+        for sub in self.subscribers:
+            if isinstance(sub, BaseDerived):
+                sub._invalidate_sync()  # noqa: SLF001
         ctx = self.context.leaf
 
         if ctx.batches:
@@ -264,14 +267,38 @@ class BaseDerived[T](Subscribable, BaseComputation[T]):
     def __init__(self, *, context: Context | None = None):
         super().__init__(context=context)
         self.dirty = True
+        # An ancestor change needs checking, but equality can still prevent recomputation.
+        self._needs_sync = True
 
-    def _sync_dirty_deps(self, *_syncing: BaseComputation) -> Any:
-        current_computations = self.context.leaf.current_computations
-        for dep in self.dependencies:
-            if isinstance(dep, BaseDerived) and dep not in current_computations and dep not in _syncing:
-                dep._sync_dirty_deps(*_syncing, self)  # noqa: SLF001
-                if dep.dirty:
-                    dep()
+    def _invalidate_sync(self):
+        pending: list[BaseDerived] = [self]
+        while pending:
+            node = pending.pop()
+            # Shared paths and cycles stop at nodes already awaiting a check.
+            if node._needs_sync:  # noqa: SLF001
+                continue
+            node._needs_sync = True  # noqa: SLF001
+            pending.extend(sub for sub in node.subscribers if isinstance(sub, BaseDerived))
+
+    def _sync_dirty_deps(self, _syncing: set[BaseComputation] | None = None) -> Any:
+        if not self._needs_sync:
+            return
+        if _syncing is None:
+            _syncing = set()
+        _syncing.add(self)
+        self._needs_sync = False  # Writes during traversal must be able to invalidate this check again.
+        try:
+            current_computations = self.context.leaf.current_computations
+            for dep in self.dependencies:
+                if isinstance(dep, BaseDerived) and dep not in current_computations and dep not in _syncing:
+                    dep._sync_dirty_deps(_syncing)  # noqa: SLF001
+                    if dep.dirty:
+                        dep()
+        except BaseException:
+            self._invalidate_sync()
+            raise
+        finally:
+            _syncing.remove(self)
 
 
 class Derived[T](BaseDerived[T]):
@@ -315,6 +342,7 @@ class Derived[T](BaseDerived[T]):
         return self._value
 
     def trigger(self):
+        self._invalidate_sync()
         self.dirty = True
         if _pulled(self):
             self()
