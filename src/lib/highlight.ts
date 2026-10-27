@@ -3,7 +3,7 @@ import type { ShikiTransformer } from "shiki";
 import { cacheGlobally } from "./utils/cache";
 import { bundledLanguages, createHighlighter } from "shiki";
 
-export const languages = Object.keys(bundledLanguages);
+const languages = Object.keys(bundledLanguages);
 
 export async function getHighlighter(lang: string) {
   if (!languages.includes(lang) && lang !== "text") {
