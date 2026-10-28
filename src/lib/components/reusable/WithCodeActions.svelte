@@ -4,7 +4,7 @@
 
   import UseCopy from "../console/UseCopy.svelte";
   import WithTooltip from "../reusable/WithTooltip.svelte";
-  import { fromAction } from "svelte/attachments";
+  import { mergeProps } from "bits-ui";
 
   const { node, run = null, fadeIn = false, runnable = null, children }: {
     node: Node;
@@ -28,16 +28,16 @@
       <UseCopy text={code.value}>
         {#snippet children(handleClick)}
           <WithTooltip tips="Copy">
-            {#snippet children(builder)}
-              <button onclick={handleClick} {...builder} {@attach fromAction((node: HTMLElement) => builder.action(node), () => undefined)}><div class="i-icon-park-twotone-copy" /></button>
+            {#snippet children({ props })}
+              <button {...mergeProps(props, { onclick: handleClick })}><div class="i-icon-park-twotone-copy" /></button>
             {/snippet}
           </WithTooltip>
         {/snippet}
       </UseCopy>
       {#if canRun && run}
         <WithTooltip tips="Run">
-          {#snippet children(builder)}
-            <button onclick={() => run(code.value)} {...builder} {@attach fromAction((node: HTMLElement) => builder.action(node), () => undefined)}><div class="i-mingcute-play-fill" /></button>
+          {#snippet children({ props })}
+            <button {...mergeProps(props, { onclick: () => run(code.value) })}><div class="i-mingcute-play-fill" /></button>
           {/snippet}
         </WithTooltip>
       {/if}
