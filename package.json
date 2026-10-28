@@ -24,7 +24,7 @@
     "@joplin/turndown-plugin-gfm": "^1.0.68",
     "@lobehub/icons-static-svg": "^1.101.0",
     "@neodrag/svelte": "^2.3.3",
-    "@shikijs/monaco": "^3.23.0",
+    "@shikijs/monaco": "^4.5.0",
     "@sveltejs/adapter-auto": "^8.0.0",
     "@sveltejs/adapter-vercel": "^7.0.1",
     "@sveltejs/kit": "^3.1.0",
