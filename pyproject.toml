@@ -37,8 +37,10 @@ known_first_party = ["__main__"]
 
 [tool.ruff]
 line-length = 200
+extend-exclude = ["*.md"]  # Markdown formatting belongs to ESLint.
 
 [tool.ruff.lint]
+select = ["E4", "E7", "E9", "F"]  # Preserve the defaults used before Ruff 0.16.
 extend-select = [
     "I",    # isort
     "N",    # pep8-naming

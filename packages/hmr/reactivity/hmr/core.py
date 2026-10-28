@@ -12,7 +12,7 @@ from pathlib import Path
 from site import getsitepackages, getusersitepackages
 from sysconfig import get_paths
 from types import ModuleType, TracebackType
-from typing import Any, Self
+from typing import Any, ClassVar, Self
 from weakref import WeakValueDictionary
 
 from .. import derived_method
@@ -61,7 +61,7 @@ STATIC_ATTRS = frozenset(("__path__", "__dict__", "__spec__", "__name__", "__fil
 
 
 class ReactiveModule(ModuleType):
-    instances: WeakValueDictionary[Path, Self] = WeakValueDictionary()
+    instances: ClassVar[WeakValueDictionary[Path, Self]] = WeakValueDictionary()
 
     def __init__(self, file: Path, namespace: dict, name: str, doc: str | None = None):
         super().__init__(name, doc)
