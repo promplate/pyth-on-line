@@ -1,6 +1,6 @@
 import web from "../../../python/web";
 import { getPyodide, setupModule } from "./init";
-import { cacheSingleton } from "$lib/utils/cache";
+import { cacheSingleton } from "#lib/utils/cache.js";
 
 export const loadWeb = cacheSingleton(async () => {
   const py = await getPyodide();

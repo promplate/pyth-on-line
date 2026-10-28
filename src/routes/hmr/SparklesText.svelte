@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { HTMLAttributes } from "svelte/elements";
 
-  import { cn } from "$lib/utils/clsx";
+  import { cn } from "#lib/utils/clsx.js";
   import { onMount } from "svelte";
 
   const { text, class: additionalClasses = "", ...props }: Omit<HTMLAttributes<HTMLDivElement>, "children"> & { text: string } = $props();

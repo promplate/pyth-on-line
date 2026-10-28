@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Metadata } from "$lib/metadata.svelte";
+  import type { Metadata } from "#lib/metadata.svelte.js";
 
   import { dev } from "$app/env";
   import * as env from "$app/env/public";

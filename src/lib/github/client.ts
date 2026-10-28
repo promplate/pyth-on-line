@@ -1,4 +1,4 @@
-import { accessToken } from "$lib/oauth";
+import { accessToken } from "#lib/oauth.js";
 
 export async function gql(query: string, token?: string) {
   const { errors, data } = await fetch("https://api.github.com/graphql", {

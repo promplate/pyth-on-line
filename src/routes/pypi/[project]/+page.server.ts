@@ -1,7 +1,7 @@
 import type { PageServerLoad } from "./$types";
 import type { RegistryResponse } from "./types";
 
-import { html2markdown } from "$lib/utils/html";
+import { html2markdown } from "#lib/utils/html.js";
 import { load as loadCheerio } from "cheerio";
 import { parseDocument } from "htmlparser2";
 

@@ -2,7 +2,7 @@
   import Router from "../markdown/Router.svelte";
   import WithMarkdown from "../reusable/WithMarkdown.svelte";
   import OverrideCode from "./Code.svelte";
-  import HeadlessNotebook from "$lib/components/notebook/HeadlessNotebook.svelte";
+  import HeadlessNotebook from "#lib/components/notebook/HeadlessNotebook.svelte";
 
   const { text }: { text: string } = $props();
 </script>

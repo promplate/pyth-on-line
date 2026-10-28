@@ -1,8 +1,8 @@
 <script lang="ts">
-  import type { Folder } from "$lib/utils/list2tree";
+  import type { Folder } from "#lib/utils/list2tree.js";
 
   import Tree from "./Tree.svelte";
-  import { unflatten } from "$lib/utils/list2tree";
+  import { unflatten } from "#lib/utils/list2tree.js";
   import { untrack } from "svelte";
 
   // File updates must not overwrite a selection the user has already made.

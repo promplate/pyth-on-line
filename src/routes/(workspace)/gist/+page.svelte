@@ -1,9 +1,9 @@
 <script lang="ts">
   import type { PageProps } from "./$types";
 
-  import GitHubUser from "$lib/components/GitHubUser.svelte";
-  import { fromNow } from "$lib/date";
-  import { updateMetadata } from "$lib/seo";
+  import GitHubUser from "#lib/components/GitHubUser.svelte";
+  import { fromNow } from "#lib/date.js";
+  import { updateMetadata } from "#lib/seo.js";
 
   const { data }: PageProps = $props();
 

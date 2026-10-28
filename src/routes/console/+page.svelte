@@ -1,8 +1,8 @@
 <script lang="ts">
-  import Console from "$lib/components/Console.svelte";
-  import Modal from "$lib/components/Modal.svelte";
-  import { pyodideState } from "$lib/pyodide/state.svelte";
-  import { updateMetadata } from "$lib/seo";
+  import Console from "#lib/components/Console.svelte";
+  import Modal from "#lib/components/Modal.svelte";
+  import { pyodideState } from "#lib/pyodide/state.svelte.js";
+  import { updateMetadata } from "#lib/seo.js";
   import { cubicIn, cubicOut } from "svelte/easing";
   import { scale } from "svelte/transition";
 

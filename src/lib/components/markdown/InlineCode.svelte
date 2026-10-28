@@ -1,6 +1,6 @@
 <script lang="ts">
-  import type { ConsoleAPI, Inspection } from "$py/console/console";
-  import type { NotebookAPI } from "$py/notebook/notebook";
+  import type { ConsoleAPI, Inspection } from "#py/console/console.js";
+  import type { NotebookAPI } from "#py/notebook/notebook.js";
   import type { InlineCode, Node } from "mdast";
 
   import Tooltip from "../Tooltip.svelte";

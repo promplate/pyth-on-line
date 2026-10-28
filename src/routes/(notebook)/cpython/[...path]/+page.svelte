@@ -1,12 +1,12 @@
 <script lang="ts">
   import type { PageServerData } from "./$types";
 
+  import Router from "#lib/components/markdown/Router.svelte";
+  import OverrideCode from "#lib/components/notebook/Code.svelte";
+  import HeadlessNotebook from "#lib/components/notebook/HeadlessNotebook.svelte";
+  import WithMarkdown from "#lib/components/reusable/WithMarkdown.svelte";
+  import getPy from "#lib/pyodide/index.js";
   import { page } from "$app/state";
-  import Router from "$lib/components/markdown/Router.svelte";
-  import OverrideCode from "$lib/components/notebook/Code.svelte";
-  import HeadlessNotebook from "$lib/components/notebook/HeadlessNotebook.svelte";
-  import WithMarkdown from "$lib/components/reusable/WithMarkdown.svelte";
-  import getPy from "$lib/pyodide";
 
   const { data }: { data: PageServerData } = $props();
 

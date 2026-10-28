@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Item } from "$py/notebook/notebook";
+  import type { Item } from "#py/notebook/notebook.js";
 
   import { highlight } from "../highlight";
 

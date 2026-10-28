@@ -2,9 +2,9 @@
   import type { LayoutProps } from "./$types";
 
   import { setSearchState } from "./store";
+  import Progress from "#lib/components/Progress.svelte";
   import { afterNavigate, beforeNavigate, goto, preloadData } from "$app/navigation";
   import { navigating, page } from "$app/state";
-  import Progress from "$lib/components/Progress.svelte";
   import { Button } from "bits-ui";
   import { onDestroy, untrack } from "svelte";
   import { spring } from "svelte/motion";

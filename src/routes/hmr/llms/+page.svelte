@@ -4,14 +4,14 @@
   import "@fontsource-variable/jetbrains-mono/wght.css";
   import "@fontsource-variable/jetbrains-mono/wght-italic.css";
 
+  import CodeBlock from "#lib/components/CodeBlock.svelte";
+  import UseCopy from "#lib/components/console/UseCopy.svelte";
+  import Router from "#lib/components/markdown/Router.svelte";
+  import WithMarkdown from "#lib/components/reusable/WithMarkdown.svelte";
+  import WithTooltip from "#lib/components/reusable/WithTooltip.svelte";
+  import { updateMetadata } from "#lib/seo.js";
   import { afterNavigate } from "$app/navigation";
   import { page } from "$app/state";
-  import CodeBlock from "$lib/components/CodeBlock.svelte";
-  import UseCopy from "$lib/components/console/UseCopy.svelte";
-  import Router from "$lib/components/markdown/Router.svelte";
-  import WithMarkdown from "$lib/components/reusable/WithMarkdown.svelte";
-  import WithTooltip from "$lib/components/reusable/WithTooltip.svelte";
-  import { updateMetadata } from "$lib/seo";
   import { Label, Separator, Switch, Tabs } from "bits-ui";
   import { onDestroy } from "svelte";
   import { fly } from "svelte/transition";

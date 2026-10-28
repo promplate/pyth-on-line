@@ -2,9 +2,9 @@
   import type { PageData } from "./$types";
 
   import { getSearchState } from "./store";
+  import { updateMetadata } from "#lib/seo.js";
   import { afterNavigate, goto } from "$app/navigation";
   import { page } from "$app/state";
-  import { updateMetadata } from "$lib/seo";
   import { Button } from "bits-ui";
   import { tick } from "svelte";
 

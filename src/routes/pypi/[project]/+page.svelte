@@ -1,8 +1,8 @@
 <script lang="ts">
   import type { PageData } from "./$types";
 
-  import BaseMarkdown from "$lib/components/markdown/BaseMarkdown.svelte";
-  import { updateMetadata } from "$lib/seo";
+  import BaseMarkdown from "#lib/components/markdown/BaseMarkdown.svelte";
+  import { updateMetadata } from "#lib/seo.js";
 
   const { data }: { data: PageData } = $props();
 

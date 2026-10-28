@@ -1,9 +1,9 @@
 import type { PageServerLoad } from "./$types";
 
 import { redirect } from "@sveltejs/kit";
+import { getOauthUrl } from "#lib/oauth.js";
 import * as server from "$app/env/private";
 import * as env from "$app/env/public";
-import { getOauthUrl } from "$lib/oauth";
 
 // eslint-disable-next-line ts/ban-ts-comment
 // @ts-ignore

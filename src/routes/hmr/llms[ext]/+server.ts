@@ -4,7 +4,7 @@ import coreFiles from "../../../../packages/hmr";
 import testFiles from "../../../../tests/py";
 import concepts from "../concepts";
 import { redirect, text } from "@sveltejs/kit";
-import { packMarkdown, packXML } from "$lib/utils/pack";
+import { packMarkdown, packXML } from "#lib/utils/pack.js";
 
 const { "README.md": readme, ...rest } = coreFiles;
 
