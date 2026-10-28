@@ -24,8 +24,4 @@ export default antfu({
       "import/no-mutable-exports": "off",
     },
   },
-}, {
-  files: ["**/*.md"],
-  // Python code blocks need Ruff's two blank lines around top-level definitions.
-  rules: { "style/no-multiple-empty-lines": "off" },
 });
