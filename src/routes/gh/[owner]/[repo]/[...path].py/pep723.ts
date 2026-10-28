@@ -21,20 +21,21 @@ export function parsePep723(content: string) {
   if (!captured.length)
     return null;
 
-  const block = captured.join("\n");
-  const match = block.match(/dependencies\s*=\s*\[([\s\S]*?)\]/);
-  if (!match)
+  try {
+    const dependencies = parseToml(captured.join("\n")).dependencies;
+    return { dependencies: Array.isArray(dependencies) ? dependencies.filter((dep): dep is string => typeof dep === "string") : [] };
+  }
+  catch {
     return { dependencies: [] as string[] };
-
-  return { dependencies: splitArrayItems(match[1]) };
+  }
 }
 
 export function prependPep723(file: string, dependencies: string[]) {
-  const escapedDeps = dependencies.map(dep => dep.replace(/"/g, "\\\""));
   const headerLines = [
     "# /// script",
     "# dependencies = [",
-    ...escapedDeps.map(dep => `#   "${dep}",`),
+    // JSON escapes work in TOML strings, but TOML also requires DEL to be escaped and valid Unicode scalars.
+    ...dependencies.map(dep => `#   ${JSON.stringify(dep.toWellFormed()).replaceAll("\x7F", "\\u007f")},`),
     "# ]",
     "# ///",
     "",
@@ -75,52 +76,4 @@ function parsePyprojectDeps(pyproject: string) {
   catch {
     return null;
   }
-}
-
-function splitArrayItems(raw: string) {
-  const items: string[] = [];
-  let current = "";
-  let quote: "\"" | "'" | null = null;
-  let escaped = false;
-
-  for (const char of raw) {
-    if (escaped) {
-      current += char;
-      escaped = false;
-      continue;
-    }
-    if (char === "\\") {
-      current += char;
-      escaped = true;
-      continue;
-    }
-    if (quote) {
-      current += char;
-      if (char === quote)
-        quote = null;
-      continue;
-    }
-    if (char === "\"" || char === "'") {
-      quote = char;
-      current += char;
-      continue;
-    }
-    if (char === ",") {
-      items.push(current.trim());
-      current = "";
-      continue;
-    }
-    current += char;
-  }
-
-  if (current.trim())
-    items.push(current.trim());
-
-  return items
-    .map(item => item.replace(/^['"]|['"]$/g, ""))
-    .map((item) => {
-      const idx = item.indexOf("#");
-      return (idx >= 0 ? item.slice(0, idx) : item).trim();
-    })
-    .filter(Boolean);
 }

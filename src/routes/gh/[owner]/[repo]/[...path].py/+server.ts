@@ -56,6 +56,8 @@ export const GET: RequestHandler = async ({ params, request, cookies }) => {
     data = await gql(query, token);
   }
   catch (err) {
+    if (Array.isArray(err) && err.some(e => e.type === "NOT_FOUND"))
+      throw error(404, "Repository not found");
     console.error("GitHub GraphQL failed", err);
     throw error(502, "GitHub GraphQL request failed");
   }

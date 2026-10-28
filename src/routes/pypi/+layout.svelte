@@ -55,7 +55,7 @@
     clearTimeout(preloadTimer);
     const q = searchState.query;
     if (q)
-      preloadTimer = setTimeout(() => preloadData(`/pypi?q=${q}`), 250);
+      preloadTimer = setTimeout(preloadData, 250, `/pypi?q=${q}`);
   }
 
   function setQuery(value: string) {

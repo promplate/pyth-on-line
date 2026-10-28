@@ -298,6 +298,14 @@ class Derived[T](BaseDerived[T]):
                 self._value = value
                 self.notify()
 
+    def notify(self):
+        # Pulls can read subscribers before their queued callbacks run; mark them dirty immediately.
+        # HMR uses BaseDerived hybrid nodes with different scheduling semantics.
+        for sub in self.subscribers:
+            if isinstance(sub, Derived):
+                sub.dirty = True
+        super().notify()
+
     def __call__(self):
         self.track()
         self._sync_dirty_deps()

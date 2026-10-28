@@ -6,7 +6,7 @@ from typing import assert_type
 from warnings import filterwarnings
 from weakref import finalize
 
-from pytest import WarningsRecorder, raises, warns
+from pytest import WarningsRecorder, mark, raises, warns
 from reactivity import Reactive, batch, create_signal, effect, memoized, memoized_method, memoized_property
 from reactivity.context import default_context, new_context
 from reactivity.helpers import DerivedProperty, MemoizedMethod, MemoizedProperty
@@ -1061,3 +1061,32 @@ def test_dependency_ordering():
         assert stdout.delta == "2 2\n"
         o.s = 3
         assert stdout.delta == "3 3\n"
+
+
+@mark.parametrize("upstream_first", (True, False), ids=("upstream-first", "outer-first"))
+def test_dependency_ordering_with_shared_source(upstream_first):
+    ctx = new_context()
+    source = ctx.signal(0)
+    upstream = ctx.derived(source.get)
+    downstream = ctx.derived(upstream)
+    outer = ctx.derived(lambda: (source.get(), downstream())[1])
+    priority = {upstream: int(not upstream_first), outer: int(upstream_first)}
+
+    # Exercise both queue orders without depending on object addresses or set iteration order.
+    class OrderedCallbacks(set):
+        def __iter__(self):
+            return iter(sorted(super().__iter__(), key=lambda computation: priority.get(computation, 2)))
+
+        def __sub__(self, other):
+            return type(self)(super().__sub__(other))
+
+    pending = ctx.batch()
+    pending.callbacks = OrderedCallbacks()
+    seen = []
+    with ctx.effect(lambda: seen.append(outer())):
+        assert seen == [0]
+        for value in (1, 2):
+            with pending:
+                source.set(value)
+            # Reading outer() here could repair a missed notification and hide the regression.
+            assert seen == list(range(value + 1))

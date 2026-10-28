@@ -1,7 +1,7 @@
 const excludeRequestHeaders = ["host", "origin"];
 const excludeResponseHeaders = ["www-authenticate", "content-encoding", "content-length", "connection", "transfer-encoding", "keep-alive"];
 
-export function forwardRequestHeaders(headersIn: Headers) {
+function forwardRequestHeaders(headersIn: Headers) {
   const headers = new Headers();
   headersIn.forEach((value, key) => {
     if (!excludeRequestHeaders.includes(key.toLowerCase())) {
