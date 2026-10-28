@@ -39,7 +39,7 @@
         <UseCopy text={httpConfigStr}>
           {#snippet children(handleClick)}
             <button onclick={handleClick}>
-              <div class="i-si-copy-alt-fill size-4" />
+              <div class="i-si-copy-alt-fill size-4"></div>
               Copy to clipboard
             </button>
           {/snippet}
@@ -51,17 +51,17 @@
         <UseCopy text="claude mcp add --transport http hmr-docs {url}">
           {#snippet children(handleClick)}
             <button onclick={handleClick}>
-              <div class="i-logos-claude-icon size-4" />
+              <div class="i-logos-claude-icon size-4"></div>
               Add to Claude Code
             </button>
           {/snippet}
         </UseCopy>
         <a href="vscode:mcp/install?{encodeURIComponent(JSON.stringify({ name: "hmr-docs", type: "http", url }))}">
-          <div class="i-vscode-icons-file-type-vscode size-4" />
+          <div class="i-vscode-icons-file-type-vscode size-4"></div>
           Install in VS Code
         </a>
         <a href="vscode-insiders:mcp/install?{encodeURIComponent(JSON.stringify({ name: "hmr-docs", type: "http", url }))}">
-          <div class="i-vscode-icons-file-type-vscode-insiders size-4" />
+          <div class="i-vscode-icons-file-type-vscode-insiders size-4"></div>
           Install in VS Code Insiders
         </a>
       </div>
@@ -76,7 +76,7 @@
         <UseCopy text={stdioConfigStr}>
           {#snippet children(handleClick)}
             <button onclick={handleClick}>
-              <div class="i-si-copy-alt-fill size-4" />
+              <div class="i-si-copy-alt-fill size-4"></div>
               Copy to clipboard
             </button>
           {/snippet}
@@ -88,17 +88,17 @@
         <UseCopy text="claude mcp add --transport stdio hmr-docs npx mcp-remote {url}">
           {#snippet children(handleClick)}
             <button onclick={handleClick}>
-              <div class="i-logos-claude-icon size-4" />
+              <div class="i-logos-claude-icon size-4"></div>
               Add to Claude Code (stdio)
             </button>
           {/snippet}
         </UseCopy>
         <a href="vscode:mcp/install?{encodeURIComponent(JSON.stringify({ name: "hmr-docs", type: "stdio", command: "npx", args: ["mcp-remote", url] }))}">
-          <div class="i-vscode-icons-file-type-vscode size-4" />
+          <div class="i-vscode-icons-file-type-vscode size-4"></div>
           Install in VS Code (stdio)
         </a>
         <a href="vscode-insiders:mcp/install?{encodeURIComponent(JSON.stringify({ name: "hmr-docs", type: "stdio", command: "npx", args: ["mcp-remote", url] }))}">
-          <div class="i-vscode-icons-file-type-vscode-insiders size-4" />
+          <div class="i-vscode-icons-file-type-vscode-insiders size-4"></div>
           Install in VS Code Insiders (stdio)
         </a>
       </div>

@@ -10,9 +10,9 @@
   <span class="fancy-button-text">{text}</span>
   <div class="fancy-button-overlay">
     <span>{text}</span>
-    <div class="i-lucide-arrow-right size-4 -translate-y-0.1" />
+    <div class="i-lucide-arrow-right size-4 -translate-y-0.1"></div>
   </div>
-  <div class="fancy-button-particle" ontransitionend={first ? () => (first = false) : undefined} />
+  <div class="fancy-button-particle" ontransitionend={first ? () => (first = false) : undefined}></div>
 </a>
 
 <style>

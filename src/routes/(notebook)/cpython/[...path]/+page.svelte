@@ -50,7 +50,7 @@
   </div>
 {:else if loading}
   <div class="grid h-50vh w-full place-items-center rounded-md bg-white/3">
-    <div class="i-svg-spinners-90-ring-with-bg op-50" />
+    <div class="i-svg-spinners-90-ring-with-bg op-50"></div>
   </div>
 {:else}
   <HeadlessNotebook>

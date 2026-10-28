@@ -75,13 +75,13 @@
         {#if payload.repository.stargazers > 0 || payload.repository.forks > 0 || payload.repository.watchers > 1}
           <div class="mt-1 row flex-wrap gap-3 text-xs text-neutral-4">
             {#if payload.repository.stargazers > 0}
-              <a href="{repoLink}/stargazers" target="_blank" class="row items-center gap-1 hover:text-white"><div class="i-mdi-star size-3.5 text-amber-4" /> {payload.repository.stargazers}</a>
+              <a href="{repoLink}/stargazers" target="_blank" class="row items-center gap-1 hover:text-white"><div class="i-mdi-star size-3.5 text-amber-4"></div> {payload.repository.stargazers}</a>
             {/if}
             {#if payload.repository.forks > 0}
-              <a href="{repoLink}/forks" target="_blank" class="row items-center gap-1 hover:text-white"><div class="i-mdi-source-fork size-3.5" /> {payload.repository.forks}</a>
+              <a href="{repoLink}/forks" target="_blank" class="row items-center gap-1 hover:text-white"><div class="i-mdi-source-fork size-3.5"></div> {payload.repository.forks}</a>
             {/if}
             {#if payload.repository.watchers > 0}
-              <a href="{repoLink}/watchers" target="_blank" class="row items-center gap-1 hover:text-white"><div class="i-mdi-eye-outline size-3.5" /> {payload.repository.watchers}</a>
+              <a href="{repoLink}/watchers" target="_blank" class="row items-center gap-1 hover:text-white"><div class="i-mdi-eye-outline size-3.5"></div> {payload.repository.watchers}</a>
             {/if}
           </div>
         {/if}
@@ -97,7 +97,7 @@
           {#if payload.repository.primaryLanguage}
             <div class="row justify-between">
               <span>Language</span>
-              <span class="flex items-center gap-1.5"><span class="block size-2 rounded-1/2" style="background-color: {payload.repository.primaryLanguage.color}" />{payload.repository.primaryLanguage.name}</span>
+              <span class="flex items-center gap-1.5"><span class="block size-2 rounded-1/2" style="background-color: {payload.repository.primaryLanguage.color}"></span>{payload.repository.primaryLanguage.name}</span>
             </div>
           {/if}
           {#if payload.repository.licenseInfo}
@@ -108,7 +108,7 @@
           {/if}
           {#if payload.repository.isArchived}
             <div class="row items-center gap-1.5 rounded-md bg-amber-4/10 px-2 py-1 text-amber-3 ring-1 ring-amber-4/20">
-              <div class="i-mdi-archive-outline size-3" />
+              <div class="i-mdi-archive-outline size-3"></div>
               <span>Archived</span>
             </div>
           {/if}
@@ -199,7 +199,7 @@
             <div class="grid size-full place-items-center overflow-hidden rounded-1/4 bg-neutral-1/5">
               <Avatar.Image src={payload.repository.ownerAvatarUrl} alt={`@${payload.repository.ownerLogin}`} />
               <Avatar.Fallback class="text-xs text-neutral-4/60">
-                <div class="i-mdi-github size-3.5" />
+                <div class="i-mdi-github size-3.5"></div>
               </Avatar.Fallback>
             </div>
           </Avatar.Root>
@@ -234,7 +234,7 @@
       <UseCopy text={runCommand}>
         {#snippet children(handleClick)}
           <button class="max-w-full w-fit row items-center gap-2 rounded-lg bg-white/4 px-2.5 py-1.5 text-sm text-neutral-2 ring-1 ring-white/7 hover:bg-white/6" onclick={handleClick}>
-            <div class="i-si-copy-alt-line size-3.5 shrink-0" />
+            <div class="i-si-copy-alt-line size-3.5 shrink-0"></div>
             <code class="max-w-full overflow-hidden text-ellipsis ws-nowrap text-xs text-neutral-3 font-jb">{runCommand}</code>
           </button>
         {/snippet}
@@ -252,7 +252,7 @@
           <UseCopy text={payload.content}>
             {#snippet children(handleClick)}
               <button class="row items-center gap-1.5 rounded-md bg-white/7 px-2.5 py-1.5 text-xs text-neutral-3 ring-1 ring-white/10 hover:bg-white/10" onclick={handleClick}>
-                <div class="i-si-copy-alt-line size-3.5" />
+                <div class="i-si-copy-alt-line size-3.5"></div>
                 Copy
               </button>
             {/snippet}

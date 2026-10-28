@@ -75,7 +75,7 @@
           <WithTooltip tips="about llms.txt spec">
             {#snippet children({ props })}
               <a href="https://llmstxt.org/" target="_blank" class="" {...props}>
-                <div class="i-mdi-help-circle-outline mb-0.1 size-4 text-neutral-6 hover:text-neutral-3" />
+                <div class="i-mdi-help-circle-outline mb-0.1 size-4 text-neutral-6 hover:text-neutral-3"></div>
               </a>
             {/snippet}
           </WithTooltip>
@@ -89,7 +89,7 @@
         <UseCopy text={url}>
           {#snippet children(handleClick)}
             <button onclick={handleClick}>
-              <div class="i-si-copy-alt-line size-4" />
+              <div class="i-si-copy-alt-line size-4"></div>
               Copy URL
             </button>
           {/snippet}
@@ -97,7 +97,7 @@
         <UseCopy text={content}>
           {#snippet children(handleClick)}
             <button onclick={handleClick}>
-              <div class="i-si-copy-alt-fill size-4" />
+              <div class="i-si-copy-alt-fill size-4"></div>
               Copy Content
             </button>
           {/snippet}
@@ -116,11 +116,11 @@
       <Tabs.Root bind:value={viewMode}>
         <Tabs.List class="grid cols-2 w-full gap-0.7 rounded-lg bg-white/2 p-0.5 [&>*]:(row items-center justify-center gap-1 rounded-md px-2 py-1.5 text-xs text-neutral-4)">
           <Tabs.Trigger value="rendered" disabled={xml} class="data-[disabled]:(cursor-not-allowed opacity-50) hover:(bg-white/7 text-neutral-1) focus-visible:(outline-none ring-1.2 ring-neutral-2 ring-inset) !data-[state=active]:(bg-neutral-2 text-neutral-7)">
-            <div class="i-mdi-file-document size-4 -translate-y-0.21" />
+            <div class="i-mdi-file-document size-4 -translate-y-0.21"></div>
             Rendered
           </Tabs.Trigger>
           <Tabs.Trigger value="raw" class="hover:(bg-white/7 text-neutral-1) focus-visible:(outline-none ring-1.2 ring-neutral-2 ring-inset) !data-[state=active]:(bg-neutral-2 text-neutral-7)">
-            <div class="{xml ? "i-lucide-code-xml -translate-y-0.1" : "i-mdi-file-document-outline -translate-y-0.21"} size-4" />
+            <div class="{xml ? "i-lucide-code-xml -translate-y-0.1" : "i-mdi-file-document-outline -translate-y-0.21"} size-4"></div>
             {xml ? "XML" : "Markdown"}
           </Tabs.Trigger>
         </Tabs.List>
@@ -176,7 +176,7 @@
         </p>
         <div class="space-y-1">
           <a href="https://llmstxt.org/" target="_blank" class="row items-center gap-1 text-xs text-neutral-5 hover:text-neutral-2">
-            <div class="i-ic-round-subdirectory-arrow-right size-3.5" />
+            <div class="i-ic-round-subdirectory-arrow-right size-3.5"></div>
             <span>Official specification</span>
           </a>
         </div>

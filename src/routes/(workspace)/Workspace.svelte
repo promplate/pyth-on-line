@@ -34,7 +34,7 @@
       <FileList files={Object.keys(sources).toSorted()} bind:focusedFile />
     </Pane>
     <PaneResizer class="group">
-      <div class="mx-1 h-full w-0.11em bg-white/10 transition group-active:bg-current group-hover:bg-white/30" />
+      <div class="mx-1 h-full w-0.11em bg-white/10 transition group-active:bg-current group-hover:bg-white/30"></div>
     </PaneResizer>
     <Pane defaultSize={80} minSize={10}>
       <PaneGroup direction="vertical">
@@ -54,7 +54,7 @@
               {/if}
             </Pane>
             <PaneResizer class="group">
-              <div class="my-1 h-0.11em w-full bg-white/10 transition group-active:bg-current group-hover:bg-white/30" />
+              <div class="my-1 h-0.11em w-full bg-white/10 transition group-active:bg-current group-hover:bg-white/30"></div>
             </PaneResizer>
             <Pane defaultSize={30} minSize={10}>
               <div class="h-full w-full overflow-y-scroll" bind:this={container}>

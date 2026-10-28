@@ -92,12 +92,12 @@
   }
 </script>
 
-<div {@attach attachEditor} class={["h-full w-full overflow-hidden transition-opacity duration-400", { "op-0": !editor && showInitialLoading }]} />
+<div {@attach attachEditor} class={["h-full w-full overflow-hidden transition-opacity duration-400", { "op-0": !editor && showInitialLoading }]}></div>
 
 {#if !editor && showInitialLoading}
   <div class="absolute inset-0 grid place-items-center @container" out:fade>
     <div class="flex flex-row items-center gap-2 op-80">
-      <div class="i-svg-spinners-90-ring-with-bg" />
+      <div class="i-svg-spinners-90-ring-with-bg"></div>
       <div class="hidden text-sm tracking-wide @lg:block">initiating monaco editor</div>
     </div>
   </div>
