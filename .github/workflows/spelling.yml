@@ -1,6 +1,6 @@
 name: spell check
 
-on: [push, pull_request, workflow_dispatch]
+on: [push, workflow_dispatch]
 
 permissions:
   contents: read
