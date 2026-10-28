@@ -37,7 +37,7 @@ def patch_linecache():
     import linecache
 
     source = getsource(linecache).replace(" or (filename.startswith('<') and filename.endswith('>'))", "", 1)
-    exec(source, linecache.__dict__)  # noqa: S102 - Rebuild the standard-library module with the source patch above.
+    exec(source, linecache.__dict__)  # noqa: S102
 
 
 @cache

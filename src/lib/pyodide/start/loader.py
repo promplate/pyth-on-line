@@ -30,4 +30,4 @@ def setup_module(sources: dict[str, str], module_name="", base_path=root):
                 del modules[mod]  # reload module at dev time
 
 
-setup_module  # noqa: B018 - Pyodide returns the final expression to the JavaScript caller.
+setup_module  # noqa: B018

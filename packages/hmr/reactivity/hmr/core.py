@@ -103,7 +103,7 @@ class ReactiveModule(ModuleType):
                     dispose()
             self.__hooks.clear()
             self.__doc__ = get_docstring(ast)
-            exec(code, self.__namespace, self.__namespace_proxy)  # noqa: S102 - HMR re-executes module source. https://github.com/python/cpython/issues/121306
+            exec(code, self.__namespace, self.__namespace_proxy)  # noqa: S102  # https://github.com/python/cpython/issues/121306
             self.__namespace_proxy.update(self.__namespace)
         finally:
             load = self.__load

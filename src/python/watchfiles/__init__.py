@@ -88,7 +88,7 @@ class DefaultFilter(BaseFilter):
 
 async def awatch(
     *paths: Path | str,
-    watch_filter: Callable[[Change, str], bool] | None = DefaultFilter(),  # noqa: B008 - Share the stateless filter, matching watchfiles.
+    watch_filter: Callable[[Change, str], bool] | None = DefaultFilter(),  # noqa: B008
     debounce: int = 1_600,  # noqa: ARG001
     step: int = 50,  # noqa: ARG001
     stop_event: Event | None = None,
