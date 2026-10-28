@@ -103,7 +103,7 @@ class ReactiveModule(ModuleType):
                     dispose()
             self.__hooks.clear()
             self.__doc__ = get_docstring(ast)
-            exec(code, self.__namespace, self.__namespace_proxy)  # https://github.com/python/cpython/issues/121306
+            exec(code, self.__namespace, self.__namespace_proxy)  # noqa: S102 - HMR re-executes module source. https://github.com/python/cpython/issues/121306
             self.__namespace_proxy.update(self.__namespace)
         finally:
             load = self.__load
@@ -267,9 +267,10 @@ class ErrorFilter:
     def __enter__(self):
         return self
 
-    def __exit__(self, exc_type: type[BaseException], exc_value: BaseException, traceback: TracebackType):
+    def __exit__(self, exc_type: type[BaseException] | None, exc_value: BaseException | None, traceback: TracebackType | None):
         if exc_value is None:
             return
+        assert exc_type is not None and traceback is not None
         tb = self(traceback)
         exc_value = exc_value.with_traceback(tb)
         sys.excepthook(exc_type, exc_value, tb)

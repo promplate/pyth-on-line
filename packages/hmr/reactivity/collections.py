@@ -1,5 +1,6 @@
 from collections import defaultdict
-from collections.abc import Callable, Iterable, Mapping, MutableMapping, MutableSequence, MutableSet, Sequence, Set
+from collections.abc import Callable, Iterable, Mapping, MutableMapping, MutableSequence, MutableSet, Sequence
+from collections.abc import Set as AbstractSet
 from functools import update_wrapper
 from typing import Any, overload
 
@@ -113,7 +114,7 @@ class ReactiveSetProxy[T](MutableSet[T]):
 
 
 class ReactiveSet[T](ReactiveSetProxy[T]):
-    def __init__(self, initial: Set[T] | None = None, check_equality=True, *, context: Context | None = None):
+    def __init__(self, initial: AbstractSet[T] | None = None, check_equality=True, *, context: Context | None = None):
         super().__init__({*initial} if initial is not None else set(), check_equality, context=context)
 
 
@@ -274,10 +275,8 @@ class ReactiveSequenceProxy[T](MutableSequence[T]):
     def insert(self, index, value):
         if index < 0:
             index += self._length
-        if index < 0:
-            index = 0
-        if index > self._length:
-            index = self._length
+        index = max(index, 0)
+        index = min(index, self._length)
         self._replace(slice(index, index), [value])
 
     def append(self, value):
@@ -419,7 +418,7 @@ def reactive[K, V](value: Mapping[K, V], check_equality=True, *, context: Contex
 @overload
 def reactive[T](value: MutableSet[T], check_equality=True, *, context: Context | None = None) -> ReactiveSetProxy[T]: ...  # type: ignore
 @overload
-def reactive[T](value: Set[T], check_equality=True, *, context: Context | None = None) -> ReactiveSet[T]: ...
+def reactive[T](value: AbstractSet[T], check_equality=True, *, context: Context | None = None) -> ReactiveSet[T]: ...
 @overload
 def reactive[T](value: MutableSequence[T], check_equality=True, *, context: Context | None = None) -> ReactiveSequenceProxy[T]: ...  # type: ignore
 @overload
@@ -428,7 +427,7 @@ def reactive[T](value: Sequence[T], check_equality=True, *, context: Context | N
 def reactive[T](value: T, check_equality=True, *, context: Context | None = None) -> T: ...
 
 
-def reactive(value: Mapping | Set | Sequence | Any, check_equality=True, *, context: Context | None = None):
+def reactive(value: Mapping | AbstractSet | Sequence | Any, check_equality=True, *, context: Context | None = None):
     match value:
         case MutableMapping():
             return ReactiveMappingProxy(value, check_equality, context=context)
@@ -436,7 +435,7 @@ def reactive(value: Mapping | Set | Sequence | Any, check_equality=True, *, cont
             return ReactiveMapping(value, check_equality, context=context)
         case MutableSet():
             return ReactiveSetProxy(value, check_equality, context=context)
-        case Set():
+        case AbstractSet():
             return ReactiveSet(value, check_equality, context=context)
         case MutableSequence():
             return ReactiveSequenceProxy(value, check_equality, context=context)

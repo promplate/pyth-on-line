@@ -39,7 +39,7 @@ def default_task_factory[T](async_function: AsyncFunction[T]) -> Awaitable[T]:
                 nonlocal res, exc
                 try:
                     res = await async_function()
-                except BaseException as e:
+                except BaseException as e:  # noqa: BLE001 - Transfer failures, including cancellation, to the awaiting caller.
                     exc = e
                 finally:
                     evt.set()

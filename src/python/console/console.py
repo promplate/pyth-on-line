@@ -181,7 +181,7 @@ class ConsoleAPI:
                     try:
                         if text := await res.get_repr():
                             self.push_item({"type": "repr", "text": text}, behind=last)
-                    except Exception as e:
+                    except Exception as e:  # noqa: BLE001 - User code can raise any exception; display its traceback.
                         stderr = res.formatted_error or self.console.formattraceback(e)
                         self.push_item({"type": "err", "text": stderr, "is_traceback": True}, behind=last)
 

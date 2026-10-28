@@ -25,7 +25,7 @@ async def run_trio_in_asyncio[T](trio_main: Callable[[], Coroutine[Any, Any, T]]
         try:
             result = trio_outcome.unwrap()
             future.set_result(result)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 - Forward the Trio outcome to the asyncio future.
             future.set_exception(e)
 
     start_guest_run(
@@ -52,7 +52,7 @@ def create_trio_task_factory(nursery: "Nursery"):
             nonlocal res, exc
             try:
                 res = await async_fn()
-            except BaseException as e:
+            except BaseException as e:  # noqa: BLE001 - Transfer failures, including cancellation, to the awaiting caller.
                 exc = e
             finally:
                 evt.set()

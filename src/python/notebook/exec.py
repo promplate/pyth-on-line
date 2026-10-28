@@ -26,7 +26,7 @@ async def exec_source(filename: str, source: str, context: ReactiveNamespace, ma
                 manager.items.append({"type": "repr", "text": repr(value)})
                 return value
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 - Render arbitrary user-code failures in the notebook.
             manager.stderr.write(get_clean_traceback(e, filename))
 
         finally:
@@ -46,7 +46,7 @@ async def console_exec_source(filename: str, source: str, context, manager: Stre
                         manager.sync()
                     yield value
 
-                except Exception:
+                except Exception:  # noqa: BLE001 - The console future already holds the formatted user-code failure.
                     future.exception()  # to prevent an annoying warning
                     assert future.formatted_error, future
                     manager.stderr.write(future.formatted_error)
