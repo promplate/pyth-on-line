@@ -47,7 +47,8 @@ def cache_across_reloads[T](func: Callable[[], T]) -> Callable[[], T]:
     if _cache_decorator_phase:  # this function will be called twice: once transforming ast and once re-executing the patched source
         on_dispose(lambda: functions.pop(key), file)
         try:
-            exec(compile(fix_class_name_resolution(parse(source), func.__code__.co_firstlineno - 1, col_offset, skip_annotations), file, "exec", flags, dont_inherit=True), DictProxy(proxy))  # noqa: S102 - Re-execute the transformed function in its reactive namespace.
+            # ruff: ignore[S102] - Re-execute transformed source in its reactive namespace.
+            exec(compile(fix_class_name_resolution(parse(source), func.__code__.co_firstlineno - 1, col_offset, skip_annotations), file, "exec", flags, dont_inherit=True), DictProxy(proxy))
         except _Return as e:
             # If this function is used as a decorator, it will raise an `_Return` exception in the second phase.
             return e.value
