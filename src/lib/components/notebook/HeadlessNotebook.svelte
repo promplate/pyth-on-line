@@ -1,8 +1,8 @@
 <script lang="ts">
-  import type { NotebookAPI } from "$py/notebook/notebook";
+  import type { NotebookAPI } from "#py/notebook/notebook.js";
   import type { Snippet } from "svelte";
 
-  import getPy from "$lib/pyodide";
+  import getPy from "#lib/pyodide/index.js";
   import { onMount } from "svelte";
 
   const { children }: { children: Snippet<[NotebookAPI | undefined]> } = $props();

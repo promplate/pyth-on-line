@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { Snippet } from "svelte";
 
-  import { toastMarkdown } from "$lib/utils/toast";
+  import { toastMarkdown } from "#lib/utils/toast.js";
 
   const { text, children }: { text: string; children: Snippet<[() => Promise<void>]> } = $props();
 

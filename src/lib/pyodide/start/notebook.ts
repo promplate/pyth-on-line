@@ -1,7 +1,7 @@
 import reactivity from "../../../../packages/hmr/reactivity";
 import notebook from "../../../python/notebook";
 import { getPyodide, setupModule } from "./init";
-import { cacheSingleton } from "$lib/utils/cache";
+import { cacheSingleton } from "#lib/utils/cache.js";
 
 export const loadNotebook = cacheSingleton(async () => {
   const py = await getPyodide();

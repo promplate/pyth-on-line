@@ -1,12 +1,12 @@
 <script lang="ts">
   import mcpDocs from "./MCP.md?raw";
   import cursor from "@lobehub/icons-static-svg/icons/cursor.svg?raw";
+  import CodeBlock from "#lib/components/CodeBlock.svelte";
+  import UseCopy from "#lib/components/console/UseCopy.svelte";
+  import Router from "#lib/components/markdown/Router.svelte";
+  import WithMarkdown from "#lib/components/reusable/WithMarkdown.svelte";
+  import { updateMetadata } from "#lib/seo.js";
   import { page } from "$app/state";
-  import CodeBlock from "$lib/components/CodeBlock.svelte";
-  import UseCopy from "$lib/components/console/UseCopy.svelte";
-  import Router from "$lib/components/markdown/Router.svelte";
-  import WithMarkdown from "$lib/components/reusable/WithMarkdown.svelte";
-  import { updateMetadata } from "$lib/seo";
   import { Separator } from "bits-ui";
 
   const origin = $derived(page.url.origin === "http://sveltekit-prerender" ? __PRERENDER_ORIGIN__ : page.url.origin);

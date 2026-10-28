@@ -1,10 +1,10 @@
 <script lang="ts">
   import FileContent from "./FileContent.svelte";
   import FileList from "./FileList.svelte";
-  import { registerCommandGroup } from "$lib/components/command/helper";
-  import Console from "$lib/components/Console.svelte";
-  import SetupWorkspace from "$lib/components/reusable/WorkspaceLifecycle.svelte";
-  import { toastMarkdown } from "$lib/utils/toast";
+  import { registerCommandGroup } from "#lib/components/command/helper.js";
+  import Console from "#lib/components/Console.svelte";
+  import SetupWorkspace from "#lib/components/reusable/WorkspaceLifecycle.svelte";
+  import { toastMarkdown } from "#lib/utils/toast.js";
   import { Pane, PaneGroup, PaneResizer } from "paneforge";
   import { untrack } from "svelte";
 

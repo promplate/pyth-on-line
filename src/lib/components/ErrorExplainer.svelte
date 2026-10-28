@@ -1,10 +1,10 @@
 <script lang="ts">
-  import type { ConsoleAPI } from "$py/console/console";
+  import type { ConsoleAPI } from "#py/console/console.js";
 
   import Markdown from "./chat/Markdown.svelte";
   import WithTooltip from "./reusable/WithTooltip.svelte";
   import { draggable } from "@neodrag/svelte";
-  import { explain } from "$lib/pyodide/api/explain";
+  import { explain } from "#lib/pyodide/api/explain.js";
   import { mergeProps } from "bits-ui";
   import { getAbortSignal } from "svelte";
   import { fromAction } from "svelte/attachments";

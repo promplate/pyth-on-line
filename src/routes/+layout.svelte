@@ -6,10 +6,10 @@
   import "@fontsource-variable/fira-code";
   import "@fontsource-variable/inter";
 
+  import CmdK from "#lib/components/command/CmdK.svelte";
+  import Head from "#lib/components/Head.svelte";
+  import { initMetadata, resetMetadata } from "#lib/seo.js";
   import { onNavigate } from "$app/navigation";
-  import CmdK from "$lib/components/command/CmdK.svelte";
-  import Head from "$lib/components/Head.svelte";
-  import { initMetadata, resetMetadata } from "$lib/seo";
   import { Toaster } from "svelte-sonner";
 
   const { children }: LayoutProps = $props();

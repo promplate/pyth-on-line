@@ -1,8 +1,8 @@
 <script lang="ts">
   import type { PageProps } from "./$types";
 
+  import { accessToken, login } from "#lib/oauth.js";
   import { goto } from "$app/navigation";
-  import { accessToken, login } from "$lib/oauth";
   import { untrack } from "svelte";
 
   const { data }: PageProps = $props();

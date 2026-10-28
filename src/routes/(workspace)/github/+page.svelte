@@ -1,8 +1,8 @@
 <script lang="ts">
+  import Intro from "#lib/components/Intro.svelte";
+  import { canLogin, login } from "#lib/oauth.js";
+  import { updateMetadata } from "#lib/seo.js";
   import { beforeNavigate } from "$app/navigation";
-  import Intro from "$lib/components/Intro.svelte";
-  import { canLogin, login } from "$lib/oauth";
-  import { updateMetadata } from "$lib/seo";
   import { toast } from "svelte-sonner";
   import { fly } from "svelte/transition";
 

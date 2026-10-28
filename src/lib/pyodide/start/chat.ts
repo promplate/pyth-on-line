@@ -1,6 +1,6 @@
 import chat from "../../../python/chat";
 import { getPyodide, setupModule } from "./init";
-import { cacheSingleton } from "$lib/utils/cache";
+import { cacheSingleton } from "#lib/utils/cache.js";
 import { OpenAI } from "openai";
 import * as version from "openai/version";
 

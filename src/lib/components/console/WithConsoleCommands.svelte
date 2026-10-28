@@ -1,10 +1,10 @@
 <script lang="ts">
   import type { Cmd } from "../command/Item.svelte";
-  import type { ConsoleAPI } from "$py/console/console";
+  import type { ConsoleAPI } from "#py/console/console.js";
 
   import { registerCommandGroup } from "../command/helper";
   import { commandMenu } from "../command/state.svelte";
-  import getPy from "$lib/pyodide";
+  import getPy from "#lib/pyodide/index.js";
   import { onMount, tick } from "svelte";
 
   const { pyConsole }: { pyConsole?: ConsoleAPI } = $props();

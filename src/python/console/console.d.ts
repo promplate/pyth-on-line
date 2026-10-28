@@ -1,4 +1,4 @@
-import type { Item } from "$lib/components/console/HeadlessConsole.svelte";
+import type { Item } from "#lib/components/console/HeadlessConsole.svelte";
 import type { PyAwaitable, PyProxy } from "pyodide/ffi";
 
 export class Result<T> {

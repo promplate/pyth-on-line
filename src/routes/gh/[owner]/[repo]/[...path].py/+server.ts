@@ -4,8 +4,8 @@ import type { DependencySource, Payload } from "./types";
 import { findDependencies, parsePep723, prependPep723 } from "./pep723";
 import { buildQuery, collectDirectories } from "./query";
 import { error, json, text } from "@sveltejs/kit";
+import { gql } from "#lib/github/client.js";
 import * as env from "$app/env/private";
-import { gql } from "$lib/github/client";
 
 type History = { target: { history?: { nodes: Array<{ committedDate: string }> } } | null } | null;
 

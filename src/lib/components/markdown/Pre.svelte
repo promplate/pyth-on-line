@@ -2,7 +2,7 @@
   import type { Node } from "mdast";
 
   import WithCodeActions from "../reusable/WithCodeActions.svelte";
-  import CodeBlock from "$lib/components/CodeBlock.svelte";
+  import CodeBlock from "#lib/components/CodeBlock.svelte";
 
   const { node }: { node: Node } = $props();
 </script>

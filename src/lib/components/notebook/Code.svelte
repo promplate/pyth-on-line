@@ -1,10 +1,10 @@
 <script lang="ts">
-  import type { Item, NotebookAPI } from "$py/notebook/notebook";
+  import type { Item, NotebookAPI } from "#py/notebook/notebook.js";
   import type { Code, Node } from "mdast";
 
   import WithCodeActions from "../reusable/WithCodeActions.svelte";
-  import CodeBlock from "$lib/components/CodeBlock.svelte";
-  import { patchSource } from "$lib/utils/formatSource";
+  import CodeBlock from "#lib/components/CodeBlock.svelte";
+  import { patchSource } from "#lib/utils/formatSource.js";
 
   const { node, pyNotebook, heuristics = false }: { node: Node; pyNotebook?: NotebookAPI; heuristics?: boolean } = $props();
 

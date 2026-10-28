@@ -3,7 +3,7 @@
 
   import Header from "./header/Header.svelte";
   import { parseDep } from "./pep508";
-  import { highlight } from "$lib/highlight";
+  import { highlight } from "#lib/highlight.js";
 
   const { code }: { code: string } = $props();
 

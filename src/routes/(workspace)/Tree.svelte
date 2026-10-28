@@ -3,7 +3,7 @@
 </script>
 
 <script lang="ts">
-  import type { File, Folder, Tree } from "$lib/utils/list2tree";
+  import type { File, Folder, Tree } from "#lib/utils/list2tree.js";
 
   import FileTree from "./Tree.svelte";
   import { untrack } from "svelte";

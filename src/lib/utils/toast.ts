@@ -1,4 +1,4 @@
-import BaseMarkdown from "$lib/components/markdown/BaseMarkdown.svelte";
+import BaseMarkdown from "#lib/components/markdown/BaseMarkdown.svelte";
 import { tick } from "svelte";
 import { toast } from "svelte-sonner";
 

@@ -16,8 +16,6 @@ export default defineConfig({
   plugins: [Unocss(), sveltekitOG(), sveltekit({
     preprocess: vitePreprocess(),
     adapter: process.env.VERCEL ? vercel({ runtime: "nodejs24.x" }) : adapter(),
-    // Keep existing imports while upgrading the framework independently of application syntax.
-    alias: { "$lib": "./src/lib", "$py/*": "src/python/*" },
   }), dir2json({ include: ["**/*.py", "**/*.j2", "**/pyproject.toml", "**/README.md"] })],
   assetsInclude: ["src/python/**/*"],
   server: { allowedHosts: true },

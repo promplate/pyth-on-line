@@ -1,8 +1,8 @@
 <script lang="ts">
-  import type { WorkspaceAPI } from "$py/workspace/workspace";
+  import type { WorkspaceAPI } from "#py/workspace/workspace.js";
   import type { Snippet } from "svelte";
 
-  import getPy from "$lib/pyodide";
+  import getPy from "#lib/pyodide/index.js";
   import { onMount } from "svelte";
 
   const { sources, children }: { sources: Record<string, string>; children: Snippet<[WorkspaceAPI | undefined, boolean]> } = $props();

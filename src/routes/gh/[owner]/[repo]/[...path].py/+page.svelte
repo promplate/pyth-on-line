@@ -7,12 +7,12 @@
 
   import Dependency from "./Dependency.svelte";
   import ScriptBlock from "./ScriptBlock.svelte";
+  import UseCopy from "#lib/components/console/UseCopy.svelte";
+  import Router from "#lib/components/markdown/Router.svelte";
+  import WithMarkdown from "#lib/components/reusable/WithMarkdown.svelte";
+  import { fromNow } from "#lib/date.js";
+  import { updateMetadata } from "#lib/seo.js";
   import { page } from "$app/state";
-  import UseCopy from "$lib/components/console/UseCopy.svelte";
-  import Router from "$lib/components/markdown/Router.svelte";
-  import WithMarkdown from "$lib/components/reusable/WithMarkdown.svelte";
-  import { fromNow } from "$lib/date";
-  import { updateMetadata } from "$lib/seo";
   import { Avatar } from "bits-ui";
   import { fly } from "svelte/transition";
 

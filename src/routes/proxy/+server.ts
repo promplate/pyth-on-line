@@ -1,7 +1,7 @@
 import type { RequestHandler } from "./$types";
 
 import { error } from "@sveltejs/kit";
-import { forwardFetch } from "$lib/utils/headers";
+import { forwardFetch } from "#lib/utils/headers.js";
 
 function getUrl(url: string | null) {
   if (!url) {

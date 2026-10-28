@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { ConsoleAPI } from "$py/console/console";
+  import type { ConsoleAPI } from "#py/console/console.js";
 
   import Router from "../markdown/Router.svelte";
   import WithMarkdown from "../reusable/WithMarkdown.svelte";

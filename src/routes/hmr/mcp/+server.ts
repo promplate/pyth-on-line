@@ -6,7 +6,7 @@ import testFiles from "../../../../tests/py";
 import concepts from "../concepts";
 import { redirect } from "@sveltejs/kit";
 import { HttpTransport } from "@tmcp/transport-http";
-import { packXML } from "$lib/utils/pack";
+import { packXML } from "#lib/utils/pack.js";
 import { McpServer } from "tmcp";
 
 const docs = `\

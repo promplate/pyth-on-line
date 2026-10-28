@@ -1,7 +1,7 @@
 import type { RequestHandler } from "./$types";
 
 import { error, json } from "@sveltejs/kit";
-import { gql } from "$lib/github/client";
+import { gql } from "#lib/github/client.js";
 
 export interface GistMetadata {
   name: string;

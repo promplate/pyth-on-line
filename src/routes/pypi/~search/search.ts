@@ -1,6 +1,6 @@
 import type { RequestEvent } from "./$types";
 
-import { search as searchPypi } from "$lib/libraries.io/client";
+import { search as searchPypi } from "#lib/libraries.io/client.js";
 
 export async function search({ url: { searchParams } }: RequestEvent) {
   const query = searchParams.get("q");

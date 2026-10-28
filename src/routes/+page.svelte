@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { commandMenu } from "$lib/components/command/state.svelte";
-  import FeatureCard from "$lib/components/FeatureCard.svelte";
-  import Hero from "$lib/components/Hero.svelte";
+  import { commandMenu } from "#lib/components/command/state.svelte.js";
+  import FeatureCard from "#lib/components/FeatureCard.svelte";
+  import Hero from "#lib/components/Hero.svelte";
 </script>
 
 <div class="grid min-h-screen place-items-center">

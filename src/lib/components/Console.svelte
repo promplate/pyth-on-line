@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { AutoComplete, Item, Status } from "./console/HeadlessConsole.svelte";
-  import type { ConsoleAPI } from "$py/console/console";
+  import type { ConsoleAPI } from "#py/console/console.js";
   import type { Snippet } from "svelte";
   import type { ClipboardEventHandler, KeyboardEventHandler } from "svelte/elements";
 
@@ -8,8 +8,8 @@
   import HeadlessConsole from "./console/HeadlessConsole.svelte";
   import ConsolePrompt from "./ConsolePrompt.svelte";
   import Modal from "./Modal.svelte";
-  import { pyodideState } from "$lib/pyodide/state.svelte";
-  import { patchSource, reformatInputSource } from "$lib/utils/formatSource";
+  import { pyodideState } from "#lib/pyodide/state.svelte.js";
+  import { patchSource, reformatInputSource } from "#lib/utils/formatSource.js";
   import { onMount, untrack } from "svelte";
 
   const { container, class: klass = "p-3", children }: { container?: HTMLElement; class?: string; children?: Snippet<[{ ready: boolean }]> } = $props();

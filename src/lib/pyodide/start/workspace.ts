@@ -1,6 +1,6 @@
 import workspace from "../../../python/workspace";
 import { getPyodide, setupModule } from "./init";
-import { cacheSingleton } from "$lib/utils/cache";
+import { cacheSingleton } from "#lib/utils/cache.js";
 
 export const loadWorkspace = cacheSingleton(async () => {
   const py = await getPyodide();

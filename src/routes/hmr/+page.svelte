@@ -1,8 +1,8 @@
 <script lang="ts">
   import FancyButton from "./FancyButton.svelte";
   import SparklesText from "./SparklesText.svelte";
+  import { updateMetadata } from "#lib/seo.js";
   import { navigating } from "$app/state";
-  import { updateMetadata } from "$lib/seo";
   import { onMount, untrack } from "svelte";
 
   updateMetadata({

@@ -7,7 +7,7 @@
 
   import { commandMenu } from "./command/state.svelte";
   import { shikiToMonaco } from "@shikijs/monaco";
-  import { getHighlighter } from "$lib/highlight";
+  import { getHighlighter } from "#lib/highlight.js";
   import { getAbortSignal, untrack } from "svelte";
   import { fade } from "svelte/transition";
 

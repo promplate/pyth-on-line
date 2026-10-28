@@ -11,12 +11,12 @@
 </script>
 
 <script lang="ts">
-  import type { ConsoleAPI } from "$py/console/console";
+  import type { ConsoleAPI } from "#py/console/console.js";
   import type { Snippet } from "svelte";
 
   import WithConsoleCommands from "./WithConsoleCommands.svelte";
-  import getPy from "$lib/pyodide";
-  import { needScroll, scrollToBottom } from "$lib/utils/scroll";
+  import getPy from "#lib/pyodide/index.js";
+  import { needScroll, scrollToBottom } from "#lib/utils/scroll.js";
   import { onMount, tick } from "svelte";
 
   let { ready = $bindable(false), status = $bindable<Status>("complete"), log = $bindable<Item[]>([]), pyConsole = $bindable<ConsoleAPI>(), complete = $bindable<AutoComplete>(), container, children }: {
