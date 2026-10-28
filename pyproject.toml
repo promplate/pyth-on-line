@@ -13,7 +13,7 @@ dependencies = [
     "prek~=0.5.7",
     "pure-eval~=0.2.3",
     "html2text2~=1.1.1",
-    "pytest~=9.0.0",
+    "pytest~=9.1.1",
     "pytest-asyncio~=1.3.0",
     "hmr",
     "numpy~=2.5",
