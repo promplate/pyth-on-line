@@ -54,7 +54,7 @@
   <div in:scale|global={{ start: 0.9, easing: cubicOut }} out:scale|global={{ start: 0.95, easing: cubicIn }} {@attach fromAction(draggable, () => ({ applyUserSelectHack: false, cancel: ref, bounds: { left: 20, top: 20, right: 20, bottom: 20 } }))} class={["max-h-[calc(100vh-40px)] flex flex-col cursor-grab gap-3 rounded bg-neutral-8/60 p-3 ring-0.9 ring-white/20 backdrop-blur-md xl:max-w-3xl sm:gap-4 lg:p-4 sm:p-3.5 lg:ring-1.3 sm:ring-1.1", { "!pb-0": output }]}>
     <div class="flex flex-row select-none items-center justify-between">
       <div class="flex flex-row items-center gap-1.5 rounded bg-emerald-3/10 px-1.5 py-1 text-emerald-3/80">
-        <div class="i-majesticons-lightbulb-shine text-base text-emerald-3" />
+        <div class="i-majesticons-lightbulb-shine text-base text-emerald-3"></div>
         <div class="text-xs capitalize sm:text-sm">
           error explainer
         </div>
@@ -63,14 +63,14 @@
         <WithTooltip tips="Regenerate">
           {#snippet children({ props })}
             <button class="hover:(bg-cyan-3/10 text-cyan-3/80)" {...mergeProps(props, { onclick: invoke })}>
-              <div class="i-mingcute-refresh-2-fill" />
+              <div class="i-mingcute-refresh-2-fill"></div>
             </button>
           {/snippet}
         </WithTooltip>
         <WithTooltip tips="Close">
           {#snippet children({ props })}
             <button class="hover:(bg-red-3/10 text-red-3/80)" {...mergeProps(props, { onclick: close })}>
-              <div class="i-mingcute-close-fill" />
+              <div class="i-mingcute-close-fill"></div>
             </button>
           {/snippet}
         </WithTooltip>

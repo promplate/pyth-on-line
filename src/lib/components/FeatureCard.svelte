@@ -10,7 +10,7 @@
     {#snippet children({ props })}
       <div class="flex flex-col px-2.5 py-2" {...props} tabindex="-1">
         <div class="flex flex-row items-center gap-1.5">
-          <div class="{icon} text-base" />
+          <div class="{icon} text-base"></div>
           <h3 class="text-sm">{title}</h3>
         </div>
       </div>

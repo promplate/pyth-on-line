@@ -66,7 +66,7 @@
 <section data-container>
   {#if parent !== ""}
     <button style:--depth="{depth - 1 + 0.8}em" onclick={() => collapse = !collapse}>
-      <div class={collapse ? "i-catppuccin-folder" : "i-catppuccin-folder-open"} />
+      <div class={collapse ? "i-catppuccin-folder" : "i-catppuccin-folder-open"}></div>
       <div>{parent.split("/").at(-1)}</div>
     </button>
   {/if}
@@ -78,7 +78,7 @@
       {#each tree as item (getPath(item))}
         {#if item.type === "file"}
           <button style:--depth="{depth + 0.8}em" class={{ "!bg-neutral-8": focusedFile === getPath(item) }} onclick={() => (focusedFile = getPath(item))}>
-            <div class={getFileIcon(item)} />
+            <div class={getFileIcon(item)}></div>
             <div>{item.name}</div>
           </button>
         {:else}

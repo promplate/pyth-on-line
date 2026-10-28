@@ -29,7 +29,7 @@
         {#snippet children(handleClick)}
           <WithTooltip tips="Copy">
             {#snippet children({ props })}
-              <button {...mergeProps(props, { onclick: handleClick })}><div class="i-icon-park-twotone-copy" /></button>
+              <button {...mergeProps(props, { onclick: handleClick })}><div class="i-icon-park-twotone-copy"></div></button>
             {/snippet}
           </WithTooltip>
         {/snippet}
@@ -37,7 +37,7 @@
       {#if canRun && run}
         <WithTooltip tips="Run">
           {#snippet children({ props })}
-            <button {...mergeProps(props, { onclick: () => run(code.value) })}><div class="i-mingcute-play-fill" /></button>
+            <button {...mergeProps(props, { onclick: () => run(code.value) })}><div class="i-mingcute-play-fill"></div></button>
           {/snippet}
         </WithTooltip>
       {/if}

@@ -16,7 +16,7 @@
 
       <Modal show={!pyodideState.ready || !ready}>
         <div in:scale|global={{ easing: cubicOut, start: 0.8 }} out:scale|global={{ easing: cubicIn, start: 0.9 }} class="rounded-lg bg-white/3 p-4 text-white/70">
-          <div class="i-svg-spinners-90-ring-with-bg text-xl" />
+          <div class="i-svg-spinners-90-ring-with-bg text-xl"></div>
         </div>
       </Modal>
 

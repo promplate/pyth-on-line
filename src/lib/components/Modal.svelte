@@ -21,9 +21,9 @@
   {@render backdrop(close)}
 {:else}
   {#if closeOnClickOutside}
-    <div role="presentation" class={["fixed inset-0 transition duration-1000", { show, "pointer-events-none": !show }]} onclick={close} />
+    <div role="presentation" class={["fixed inset-0 transition duration-1000", { show, "pointer-events-none": !show }]} onclick={close}></div>
   {:else}
-    <div class={["pointer-events-none fixed inset-0 transition duration-1000", { show }]} />
+    <div class={["pointer-events-none fixed inset-0 transition duration-1000", { show }]}></div>
   {/if}
 {/if}
 
