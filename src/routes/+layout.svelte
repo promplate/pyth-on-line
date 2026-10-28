@@ -18,7 +18,7 @@
   onNavigate(() => resetMetadata(metadata));
 </script>
 
-<Toaster theme="dark" toastOptions={{ class: "text-xs font-mono" }} />
+<Toaster theme="dark" offset={32} mobileOffset={{ top: 20, bottom: 20, left: 16, right: 16 }} toastOptions={{ class: "!b-0 !text-xs font-mono" }} />
 
 {@render children()}
 
