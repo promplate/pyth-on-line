@@ -5,13 +5,15 @@ import watchfiles from "../../../python/watchfiles";
 import { indexURL, preloadPackages } from "../common";
 import { setupWatcher } from "./fs";
 import loader from "./loader.py?raw";
-import { dev } from "$app/env";
+import { browser, dev } from "$app/env";
 import { cacheSingleton } from "$lib/utils/cache";
 import { getEnv } from "$lib/utils/env";
 import { withToast } from "$lib/utils/toast";
 import { toast } from "svelte-sonner";
 
 const getMinimalPyodide = cacheSingleton(withToast({ loading: "loading pyodide runtime" })(async () => {
+  if (!browser)
+    throw new Error("Pyodide is only available in the browser");
   const { loadPyodide } = await import("pyodide");
   const py = await loadPyodide({ indexURL, env: getEnv(), packages: preloadPackages, args: dev ? [] : ["-O"] });
   py.globals.set("toast", toast);
