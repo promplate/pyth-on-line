@@ -32,7 +32,7 @@
     "@tmcp/transport-http": "^0.8.6",
     "@unocss/extractor-svelte": "~66.11.0",
     "@unocss/reset": "~66.11.0",
-    "bits-ui": "^0.22.0",
+    "bits-ui": "^2.20.2",
     "cheerio": "^1.2.0",
     "clsx": "^2.1.1",
     "cmdk-sv": "^0.0.19",
