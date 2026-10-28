@@ -68,7 +68,7 @@
   },
   "devDependencies": {
     "@antfu/eslint-config": "^10.0.0",
-    "@netlify/edge-functions": "^3.0.8",
+    "@netlify/edge-functions": "^4.0.3",
     "@types/emscripten": "^1.41.6",
     "@types/mdast": "^4.0.4",
     "@types/node": "^24.19.2",
