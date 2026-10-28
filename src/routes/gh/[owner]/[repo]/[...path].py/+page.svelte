@@ -120,14 +120,12 @@
         {#if pyprojectLinks.length > 0}
           <ul class="col gap-2">
             {#each pyprojectLinks as item (item.path)}
-              {#if item.exists}
-                <li>
-                  <a href={item.href} target="_blank" class={["row items-baseline justify-between gap-0.5 ws-nowrap px-2 py-0.7 text-xs font-jb", { active: item.used, inactive: !item.used }]}>
-                    <span class={["font-medium", { used: item.used, found: !item.used }]}>{item.path}</span>
-                    <span class={["text-[0.65rem]", { used: item.used, found: !item.used }]}>{item.used ? "used" : "found"}</span>
-                  </a>
-                </li>
-              {/if}
+              <li>
+                <a href={item.href} target="_blank" class={["row items-baseline justify-between gap-0.5 ws-nowrap px-2 py-0.7 text-xs font-jb", { active: item.used, inactive: !item.used }]}>
+                  <span class={["font-medium", { used: item.used, found: !item.used }]}>{item.path}</span>
+                  <span class={["text-[0.65rem]", { used: item.used, found: !item.used }]}>{item.used ? "used" : "found"}</span>
+                </a>
+              </li>
             {/each}
           </ul>
         {:else}
