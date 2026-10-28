@@ -10,7 +10,7 @@ dependencies = [
     "pyodide-py==0.29.0; python_version < '3.14'",
     "pyodide-py==314.0.7; python_version >= '3.14'",
     "promplate-pyodide~=0.0.4.0",
-    "prek~=0.2.19",
+    "prek~=0.5.7",
     "pure-eval~=0.2.3",
     "html2text2~=1.1.1",
     "pytest~=9.0.0",
@@ -18,7 +18,7 @@ dependencies = [
     "hmr",
     "numpy~=2.2",
     "pandas~=2.2",
-    "trio~=0.32.0",
+    "trio~=0.34.0",
 ]
 
 [tool.pdm]

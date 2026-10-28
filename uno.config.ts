@@ -32,7 +32,7 @@ const typography = presetTypography({
     "img, video": { "margin": "0", "max-width": "100%" },
     "figure, picture": { margin: "1em 0" },
     "figcaption": { "color": "inherit", "margin-top": "0", "line-height": "inherit" },
-    "hr": { margin: "2em 0", border: "1px solid var(--un-prose-hr)" },
+    "hr": { margin: "2em 0", border: "1px solid var(--un-prose-hr, #ffffff20)" },
   },
 });
 

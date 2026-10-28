@@ -17,7 +17,7 @@ export const load = (async ({ fetch, url: { searchParams, origin }, cookies }) =
   if (!code) {
     redirect(308, getOauthUrl(origin), { external: true });
   }
-  const { access_token, scope } = await fetch("https://github.com/login/oauth/access_token", {
+  const { access_token } = await fetch("https://github.com/login/oauth/access_token", {
     method: "POST",
     body: JSON.stringify({ client_id, client_secret, code }),
     headers: { "accept": "application/json", "content-type": "application/json" },
@@ -25,5 +25,5 @@ export const load = (async ({ fetch, url: { searchParams, origin }, cookies }) =
 
   access_token && cookies.set("access_token", access_token, { path: "/", maxAge: 60 * 60 * 24 * 365 });
 
-  return { access_token, scope };
+  return { access_token };
 }) satisfies PageServerLoad;
