@@ -2,42 +2,15 @@
   import type { HeaderLineData } from "./header/types";
 
   import Header from "./header/Header.svelte";
+  import { parseDep } from "./pep508";
   import { highlight } from "$lib/highlight";
 
   const { code }: { code: string } = $props();
-
-  interface Dep {
-    name: string;
-    extras: string;
-    versionspec: string;
-    marker: string;
-  }
 
   function parseVersionspec(spec: string) {
     if (!spec)
       return [];
     return spec.split(",").map(s => s.trim()).filter(Boolean);
-  }
-
-  function parseDep(depStr: string): Dep {
-    const [specPart, ...markerParts] = depStr.split(";");
-    const marker = markerParts.length > 0 ? markerParts.join(";").trim() : "";
-    const specTrimmed = specPart.trim();
-    const nameMatch = specTrimmed.match(/^([a-z\d][-\w.]*[a-z\d]|[a-z\d])/i);
-    if (!nameMatch)
-      return { name: "", extras: "", versionspec: "", marker };
-    const name = nameMatch[1];
-    const afterName = specTrimmed.slice(name.length).trim();
-    let extras = "";
-    let afterExtras = afterName;
-    if (afterName.startsWith("[")) {
-      const extrasMatch = afterName.match(/^\[([^\]]*)\]/);
-      if (extrasMatch) {
-        extras = extrasMatch[0];
-        afterExtras = afterName.slice(extrasMatch[0].length).trim();
-      }
-    }
-    return { name, extras, versionspec: afterExtras, marker };
   }
 
   const { headerLines, body, hasHeader } = $derived.by(() => {

@@ -1,25 +1,11 @@
 <script lang="ts">
   import type { DepLineData } from "./types";
 
+  import { getOperatorClass } from "../pep508";
+
   const { data }: { data: DepLineData } = $props();
 
   const { prefix, quote, name, extras, versionParts, marker, suffix } = $derived(data);
-
-  function getOperatorClass(spec: string): string {
-    if (spec.includes("~="))
-      return "compatible-release";
-    if (spec.includes("==="))
-      return "arbitrary-equality";
-    if (spec.includes("=="))
-      return "version-matching";
-    if (spec.includes("!="))
-      return "version-exclusion";
-    if (spec.includes(">=") || spec.includes("<="))
-      return "inclusive-ordered";
-    if (spec.includes(">") || spec.includes("<"))
-      return "exclusive-ordered";
-    return "";
-  }
 </script>
 
 {prefix}{quote}<a href="/pypi/{encodeURIComponent(name)}" class="text-#cdcabe hover:underline">{name}</a>{extras}{#each versionParts as part, i}{#if i > 0}<span class="dim">,</span>{/if}<span class={getOperatorClass(part)}>{part}</span>{/each}{marker}{quote}{suffix}
