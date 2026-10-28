@@ -52,7 +52,7 @@
     "paneforge": "^1.0.2",
     "pyodide": "314.0.7",
     "rollup-plugin-flatten-dir": "^1.0.1",
-    "shiki": "^3.23.0",
+    "shiki": "^4.5.0",
     "smol-toml": "^1.9.1",
     "svelte": "^5.57.3",
     "svelte-persisted-store": "^0.12.0",
