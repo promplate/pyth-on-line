@@ -1,6 +1,11 @@
 name: python checks
 
-on: [push, pull_request, workflow_dispatch]
+on:
+  push:
+    branches: [main]
+    tags: ["**"]
+  pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
