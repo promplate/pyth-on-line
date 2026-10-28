@@ -33,7 +33,7 @@ interface RepoData {
     };
     [key: `pyproject${number}`]: { text?: string } | null;
     [key: `pyprojectHistory${number}`]: History;
-  };
+  } | null;
 }
 
 export const GET: RequestHandler = async ({ params, request, cookies }) => {
@@ -65,6 +65,9 @@ export const GET: RequestHandler = async ({ params, request, cookies }) => {
   }
 
   const { repository } = data;
+  // Tokens without access to the repository may get `null` here without a `NOT_FOUND` error
+  if (!repository)
+    throw error(404, "Repository not found");
 
   const targetFileText = repository.target?.text;
   if (!targetFileText)
