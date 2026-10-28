@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Avatar } from "bits-ui";
 
-  const { url, name = null, login, ...props }: Omit<Avatar.Props, "name" | "children"> & { url: string; name?: string | null; login: string } = $props();
+  const { url, name = null, login, ...props }: Omit<Avatar.RootProps, "name" | "children"> & { url: string; name?: string | null; login: string } = $props();
 </script>
 
 <Avatar.Root {...props}>
