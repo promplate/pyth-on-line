@@ -7,31 +7,33 @@ import { error, json, text } from "@sveltejs/kit";
 import * as env from "$app/env/private";
 import { gql } from "$lib/github/client";
 
+type History = { target: { history?: { nodes: Array<{ committedDate: string }> } } | null } | null;
+
 interface RepoData {
-  repository?: {
-    target?: { text?: string };
-    targetHistory?: { target?: { history?: { nodes?: Array<{ committedDate?: string }> } } };
-    stargazerCount?: number;
-    forkCount?: number;
-    watchers?: { totalCount?: number };
-    description?: string | null;
-    defaultBranchRef?: { name?: string } | null;
-    owner?: { login?: string; avatarUrl?: string };
-    isArchived?: boolean;
-    primaryLanguage?: { name?: string; color?: string } | null;
-    licenseInfo?: { name?: string; spdxId?: string } | null;
-    createdAt?: string;
-    pushedAt?: string;
-    issues?: {
-      totalCount?: number;
-      nodes?: Array<{ number?: number; title?: string; url?: string; createdAt?: string }>;
+  repository: {
+    target: { text?: string | null } | null;
+    targetHistory: History;
+    stargazerCount: number;
+    forkCount: number;
+    watchers: { totalCount: number };
+    description: string | null;
+    defaultBranchRef: { name: string } | null;
+    owner: { login: string; avatarUrl: string };
+    isArchived: boolean;
+    primaryLanguage: { name: string; color: string | null } | null;
+    licenseInfo: { name: string; spdxId: string | null } | null;
+    createdAt: string;
+    pushedAt: string | null;
+    issues: {
+      totalCount: number;
+      nodes: Array<{ number: number; title: string; url: string; createdAt: string }>;
     };
-    releases?: {
-      nodes?: Array<{ tagName?: string; name?: string | null; publishedAt?: string }>;
+    releases: {
+      nodes: Array<{ tagName: string; name: string | null; publishedAt: string | null }>;
     };
-    [key: `pyproject${number}`]: { text?: string } | undefined;
-    [key: `pyprojectHistory${number}`]: { target?: { history?: { nodes?: Array<{ committedDate?: string }> } } } | undefined;
-  };
+    [key: `pyproject${number}`]: { text?: string | null } | null;
+    [key: `pyprojectHistory${number}`]: History;
+  } | null;
 }
 
 export const GET: RequestHandler = async ({ params, request, cookies }) => {
@@ -62,7 +64,8 @@ export const GET: RequestHandler = async ({ params, request, cookies }) => {
     throw error(502, "GitHub GraphQL request failed");
   }
 
-  const repository = data?.repository;
+  const { repository } = data;
+  // Tokens without access to the repository may get `null` here without a `NOT_FOUND` error
   if (!repository)
     throw error(404, "Repository not found");
 
@@ -73,45 +76,28 @@ export const GET: RequestHandler = async ({ params, request, cookies }) => {
   const pep = parsePep723(targetFileText);
   const pyprojects = pyprojectPaths.map((p, i) => ({ path: p, text: repository[`pyproject${i}`]?.text }));
 
-  const depsFromPep = pep?.dependencies ?? [];
   const fromPyproject = pep ? null : findDependencies(pyprojects);
 
-  const dependencies = pep ? depsFromPep : fromPyproject?.dependencies ?? [];
+  const dependencies = pep?.dependencies ?? fromPyproject?.dependencies ?? [];
   const dependencySource: DependencySource = pep
     ? { type: "pep723", path: filePath }
     : fromPyproject
       ? { type: "pyproject", path: fromPyproject.path }
       : { type: "none", path: null };
 
-  const content = pep ? targetFileText : fromPyproject ? prependPep723(targetFileText, dependencies) : targetFileText;
+  const content = fromPyproject ? prependPep723(targetFileText, dependencies) : targetFileText;
 
-  // Mark which pyproject was used and filter to only found ones
-  const usedPath = fromPyproject?.path;
-  const pyprojectPathsWithStatus = pyprojects
-    .filter(({ text }) => text) // Only include found files
-    .map(({ path: p, text: t }) => ({
-      path: p,
-      exists: Boolean(t),
-      used: p === usedPath && !pep, // used if it's the first one and no PEP 723
-    }));
+  const pyprojectPathsWithStatus = pyprojects.filter(({ text }) => text).map(({ path: p }) => ({ path: p, used: p === fromPyproject?.path }));
 
-  // Calculate file last updated time (most recent of py file and used pyproject files)
-  const timestamps: string[] = [];
-  const targetTimestamp = repository.targetHistory?.target?.history?.nodes?.[0]?.committedDate;
-  if (targetTimestamp)
-    timestamps.push(targetTimestamp);
+  // Latest commit touching the script or any pyproject.toml above it.
+  // GitHub returns UTC ISO 8601 timestamps, so they sort chronologically as strings.
+  const timestamps = [repository.targetHistory, ...pyprojectPaths.map((_, i) => repository[`pyprojectHistory${i}`])]
+    .map(history => history?.target?.history?.nodes[0]?.committedDate)
+    .filter(Boolean)
+    .sort();
+  const fileLastUpdatedAt = timestamps.at(-1) ?? repository.pushedAt ?? "";
 
-  for (let i = 0; i < pyprojectPaths.length; i++) {
-    const histKey = `pyprojectHistory${i}` as const;
-    const hist = repository[histKey];
-    const ts = hist?.target?.history?.nodes?.[0]?.committedDate;
-    if (ts)
-      timestamps.push(ts);
-  }
-
-  const fileLastUpdatedAt = timestamps.length > 0
-    ? timestamps.reduce((latest, curr) => (new Date(curr) > new Date(latest) ? curr : latest))
-    : repository.pushedAt ?? "";
+  const latestRelease = repository.releases.nodes[0];
 
   const payload: Payload = {
     owner,
@@ -121,38 +107,23 @@ export const GET: RequestHandler = async ({ params, request, cookies }) => {
     githubUrl: `https://github.com/${owner}/${repo}/blob/${ref}/${filePath}`,
     dependencies,
     dependencySource,
-    pep723: { present: Boolean(pep), dependencies: depsFromPep },
+    pep723: { present: Boolean(pep), dependencies: pep?.dependencies ?? [] },
     pyprojectPaths: pyprojectPathsWithStatus,
     repository: {
-      stargazers: repository.stargazerCount ?? 0,
-      forks: repository.forkCount ?? 0,
-      watchers: repository.watchers?.totalCount ?? 0,
+      stargazers: repository.stargazerCount,
+      forks: repository.forkCount,
+      watchers: repository.watchers.totalCount,
       description: repository.description ?? "",
       defaultBranch: repository.defaultBranchRef?.name ?? null,
-      ownerAvatarUrl: repository.owner?.avatarUrl ?? "",
-      ownerLogin: repository.owner?.login ?? owner,
-      isArchived: repository.isArchived ?? false,
-      primaryLanguage: repository.primaryLanguage
-        ? { name: repository.primaryLanguage.name ?? "", color: repository.primaryLanguage.color ?? "" }
-        : null,
-      licenseInfo: repository.licenseInfo
-        ? { name: repository.licenseInfo.name ?? "", spdxId: repository.licenseInfo.spdxId ?? "" }
-        : null,
-      openIssuesCount: repository.issues?.totalCount ?? 0,
-      recentIssues: (repository.issues?.nodes ?? []).map(issue => ({
-        number: issue.number ?? 0,
-        title: issue.title ?? "",
-        url: issue.url ?? "",
-        createdAt: issue.createdAt ?? "",
-      })),
-      latestRelease: repository.releases?.nodes?.[0]
-        ? {
-            tagName: repository.releases.nodes[0].tagName ?? "",
-            name: repository.releases.nodes[0].name ?? null,
-            publishedAt: repository.releases.nodes[0].publishedAt ?? "",
-          }
-        : null,
-      createdAt: repository.createdAt ?? "",
+      ownerAvatarUrl: repository.owner.avatarUrl,
+      ownerLogin: repository.owner.login,
+      isArchived: repository.isArchived,
+      primaryLanguage: repository.primaryLanguage && { name: repository.primaryLanguage.name, color: repository.primaryLanguage.color ?? "" },
+      licenseInfo: repository.licenseInfo && { name: repository.licenseInfo.name, spdxId: repository.licenseInfo.spdxId ?? "" },
+      openIssuesCount: repository.issues.totalCount,
+      recentIssues: repository.issues.nodes,
+      latestRelease: latestRelease ? { ...latestRelease, publishedAt: latestRelease.publishedAt ?? "" } : null,
+      createdAt: repository.createdAt,
       pushedAt: repository.pushedAt ?? "",
       fileLastUpdatedAt,
     },

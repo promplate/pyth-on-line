@@ -44,7 +44,7 @@ export interface Payload {
   dependencies: string[];
   dependencySource: DependencySource;
   pep723: { present: boolean; dependencies: string[] };
-  pyprojectPaths: Array<{ path: string; exists: boolean; used: boolean }>;
+  pyprojectPaths: Array<{ path: string; used: boolean }>;
   repository: RepoInfo;
   content: string;
   original: string;

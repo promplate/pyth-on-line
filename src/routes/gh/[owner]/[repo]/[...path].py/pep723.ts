@@ -50,7 +50,7 @@ export function prependPep723(file: string, dependencies: string[]) {
   return `${header}${file}`;
 }
 
-export function findDependencies(pyprojects: Array<{ path: string; text: string | undefined }>) {
+export function findDependencies(pyprojects: Array<{ path: string; text?: string | null }>) {
   for (const { path, text } of pyprojects) {
     if (!text)
       continue;
