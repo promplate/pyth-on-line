@@ -67,15 +67,15 @@
     "vite": "^8.3.5"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^6.7.3",
+    "@antfu/eslint-config": "^10.0.0",
     "@netlify/edge-functions": "^3.0.8",
     "@types/emscripten": "^1.41.6",
     "@types/mdast": "^4.0.4",
     "@types/node": "^24.19.2",
     "@types/turndown": "^5.0.6",
     "@unocss/eslint-config": "~66.11.0",
-    "eslint": "^9.39.5",
-    "eslint-plugin-format": "^1.5.0",
+    "eslint": "^10.13.0",
+    "eslint-plugin-format": "^2.0.1",
     "eslint-plugin-svelte": "^3.23.1",
     "rollup": "^4.65.1",
     "svelte-check": "^4.7.7",
