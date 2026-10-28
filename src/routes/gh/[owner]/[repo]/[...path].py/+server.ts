@@ -11,7 +11,7 @@ type History = { target: { history?: { nodes: Array<{ committedDate: string }> }
 
 interface RepoData {
   repository: {
-    target: { text?: string } | null;
+    target: { text?: string | null } | null;
     targetHistory: History;
     stargazerCount: number;
     forkCount: number;
@@ -31,7 +31,7 @@ interface RepoData {
     releases: {
       nodes: Array<{ tagName: string; name: string | null; publishedAt: string | null }>;
     };
-    [key: `pyproject${number}`]: { text?: string } | null;
+    [key: `pyproject${number}`]: { text?: string | null } | null;
     [key: `pyprojectHistory${number}`]: History;
   } | null;
 }
