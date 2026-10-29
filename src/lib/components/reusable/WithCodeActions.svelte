@@ -24,12 +24,12 @@
 
     {@render children(code)}
 
-    <div class="absolute right-0.9em top-0.9em flex flex-row-reverse gap-0.3em transition group-not-hover:(pointer-events-none op-0) [&>button]:(rounded bg-white/5 p-0.6em text-0.725em transition) [&>button:hover]:(bg-white/10)">
+    <div class="absolute right-0.9em top-0.9em flex flex-row-reverse gap-0.3em transition [&>button]:(rounded bg-white/5 p-0.6em text-0.725em transition) [&>button:hover]:(bg-white/10) group-not-hover:not-focus-within:(pointer-events-none op-0)">
       <UseCopy text={code.value}>
         {#snippet children(handleClick)}
           <WithTooltip tips="Copy">
             {#snippet children({ props })}
-              <button {...mergeProps(props, { onclick: handleClick })}><div class="i-icon-park-twotone-copy"></div></button>
+              <button aria-label="Copy code" {...mergeProps(props, { onclick: handleClick })}><div class="i-icon-park-twotone-copy"></div></button>
             {/snippet}
           </WithTooltip>
         {/snippet}
@@ -37,7 +37,7 @@
       {#if canRun && run}
         <WithTooltip tips="Run">
           {#snippet children({ props })}
-            <button {...mergeProps(props, { onclick: () => run(code.value) })}><div class="i-mingcute-play-fill"></div></button>
+            <button aria-label="Run code" {...mergeProps(props, { onclick: () => run(code.value) })}><div class="i-mingcute-play-fill"></div></button>
           {/snippet}
         </WithTooltip>
       {/if}
