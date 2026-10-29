@@ -47,7 +47,7 @@
   function search() {
     if (!disableSearch) {
       // Kit 3 combines focus and scroll resets; retain input focus but reset the results' scroll.
-      goto(`/pypi?q=${searchState.query}`, { reset: false }).then(() => window.scrollTo(0, 0));
+      goto(`/pypi?q=${encodeURIComponent(searchState.query)}`, { reset: false }).then(() => window.scrollTo(0, 0));
     }
   }
 
@@ -55,7 +55,7 @@
     clearTimeout(preloadTimer);
     const q = searchState.query;
     if (q)
-      preloadTimer = setTimeout(preloadData, 250, `/pypi?q=${q}`);
+      preloadTimer = setTimeout(preloadData, 250, `/pypi?q=${encodeURIComponent(q)}`);
   }
 
   function setQuery(value: string) {
@@ -72,7 +72,7 @@
         <Button.Root href="/">
           <div class="i-tabler-smart-home"></div>
         </Button.Root>
-        <Button.Root href={page.route.id === "/pypi" ? `https://pypi.org/search?q=${searchState.query}` : `https://pypi.org/project/${page.params.project}/`} target="_blank">
+        <Button.Root href={page.route.id === "/pypi" ? `https://pypi.org/search?q=${encodeURIComponent(searchState.query)}` : `https://pypi.org/project/${page.params.project}/`} target="_blank">
           <div class="i-tabler-external-link"></div>
         </Button.Root>
       </div>
