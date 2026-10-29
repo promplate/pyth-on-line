@@ -1,7 +1,7 @@
 import type { PageServerLoad } from "./$types";
 import type { RegistryResponse } from "./types";
 
-import { error } from "@sveltejs/kit";
+import { error, isHttpError } from "@sveltejs/kit";
 import { html2markdown } from "#lib/utils/html.js";
 import { load as loadCheerio } from "cheerio";
 import { parseDocument } from "htmlparser2";
@@ -14,7 +14,11 @@ export const load = (async ({ fetch, params: { project } }) => {
         error(r.status === 404 ? 404 : 502, r.status === 404 ? "Package not found" : "Unable to load package");
       return r.json() as Promise<RegistryResponse>;
     }),
-  ]);
+  ]).catch((cause) => {
+    if (isHttpError(cause))
+      throw cause;
+    error(502, "Unable to load package");
+  });
 
   const $ = loadCheerio(parseDocument(res));
 
