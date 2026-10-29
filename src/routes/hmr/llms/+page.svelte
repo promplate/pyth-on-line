@@ -74,7 +74,7 @@
           <h1 class="text-base text-neutral-2 font-semibold">LLM-Friendly Docs ✨</h1>
           <WithTooltip tips="about llms.txt spec">
             {#snippet children({ props })}
-              <a href="https://llmstxt.org/" target="_blank" class="" {...props}>
+              <a href="https://llmstxt.org/" target="_blank" aria-label="About llms.txt" {...props}>
                 <div class="i-mdi-help-circle-outline mb-0.1 size-4 text-neutral-6 hover:text-neutral-3"></div>
               </a>
             {/snippet}

@@ -69,20 +69,20 @@
 
     <nav class="mb-4 w-full flex flex-row items-center justify-between gap-2 text-sm [&_a]:(text-xl text-neutral-3 transition) lg:text-base [&_a:not(:hover)]:op-60">
       <div class="flex flex-row items-center gap-2">
-        <Button.Root href="/">
+        <Button.Root aria-label="Home" href="/">
           <div class="i-tabler-smart-home"></div>
         </Button.Root>
-        <Button.Root href={page.route.id === "/pypi" ? `https://pypi.org/search?q=${encodeURIComponent(searchState.query)}` : `https://pypi.org/project/${page.params.project}/`} target="_blank">
+        <Button.Root aria-label="Open on PyPI" href={page.route.id === "/pypi" ? `https://pypi.org/search?q=${encodeURIComponent(searchState.query)}` : `https://pypi.org/project/${page.params.project}/`} target="_blank">
           <div class="i-tabler-external-link"></div>
         </Button.Root>
       </div>
       <div class="max-w-50vw w-xs flex flex-row items-center rounded-sm bg-neutral-6/10 px-0.5em py-0.3em transition-background-color -my-0.3em lg:w-sm hover:bg-neutral-6/15 focus-within:!bg-neutral-6/21">
-        <input bind:value={() => searchState.query, setQuery} onkeydown={({ key }) => key === "Enter" && search()} class="w-full bg-transparent text-neutral-4 outline-none placeholder-neutral-6" placeholder="search" type="text">
+        <input aria-label="Search packages" bind:value={() => searchState.query, setQuery} onkeydown={({ key }) => key === "Enter" && search()} class="w-full bg-transparent text-neutral-4 outline-none placeholder-neutral-6" placeholder="search" type="text">
         <button disabled={disableSearch} onclick={search} class="p-0.3em text-neutral-5 -m-0.3em hover:text-neutral-4" aria-label="Search packages">
           <div class="i-mingcute-search-line"></div>
         </button>
       </div>
-      <Button.Root href="https://github.com/promplate/pyth-on-line"><div class="i-mdi-github"></div></Button.Root>
+      <Button.Root aria-label="GitHub repository" href="https://github.com/promplate/pyth-on-line"><div class="i-mdi-github"></div></Button.Root>
     </nav>
 
     <Progress show={!!navigating.to} progress={progressState.current} onhide={reset} />

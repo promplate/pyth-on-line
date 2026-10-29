@@ -10,7 +10,7 @@
   {#snippet children(handleClick)}
     <WithTooltip tips="Copy">
       {#snippet children({ props })}
-        <button class="i-icon-park-twotone-copy" {...mergeProps(props, { onclick: handleClick })}></button>
+        <button aria-label="Copy output" class="i-icon-park-twotone-copy" {...mergeProps(props, { onclick: handleClick })}></button>
       {/snippet}
     </WithTooltip>
   {/snippet}

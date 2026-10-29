@@ -244,7 +244,7 @@
         <div class={["group flex flex-row", { "animate-pulse": loading || !ready }]}>
           <ConsolePrompt prompt={status === "incomplete" ? "..." : ">>>"} />
           <!-- svelte-ignore a11y_autofocus -->
-          <input {autofocus} bind:this={inputRef} class="w-full bg-transparent outline-none" bind:value={input} type="text" autocapitalize="off" spellcheck="false" autocomplete="off" autocorrect="off" />
+          <input aria-label="Python console" {autofocus} bind:this={inputRef} class="w-full bg-transparent outline-none" bind:value={input} type="text" autocapitalize="off" spellcheck="false" autocomplete="off" autocorrect="off" />
         </div>
       {/snippet}
     </HeadlessConsole>
