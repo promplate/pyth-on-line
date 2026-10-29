@@ -252,14 +252,14 @@
   </div>
 </div>
 
-{#await import("./ErrorExplainer.svelte") then { default: ErrorExplainer }}
-  <Modal show={!!focusedError} cleanup={() => focusedError = undefined}>
-    {#snippet children(close)}
-      {#if pyConsole}
+<Modal show={!!focusedError} cleanup={() => focusedError = undefined}>
+  {#snippet children(close)}
+    {#if pyConsole}
+      {#await import("./ErrorExplainer.svelte") then { default: ErrorExplainer }}
         <ErrorExplainer errorInfo={focusedError} {close} {pushBlock} {pyConsole} />
-      {/if}
-    {/snippet}
-  </Modal>
-{/await}
+      {/await}
+    {/if}
+  {/snippet}
+</Modal>
 
 {@render children?.({ ready })}
