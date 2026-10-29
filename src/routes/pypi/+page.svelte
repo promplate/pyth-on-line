@@ -85,7 +85,7 @@
     <div class="m-4 flex flex-col gap-2">
       <h1 class="text-lg text-neutral-3 font-275 lg:text-xl">Welcome to the PyPI Explorer</h1>
       <!-- svelte-ignore a11y_autofocus -->
-      <input autofocus onkeydown={({ key }) => key === "Enter" && goto(`/pypi?q=${searchState.query}`)} placeholder="search something ..." class="w-full b-b-(1 neutral-6) bg-transparent py-1 text-neutral-3 outline-none focus:b-b-neutral-5 lg:text-lg placeholder-neutral-6" bind:value={() => searchState.query, searchState.setQuery} type="text">
+      <input autofocus onkeydown={({ key }) => key === "Enter" && goto(`/pypi?q=${encodeURIComponent(searchState.query)}`)} placeholder="search something ..." class="w-full b-b-(1 neutral-6) bg-transparent py-1 text-neutral-3 outline-none focus:b-b-neutral-5 lg:text-lg placeholder-neutral-6" bind:value={() => searchState.query, searchState.setQuery} type="text">
     </div>
   </div>
 {/if}
