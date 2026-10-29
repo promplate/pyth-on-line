@@ -136,7 +136,10 @@ sw.addEventListener("fetch", (event) => {
       }
 
       if (response.status === 200) {
-        cache.put(event.request, response.clone());
+        if (response.headers.get("cache-control")?.toLowerCase().includes("no-store"))
+          await cache.delete(event.request);
+        else
+          cache.put(event.request, response.clone());
       }
 
       return response;
