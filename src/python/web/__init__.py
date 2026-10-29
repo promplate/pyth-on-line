@@ -19,4 +19,5 @@ async def get_cpython_docs(html: str, pathname: str):
 
     from html2text import html2text
 
-    return html2text(nodes[0], f"/cpython/{pathname.removeprefix('/cpython')}").replace("¶", "")
+    base_url = pathname if pathname.endswith(".html") else f"{pathname.rstrip('/')}/"
+    return html2text(nodes[0], base_url).replace("¶", "")
