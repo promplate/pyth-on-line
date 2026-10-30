@@ -1,7 +1,7 @@
 import type { ShikiTransformer } from "shiki";
 
 import { cacheGlobally } from "./utils/cache";
-import { bundledLanguages, createHighlighter } from "shiki";
+import { bundledLanguages, createHighlighter, isSpecialLang } from "shiki";
 
 const languages = Object.keys(bundledLanguages);
 
@@ -20,5 +20,8 @@ const transformers: ShikiTransformer[] = [
 ];
 
 export async function highlight(lang = "text", code: string) {
+  if (!languages.includes(lang) && !isSpecialLang(lang)) {
+    lang = "text";
+  }
   return (await getHighlighter(lang)).codeToHtml(code, { lang, theme: "vitesse-dark", transformers });
 }
