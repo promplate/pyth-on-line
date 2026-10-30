@@ -32,7 +32,7 @@
   <meta property="og:image" content={ogImage} />
   <meta property="twitter:image" content={ogImage} />
 
-  <meta property="description" content={metadata.ogDescription} />
+  <meta name="description" content={metadata.ogDescription} />
   <meta property="og:description" content={metadata.ogDescription} />
   <meta property="twitter:description" content={metadata.ogDescription} />
 
