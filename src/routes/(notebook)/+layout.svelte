@@ -10,7 +10,7 @@
 
   <nav class="w-full flex flex-row items-center justify-between gap-2 text-sm lg:text-base [&>a:hover]:op-80 [&>a]:(op-50 transition)">
     <Button.Root href="/">Home</Button.Root>
-    <Button.Root href="https://github.com/promplate/pyth-on-line"><div class="i-mdi-github text-xl"></div></Button.Root>
+    <Button.Root aria-label="GitHub repository" href="https://github.com/promplate/pyth-on-line"><div class="i-mdi-github text-xl"></div></Button.Root>
   </nav>
 
   <hr class="invisible h-6">

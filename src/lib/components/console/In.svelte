@@ -22,7 +22,7 @@
       <Copy {text} />
       <WithTooltip tips="Run">
         {#snippet children({ props })}
-          <button class="i-mingcute-play-fill" {...mergeProps(props, { onclick })}></button>
+          <button aria-label="Run code" class="i-mingcute-play-fill" {...mergeProps(props, { onclick })}></button>
         {/snippet}
       </WithTooltip>
     </ButtonGroup>

@@ -17,7 +17,7 @@
     <Copy {text} />
     <WithTooltip tips="Ask AI">
       {#snippet children({ props })}
-        <button class="i-majesticons-lightbulb-shine" {...mergeProps(props, { onclick })}></button>
+        <button aria-label="Explain error" class="i-majesticons-lightbulb-shine" {...mergeProps(props, { onclick })}></button>
       {/snippet}
     </WithTooltip>
   </ButtonGroup>
