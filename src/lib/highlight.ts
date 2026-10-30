@@ -6,7 +6,7 @@ import { bundledLanguages, createHighlighter, isSpecialLang } from "shiki";
 const languages = Object.keys(bundledLanguages);
 
 export async function getHighlighter(lang: string) {
-  if (!languages.includes(lang) && lang !== "text") {
+  if (!languages.includes(lang) && !isSpecialLang(lang)) {
     console.error(`Language "${lang}" is not supported by Shiki.`);
     lang = "text";
   }
