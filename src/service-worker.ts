@@ -135,9 +135,11 @@ sw.addEventListener("fetch", (event) => {
         throw new TypeError("invalid response from fetch");
       }
 
-      if (response.status === 200) {
+      const directives = response.headers.get("cache-control")?.replace(/"(?:\\.|[^"\\])*"/g, "\"\"").split(",");
+      if (directives?.some(directive => directive.trim().toLowerCase() === "no-store"))
+        await cache.delete(event.request, { ignoreMethod: true }).catch(console.error);
+      else if (response.status === 200 && event.request.method === "GET")
         cache.put(event.request, response.clone());
-      }
 
       return response;
     }
