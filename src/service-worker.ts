@@ -50,7 +50,7 @@ async function addFilesToCache() {
   }
   await cache.addAll([...getUrls(preloadPackages)].map(url => `${baseURL}/${url}`));
 
-  cache.addAll(websiteAssets);
+  await cache.addAll(websiteAssets);
 }
 
 sw.addEventListener("install", (event) => {
