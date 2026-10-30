@@ -1,6 +1,7 @@
 import type { PageServerLoad } from "./$types";
 import type { RegistryResponse } from "./types";
 
+import { error, isHttpError } from "@sveltejs/kit";
 import { html2markdown } from "#lib/utils/html.js";
 import { load as loadCheerio } from "cheerio";
 import { parseDocument } from "htmlparser2";
@@ -8,8 +9,16 @@ import { parseDocument } from "htmlparser2";
 export const load = (async ({ fetch, params: { project } }) => {
   const [res, { info }] = await Promise.all([
     fetch(`https://pypi.org/project/${project}/`).then(r => r.text()),
-    fetch(`https://pypi.org/pypi/${project}/json`).then(r => r.json()) as Promise<RegistryResponse>,
-  ]);
+    fetch(`https://pypi.org/pypi/${project}/json`).then((r) => {
+      if (!r.ok)
+        error(r.status === 404 ? 404 : 502, r.status === 404 ? "Package not found" : "Unable to load package");
+      return r.json() as Promise<RegistryResponse>;
+    }),
+  ]).catch((cause) => {
+    if (isHttpError(cause))
+      throw cause;
+    error(502, "Unable to load package");
+  });
 
   const $ = loadCheerio(parseDocument(res));
 
