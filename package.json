@@ -52,7 +52,7 @@
     "mdast-util-to-markdown": "^2.2.1",
     "micromark-extension-gfm": "^3.0.0",
     "monaco-editor-core": "^0.55.1",
-    "openai": "^7.45.1",
+    "openai": "^7.46.0",
     "paneforge": "^1.0.2",
     "pyodide": "314.0.7",
     "rollup-plugin-flatten-dir": "^1.0.1",
@@ -78,10 +78,10 @@
     "@types/node": "^24.19.2",
     "@types/turndown": "^5.0.6",
     "@unocss/eslint-config": "~66.11.0",
-    "eslint": "^10.13.0",
+    "eslint": "^10.14.0",
     "eslint-plugin-format": "^2.0.1",
     "eslint-plugin-svelte": "^3.23.1",
-    "rollup": "^4.66.0",
+    "rollup": "^4.67.2",
     "svelte-check": "^4.7.7",
     "typescript": "^6.0.3"
   }
