@@ -36,7 +36,7 @@
     "@tmcp/transport-http": "^0.9.1",
     "@unocss/extractor-svelte": "~66.11.0",
     "@unocss/reset": "~66.11.0",
-    "bits-ui": "^2.20.2",
+    "bits-ui": "^2.20.3",
     "cheerio": "^1.2.0",
     "clsx": "^2.1.1",
     "cmdk-sv": "^0.0.19",
@@ -81,8 +81,8 @@
     "eslint": "^10.14.0",
     "eslint-plugin-format": "^2.0.1",
     "eslint-plugin-svelte": "^3.23.1",
-    "rollup": "^4.67.3",
-    "svelte-check": "^4.7.7",
+    "rollup": "^4.67.4",
+    "svelte-check": "^4.7.8",
     "typescript": "^6.0.3"
   }
 }
