@@ -2,10 +2,12 @@
   import type { PageProps } from "./$types";
 
   import { accessToken, login } from "#lib/oauth.js";
+  import { updateMetadata } from "#lib/seo.js";
   import { goto } from "$app/navigation";
   import { untrack } from "svelte";
 
   const { data }: PageProps = $props();
+  updateMetadata({ ogTitle: "GitHub Sign-in", ogDescription: "Connect your GitHub account to Python Online." });
   const token = $derived(data.access_token);
   let redirected = false;
 

@@ -22,8 +22,9 @@
 </script>
 
 <svelte:document onkeydown={(e) => {
-  if (e.key === "k" && e.ctrlKey) {
-    commandMenu.show = !commandMenu.show;
+  if (e.key === "k" && (e.ctrlKey || e.metaKey)) {
+    if (!e.repeat)
+      commandMenu.show = !commandMenu.show;
     e.preventDefault();
   }
 }} />

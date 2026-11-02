@@ -62,14 +62,14 @@
       <div class="flex flex-row [&>button:active]:scale-90 [&>button]:(rounded p-1.5 text-white/80 transition-colors)">
         <WithTooltip tips="Regenerate">
           {#snippet children({ props })}
-            <button class="hover:(bg-cyan-3/10 text-cyan-3/80)" {...mergeProps(props, { onclick: invoke })}>
+            <button aria-label="Regenerate explanation" class="hover:(bg-cyan-3/10 text-cyan-3/80)" {...mergeProps(props, { onclick: invoke })}>
               <div class="i-mingcute-refresh-2-fill"></div>
             </button>
           {/snippet}
         </WithTooltip>
         <WithTooltip tips="Close">
           {#snippet children({ props })}
-            <button class="hover:(bg-red-3/10 text-red-3/80)" {...mergeProps(props, { onclick: close })}>
+            <button aria-label="Close error explanation" class="hover:(bg-red-3/10 text-red-3/80)" {...mergeProps(props, { onclick: close })}>
               <div class="i-mingcute-close-fill"></div>
             </button>
           {/snippet}
