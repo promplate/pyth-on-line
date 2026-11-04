@@ -1,4 +1,5 @@
 from collections.abc import Callable
+from contextvars import ContextVar
 from typing import Any, Literal, Self, overload
 from weakref import WeakSet
 
@@ -32,9 +33,9 @@ class Subscribable:
     def track(self):
         ctx = self.context.leaf
 
-        if not ctx.current_computations:
+        last = ctx.current_computation
+        if last is None:
             return
-        last = ctx.current_computations[-1]
         if last is not self:
             with ctx.untrack():
                 self.subscribers.add(last)
@@ -43,7 +44,7 @@ class Subscribable:
     def notify(self):
         ctx = self.context.leaf
 
-        if ctx.batches:
+        if ctx.current_batch is not None:
             ctx.schedule_callbacks(self.subscribers)
         else:
             with Batch(force_flush=False, context=ctx):
@@ -217,9 +218,16 @@ class Effect[T](BaseComputation[T]):
 
 class Batch:
     def __init__(self, force_flush=True, *, context: Context | None = None):
-        self.callbacks = set[BaseComputation]()
         self.force_flush = force_flush
         self.context = context or default_context
+        self._entries: ContextVar[tuple[Any, ...]] = ContextVar("batch entries", default=())
+        self._callback_scopes: ContextVar[tuple[set[BaseComputation], ...]] = ContextVar("batch callback scopes", default=())
+        self._idle_callbacks = set[BaseComputation]()
+
+    @property
+    def callbacks(self) -> set[BaseComputation]:
+        scopes = self._callback_scopes.get()
+        return scopes[-1] if scopes else self._idle_callbacks
 
     def flush(self):
         triggered = set()
@@ -246,18 +254,27 @@ class Batch:
                 triggered.add(computation)
 
     def __enter__(self):
-        self.context.batches.append(self)
+        self._callback_scopes.set((*self._callback_scopes.get(), set()))
+        entry = self.context.enter_batch(self)
+        entry.__enter__()
+        self._entries.set((*self._entries.get(), entry))
 
     def __exit__(self, *_):
-        if self.force_flush or len(self.context.batches) == 1:
+        entries = self._entries.get()
+        entry = entries[-1]
+        self._entries.set(entries[:-1])
+        callback_scopes = self._callback_scopes.get()
+        callbacks = callback_scopes[-1]
+        if self.force_flush or self.context.batch_depth == 1:
             try:
                 self.flush()
             finally:
-                last = self.context.batches.pop()
+                self._callback_scopes.set(callback_scopes[:-1])
+                entry.__exit__(None, None, None)
         else:
-            last = self.context.batches.pop()
-            self.context.schedule_callbacks(self.callbacks)
-        assert last is self
+            self._callback_scopes.set(callback_scopes[:-1])
+            entry.__exit__(None, None, None)
+            self.context.schedule_callbacks(callbacks)
 
 
 class BaseDerived[T](Subscribable, BaseComputation[T]):
@@ -266,9 +283,8 @@ class BaseDerived[T](Subscribable, BaseComputation[T]):
         self.dirty = True
 
     def _sync_dirty_deps(self, *_syncing: BaseComputation) -> Any:
-        current_computations = self.context.leaf.current_computations
         for dep in self.dependencies:
-            if isinstance(dep, BaseDerived) and dep not in current_computations and dep not in _syncing:
+            if isinstance(dep, BaseDerived) and not self.context.leaf.is_computing(dep) and dep not in _syncing:
                 dep._sync_dirty_deps(*_syncing, self)  # noqa: SLF001
                 if dep.dirty:
                     dep()
