@@ -19,9 +19,9 @@
 
   <div class="flex flex-col translate-x-0.5 gap-3 lg:gap-5">
     <div class="text-xs">
-      <span class="op-30">Powered by</span>
+      <span class="op-50">Powered by</span>
       <a class="underline underline-(white op-30 offset-2) op-80 transition hover:op-100" href="https://github.com/pyodide/pyodide">@pyodide</a>
-      <span class="op-30">, a WASM build of CPython</span>
+      <span class="op-50">, a WASM build of CPython</span>
     </div>
 
     <h1 class="flex flex-row select-none text-4xl font-bold tracking-wide font-sans -translate-x-0.5">
