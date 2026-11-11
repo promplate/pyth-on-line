@@ -19,7 +19,7 @@
 </div>
 
 <style>
-  .word, .choices > :global(a) {
+  .word, .choices > :global(*) {
     animation: enter var(--duration, 500ms) cubic-bezier(0.333333, 1, 0.666667, 1) var(--delay, 0ms) backwards;
   }
 
@@ -37,7 +37,7 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .word, .choices > :global(a) {
+    .word, .choices > :global(*) {
       animation: none;
     }
   }
