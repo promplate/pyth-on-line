@@ -1,8 +1,11 @@
-name: code review
+name: agent invoke
 
 on:
   pull_request_target:
     types: [opened, synchronize, reopened, ready_for_review]
+  issues:
+    # A labeled issue wakes the agent, which decides how to respond rather than reviewing anything.
+    types: [labeled]
   issue_comment:
     types: [created, edited, deleted]
   pull_request_review:
@@ -22,10 +25,10 @@ concurrency:
   queue: max
 
 jobs:
-  review:
+  agent:
     if: >
       github.event_name == 'push' || github.event_name == 'workflow_dispatch'
-      || (github.event.issue.pull_request != null && github.event.issue.state == 'open')
+      || github.event.issue.state == 'open'
       || (github.event.pull_request.state == 'open' && github.event.pull_request.head.repo.full_name == github.repository
           && (github.event.action != 'ready_for_review' || github.event.pull_request.user.type == 'Bot'))
     cache-mode: write
