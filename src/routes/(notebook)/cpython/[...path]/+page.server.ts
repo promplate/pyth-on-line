@@ -11,6 +11,8 @@ export const load: PageServerLoad = async ({ params: { path }, fetch, url }) => 
   const html = await res.text().catch(() => error(502, "Unable to load documentation"));
   const $ = parse(html);
   const body = $("div.body");
+  if (body.length !== 1)
+    error(502, "Unable to load documentation");
   const base = new URL(path.endsWith(".html") ? url.pathname : `${url.pathname.replace(/\/$/, "")}/`, url);
   body.find("a.headerlink").remove();
   body.find("a[href], img[src]").each((_, element) => {
