@@ -4,12 +4,17 @@
   import { fromMarkdown } from "mdast-util-from-markdown";
   import { gfmFromMarkdown } from "mdast-util-gfm";
   import { gfm } from "micromark-extension-gfm";
+  import remarkInlineLinks from "remark-inline-links";
+
+  const inlineLinks = remarkInlineLinks();
 
   function parse(text: string) {
-    return fromMarkdown(text, {
+    const root = fromMarkdown(text, {
       extensions: [gfm()],
       mdastExtensions: [gfmFromMarkdown()],
     });
+    inlineLinks(root);
+    return root;
   }
 </script>
 
