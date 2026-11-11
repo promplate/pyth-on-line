@@ -93,7 +93,7 @@
 
 {:else if "children" in node && getTagName(node)}
 
-  <svelte:element this={getTagName(node)}>
+  <svelte:element this={getTagName(node)} id={node.data?.hProperties?.id as string | undefined}>
     {#each children as child}
       <Router node={child} {OverrideCode} {codeProps} {inlineCodeProps} />
     {/each}

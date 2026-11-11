@@ -1,10 +1,13 @@
 <script module lang="ts">
   import "../../md.css";
 
+  import GithubSlugger from "github-slugger";
   import { fromMarkdown } from "mdast-util-from-markdown";
   import { gfmFromMarkdown } from "mdast-util-gfm";
+  import { toString } from "mdast-util-to-string";
   import { gfm } from "micromark-extension-gfm";
   import remarkInlineLinks from "remark-inline-links";
+  import { visit } from "unist-util-visit";
 
   const inlineLinks = remarkInlineLinks();
 
@@ -14,6 +17,10 @@
       mdastExtensions: [gfmFromMarkdown()],
     });
     inlineLinks(root);
+    const slugger = new GithubSlugger();
+    visit(root, "heading", (node) => {
+      node.data = { hProperties: { id: slugger.slug(toString(node, { includeHtml: false })) } };
+    });
     return root;
   }
 </script>
