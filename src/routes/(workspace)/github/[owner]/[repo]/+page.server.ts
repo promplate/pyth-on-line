@@ -10,7 +10,7 @@ async function getRepoFiles(repo: string, access_token = env.GITHUB_TOKEN): Prom
   const res = await fetch(url, access_token ? { headers: { Authorization: `Bearer ${access_token}` } } : undefined).catch(() => error(502, "Unable to load repository"));
   if (!res.ok)
     error(res.status === 404 ? 404 : 502, res.status === 404 ? "Repository not found" : "Unable to load repository");
-  const { entries } = await unzip(await res.arrayBuffer());
+  const { entries } = await unzip(await res.arrayBuffer().catch(() => error(502, "Unable to load repository")));
   return Object.fromEntries(
     await Promise.all(
       Object.entries(entries).filter(([_, entry]) => !entry.isDirectory).map(async ([path, entry]) => [path.slice(path.indexOf("/") + 1), await entry.text()]),
