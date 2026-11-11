@@ -1,9 +1,9 @@
 <script lang="ts">
   import type { Group } from "./Item.svelte";
 
-  import Modal from "../Modal.svelte";
   import Item from "./Item.svelte";
   import { commandMenu } from "./state.svelte";
+  import { Dialog } from "bits-ui";
   import { Command } from "cmdk-sv";
 
   const navigations = {
@@ -19,6 +19,7 @@
 
   const rootItems = $derived([...Object.entries(commandMenu.commands).map(([text, children]) => ({ type: "group", text, children } as Group)), navigations]);
   const items = $derived(commandMenu.getItems?.(commandMenu.input));
+  const close = () => commandMenu.show = false;
 </script>
 
 <svelte:document onkeydown={(e) => {
@@ -29,10 +30,11 @@
   }
 }} />
 
-<Modal bind:show={commandMenu.show} closeOnClickOutside cleanup={() => commandMenu.input = ""}>
-  {#snippet children(close)}
+<Dialog.Root bind:open={commandMenu.show} onOpenChangeComplete={open => !open && (commandMenu.input = "")}>
+  <Dialog.Overlay class="fixed inset-0 backdrop-grayscale" />
+  <Dialog.Content aria-label="Command menu" class="fixed left-1/2 top-1/2 -translate-1/2">
 
-    <Command.Root loop onKeydown={e => e.key === "Escape" && close()} class="pointer-events-auto max-w-80vw w-md flex flex-col b-(1 neutral-7) rounded-lg bg-neutral-8/70 p-2em pb-0 backdrop-blur-lg lg:w-lg <lg:text-sm">
+    <Command.Root loop label="Command menu" class="pointer-events-auto max-w-80vw w-md flex flex-col b-(1 neutral-7) rounded-lg bg-neutral-8/70 p-2em pb-0 backdrop-blur-lg lg:w-lg <lg:text-sm">
 
       {#if commandMenu.prefixes.length}
         <div class="mb-1 flex flex-row items-center gap-1.5 text-xs text-white/80 font-mono">
@@ -43,7 +45,7 @@
         </div>
       {/if}
 
-      <Command.Input autofocus bind:value={commandMenu.input} class="w-full ws-nowrap bg-transparent py-2 outline-none placeholder-(text-white/30)" placeholder={commandMenu.placeholder || "Type a command or search..."} />
+      <Command.Input bind:value={commandMenu.input} class="w-full ws-nowrap bg-transparent py-2 outline-none placeholder-(text-white/30)" placeholder={commandMenu.placeholder || "Type a command or search..."} />
 
       <Command.Separator alwaysRender class="mt-1.5 b-1 b-white/10" />
 
@@ -68,5 +70,5 @@
 
     </Command.Root>
 
-  {/snippet}
-</Modal>
+  </Dialog.Content>
+</Dialog.Root>
