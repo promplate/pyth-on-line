@@ -15,6 +15,7 @@
 
   let ref = $state<HTMLElement>();
   const tooltipId = $props.id();
+  const focusTarget = $derived(ref?.closest("a") ?? ref);
 
   const inlineCode = $derived(node as InlineCode);
 
@@ -46,9 +47,31 @@
   }
 
   function hideUnlessActive() {
-    if (!ref?.matches(":hover, :focus"))
+    if (!ref?.matches(":hover") && !focusTarget?.matches(":focus"))
       hide();
   }
+
+  $effect(() => {
+    if (!focusTarget)
+      return;
+    const offFocus = on(focusTarget, "focus", () => show = true);
+    const offBlur = on(focusTarget, "blur", hideUnlessActive);
+    return () => [offFocus(), offBlur()];
+  });
+
+  $effect(() => {
+    const target = focusTarget;
+    if (!target || !show || inspection === undefined)
+      return;
+    target.setAttribute("aria-describedby", [target.getAttribute("aria-describedby"), tooltipId].filter(Boolean).join(" "));
+    return () => {
+      const ids = target.getAttribute("aria-describedby")?.split(" ").filter(id => id !== tooltipId).join(" ");
+      if (ids)
+        target.setAttribute("aria-describedby", ids);
+      else
+        target.removeAttribute("aria-describedby");
+    };
+  });
 
   $effect(() => {
     if (!show)
@@ -83,7 +106,7 @@
   </Tooltip>
 
   <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-  <code tabindex="0" aria-describedby={show && inspection !== undefined ? tooltipId : undefined} onfocus={() => show = true} onblur={hideUnlessActive} onmouseenter={() => show = true} onmouseleave={hideUnlessActive} bind:this={ref}>{inlineCode.value}</code>
+  <code tabindex={focusTarget === ref ? 0 : undefined} onmouseenter={() => show = true} onmouseleave={hideUnlessActive} bind:this={ref}>{inlineCode.value}</code>
 {:else}
   <code>{inlineCode.value}</code>
 {/if}
