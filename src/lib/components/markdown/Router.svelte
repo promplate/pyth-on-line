@@ -84,7 +84,7 @@
 
 {:else if checked != null}
 
-  <li class="list-none [&>p:first-of-type]:inline">
+  <li class="[&>p:first-of-type]:inline [ul>&]:list-none">
     <input type="checkbox" {checked} disabled aria-label={toString(children[0])} />
     {#each children as child}
       <Router node={child} {OverrideCode} {codeProps} {inlineCodeProps} />
