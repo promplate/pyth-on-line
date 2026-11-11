@@ -28,6 +28,7 @@ jobs:
       || (github.event.issue.pull_request != null && github.event.issue.state == 'open')
       || (github.event.pull_request.state == 'open' && github.event.pull_request.head.repo.full_name == github.repository
           && (github.event.action != 'ready_for_review' || github.event.pull_request.user.type == 'Bot'))
+    cache-mode: write
     runs-on: ubuntu-latest
     steps:
       - uses: promplate/code-review@main
