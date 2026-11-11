@@ -12,7 +12,7 @@ export const GET: RequestHandler = async ({ params: { gist_id }, fetch, cookies 
   token && headers.set("Authorization", `Bearer ${token}`);
   const res = await fetch(`https://api.github.com/gists/${gist_id}`, { headers });
   if (!res.ok)
-    error(res.status, (await res.json()).message);
+    error(res.status, "Unable to load gist");
   const { files }: GistResponse = await res.json();
   return json(transformFiles(files), { headers: forwardResponseHeaders(res.headers) });
 };
