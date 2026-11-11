@@ -8,12 +8,12 @@
   const normalizedCode = $derived(code.replaceAll("\r", ""));
 </script>
 
-<section class="not-prose relative overflow-y-scroll rounded-md [&>pre]:!line-height-relaxed">
+<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+<section tabindex="0" aria-label="Code block" class="not-prose relative overflow-y-scroll rounded-md [&>pre]:!line-height-relaxed">
   <!-- Reset the await block so edits show current plain text while highlighting is pending. -->
   {#key normalizedCode}
-    {#await highlight(lang, normalizedCode, 0)}
-      <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-      <pre tabindex="0" class="bg-#121212"><code class="!text-#cdcabe">{normalizedCode}</code></pre>
+    {#await highlight(lang, normalizedCode)}
+      <pre class="bg-#121212"><code class="!text-#cdcabe">{normalizedCode}</code></pre>
     {:then html}
       {@html html}
     {/await}
@@ -37,7 +37,7 @@
 
 <style>
   section :global(pre) {
-    --uno: font-mono overflow-x-scroll;
+    --uno: min-w-full w-max font-mono;
   }
 
   section :global(pre *) {
