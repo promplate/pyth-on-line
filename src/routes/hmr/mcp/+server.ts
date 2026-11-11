@@ -1,5 +1,4 @@
 import type { RequestHandler } from "./$types";
-import type { JSONSchema7 } from "json-schema";
 
 import coreFiles from "../../../../packages/hmr";
 import testFiles from "../../../../tests/py";
@@ -80,7 +79,7 @@ const server = new McpServer(
   {
     adapter: {
       async toJsonSchema() {
-        return {} as JSONSchema7; // minimal adapter since we don't use any schemas
+        return {}; // minimal adapter since we don't use any schemas
       },
     },
     capabilities: {
