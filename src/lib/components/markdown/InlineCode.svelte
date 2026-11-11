@@ -70,10 +70,12 @@
   }
 
   function hideUnlessActive() {
-    if (!ref?.matches(":hover") && !focusTarget?.matches(":focus"))
+    if (focusTarget?.matches(":focus"))
+      return;
+    if (ref?.matches(":hover"))
+      showFromPointer();
+    else
       hide();
-    else if (!focusTarget?.matches(":focus"))
-      focusedExpressions = undefined;
   }
 
   $effect(() => {
@@ -81,7 +83,11 @@
       return;
     const offFocus = on(focusTarget, "focus", showFromFocus);
     const offBlur = on(focusTarget, "blur", hideUnlessActive);
-    return () => [offFocus(), offBlur()];
+    const offPointer = on(focusTarget, "mouseover", () => {
+      if (focusTarget?.matches(":focus"))
+        showFromFocus();
+    });
+    return () => [offFocus(), offBlur(), offPointer()];
   });
 
   $effect(() => {
