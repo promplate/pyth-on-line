@@ -32,7 +32,7 @@
   {/if}
 
   <main class="mt-4">
-    <BaseMarkdown text={readme} />
+    <BaseMarkdown text={readme} headingIds />
   </main>
 
 </div>
