@@ -4,8 +4,6 @@ on:
   pull_request_target:
     types: [opened, synchronize, reopened, ready_for_review, closed]
   issues:
-    # A labeled issue wakes the agent, which decides how to respond rather than reviewing anything.
-    types: [labeled]
   issue_comment:
     types: [created, edited, deleted]
   pull_request_review:
