@@ -8,7 +8,7 @@
   function withHeadingIds(root: Root) {
     const slugger = new GithubSlugger();
     visit(root, "heading", (node) => {
-      node.data = { hProperties: { id: slugger.slug(toString(node, { includeHtml: false })) } };
+      node.data = { hProperties: { id: slugger.slug(toString(node, { includeHtml: false, includeImageAlt: false })) } };
     });
     return root;
   }
