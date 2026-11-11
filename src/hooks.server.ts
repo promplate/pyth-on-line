@@ -6,5 +6,5 @@ const homepageFonts = new Set([
 ]);
 
 export const handle: Handle = ({ event, resolve }) => resolve(event, {
-  preload: asset => asset.type !== "font" || (event.route.id === "/" && homepageFonts.has(asset.filename)),
+  preload: asset => asset.type === "js" || asset.type === "css" || (asset.type === "font" && event.route.id === "/" && homepageFonts.has(asset.filename)),
 });
