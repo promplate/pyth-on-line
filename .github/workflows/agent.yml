@@ -5,11 +5,8 @@ on:
     types: [opened, synchronize, reopened, ready_for_review, closed]
   issues:
   issue_comment:
-    types: [created, edited, deleted]
   pull_request_review:
-    types: [submitted, edited, dismissed]
   pull_request_review_comment:
-    types: [created, edited, deleted]
   push:
     branches: [main]
   workflow_dispatch:
