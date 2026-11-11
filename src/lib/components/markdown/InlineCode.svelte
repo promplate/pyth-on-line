@@ -130,7 +130,7 @@
           {@const { outerColor, classColor, valueColor } = colors(inspection)}
           <div class="{outerColor} max-w-lg flex flex-row items-center gap-1.5 overflow-x-hidden ws-nowrap rounded bg-neutral-8/80 p-1.5 pr-2 text-sm text-xs font-mono ring-(1.5 inset) backdrop-blur -translate-y-0.4em <lg:(text-2.75 ring-1.3) <sm:(text-2.5 ring-1.1)">
             {#if inspections.length > 1}
-              <span class="text-neutral-4">{expression}:</span>
+              <span class="overflow-x-hidden text-ellipsis text-neutral-4">{expression}:</span>
             {/if}
             <div class="{classColor} rounded-sm px-1 py-0.5 font-bold <lg:(px-0.75 py-0.25) <sm:(px-0.5 py-0)">{inspection.class}</div>
             <div class="{valueColor} overflow-x-hidden text-ellipsis">{inspection.value}</div>
