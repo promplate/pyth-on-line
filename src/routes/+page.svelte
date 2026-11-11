@@ -4,7 +4,7 @@
   import Hero from "#lib/components/Hero.svelte";
 </script>
 
-<div class="grid min-h-screen place-items-center">
+<main class="grid min-h-screen place-items-center">
   <div class="b-(1 white/10) bg-white/2">
     <div class="m-5 max-h-3xl w-auto flex flex-col justify-between gap-4 lg:m-15 md:m-11 sm:m-8">
       <div class="relative min-h-sm w-full self-center lg:max-w-3xl">
@@ -20,4 +20,4 @@
       </div>
     </div>
   </div>
-</div>
+</main>

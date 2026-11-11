@@ -90,11 +90,11 @@
   </header>
 </section>
 
-<div class={[{ navigating: navigating.to }, "mb-4 w-[calc(100%-2rem)] self-center transition-opacity duration-500 ease-out 2xl:(mb-10 w-4xl) lg:(mb-7 w-2xl) md:mb-6 sm:(mb-5 w-xl) xl:(mb-8 w-3xl) [&>article]:(lg:text-3.75 xl:text-base)"]}>
+<main class={[{ navigating: navigating.to }, "mb-4 w-[calc(100%-2rem)] self-center transition-opacity duration-500 ease-out 2xl:(mb-10 w-4xl) lg:(mb-7 w-2xl) md:mb-6 sm:(mb-5 w-xl) xl:(mb-8 w-3xl) [&>article]:(lg:text-3.75 xl:text-base)"]}>
 
   {@render children()}
 
-</div>
+</main>
 
 <style>
   .navigating {
