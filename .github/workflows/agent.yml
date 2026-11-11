@@ -2,7 +2,7 @@ name: agent invoke
 
 on:
   pull_request_target:
-    types: [opened, synchronize, reopened, ready_for_review]
+    types: [opened, synchronize, reopened, ready_for_review, closed]
   issues:
     # A labeled issue wakes the agent, which decides how to respond rather than reviewing anything.
     types: [labeled]
@@ -26,11 +26,16 @@ concurrency:
 
 jobs:
   agent:
+    # Pull request discussion continues after it closes, and a merge or close is context the agent can act on;
+    # ordinary issues only wake it while open.
     if: >
       github.event_name == 'push' || github.event_name == 'workflow_dispatch'
-      || github.event.issue.state == 'open'
-      || (github.event.pull_request.state == 'open' && github.event.pull_request.head.repo.full_name == github.repository
-          && (github.event.action != 'ready_for_review' || github.event.pull_request.user.type == 'Bot'))
+      || github.event.issue.pull_request != null
+      || (github.event.issue.pull_request == null && github.event.issue.state == 'open')
+      || (github.event.pull_request.head.repo.full_name == github.repository
+          && (github.event.action == 'closed'
+              || (github.event.pull_request.state == 'open'
+                  && (github.event.action != 'ready_for_review' || github.event.pull_request.user.type == 'Bot'))))
     cache-mode: write
     runs-on: ubuntu-latest
     steps:
