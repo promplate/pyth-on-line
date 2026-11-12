@@ -6,7 +6,7 @@
   const { title, children }: { title: string; children?: Snippet } = $props();
 </script>
 
-<div class="fixed inset-0 z--1 grid place-items-center">
+<main class="fixed inset-0 z--1 grid place-items-center">
   <div class="flex flex-col gap-10">
     <h1 class="w-full gap-1 text-xl tracking-wide font-sans">
       {#each title.split(" ") as char, i}
@@ -19,4 +19,4 @@
       {@render children?.()}
     </div>
   </div>
-</div>
+</main>

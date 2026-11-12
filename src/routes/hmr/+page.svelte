@@ -19,7 +19,7 @@
   });
 </script>
 
-<div class="grid h-100dvh place-items-center">
+<main class="grid h-100dvh place-items-center">
   <div class="m-3 lg:m-9 md:m-7 sm:m-5">
 
     <div class="relative mx-auto">
@@ -120,4 +120,4 @@
     </div>
   </div>
 
-</div>
+</main>
