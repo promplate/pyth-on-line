@@ -32,7 +32,7 @@
   {/if}
 
   <main class="mt-4">
-    <BaseMarkdown text={readme} />
+    <BaseMarkdown text={readme} headingIds />
   </main>
 
 </div>
@@ -40,6 +40,9 @@
 <style>
   main :global(article) {
     --uno: sm:text-base;
+  }
+  main :global(:where(h1, h2, h3, h4, h5, h6)) {
+    --uno: scroll-mt-28;
   }
   main :global(:where(h1, h2, h3)) {
     --uno: mb-0.5em;
