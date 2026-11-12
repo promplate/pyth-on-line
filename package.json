@@ -56,6 +56,7 @@
     "openai": "^7.55.0",
     "paneforge": "^1.0.2",
     "pyodide": "314.0.7",
+    "remark-inline-links": "^7.0.0",
     "rollup-plugin-flatten-dir": "^1.0.1",
     "shiki": "^4.6.0",
     "smol-toml": "^1.9.1",
