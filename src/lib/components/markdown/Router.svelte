@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Heading, List, Node, Parent } from "mdast";
+  import type { Heading, List, ListItem, Node, Parent } from "mdast";
   import type { Component } from "svelte";
 
   import Fallback from "./Fallback.svelte";
@@ -8,6 +8,7 @@
   import Code from "./Pre.svelte";
   import Router from "./Router.svelte";
   import Table from "./Table.svelte";
+  import { toString } from "mdast-util-to-string";
 
   const { node, OverrideCode = null, codeProps = {}, inlineCodeProps = {} }: {
     node: Node;
@@ -46,6 +47,7 @@
   }
 
   const children = $derived((node as Parent).children);
+  const checked = $derived(node.type === "listItem" ? (node as ListItem).checked : null);
   const CodeComponent = $derived(OverrideCode ?? Code);
 
 </script>
@@ -80,9 +82,18 @@
     {/snippet}
   </Table>
 
+{:else if checked != null}
+
+  <li class="[&>p:first-of-type]:inline [ul>&]:list-none">
+    <input type="checkbox" {checked} disabled aria-label={toString(children[0], { includeHtml: false })} />
+    {#each children as child}
+      <Router node={child} {OverrideCode} {codeProps} {inlineCodeProps} />
+    {/each}
+  </li>
+
 {:else if "children" in node && getTagName(node)}
 
-  <svelte:element this={getTagName(node)}>
+  <svelte:element this={getTagName(node)} id={node.data?.hProperties?.id as string | undefined}>
     {#each children as child}
       <Router node={child} {OverrideCode} {codeProps} {inlineCodeProps} />
     {/each}
