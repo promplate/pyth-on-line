@@ -6,7 +6,7 @@
   import { afterNavigate, beforeNavigate, goto, preloadData } from "$app/navigation";
   import { navigating, page } from "$app/state";
   import { Button } from "bits-ui";
-  import { onDestroy, untrack } from "svelte";
+  import { onDestroy, onMount, untrack } from "svelte";
   import { spring } from "svelte/motion";
   import { fromStore } from "svelte/store";
 
@@ -42,9 +42,15 @@
     progress.set(2, { soft: 1 });
   });
 
-  const disableSearch = $derived(Boolean(navigating.to) || (page.route.id === "/pypi" && searchState.query === page.url.searchParams.get("q")));
+  let mounted = $state(false);
+  onMount(() => {
+    mounted = true;
+  });
 
-  function search() {
+  const disableSearch = $derived(mounted && (Boolean(navigating.to) || (page.route.id === "/pypi" && searchState.query === page.url.searchParams.get("q"))));
+
+  function search(event: SubmitEvent) {
+    event.preventDefault();
     if (!disableSearch) {
       // Kit 3 combines focus and scroll resets; retain input focus but reset the results' scroll.
       goto(`/pypi?q=${encodeURIComponent(searchState.query)}`, { reset: false }).then(() => window.scrollTo(0, 0));
@@ -76,12 +82,12 @@
           <div class="i-tabler-external-link"></div>
         </Button.Root>
       </div>
-      <div class="max-w-50vw w-xs flex flex-row items-center rounded-sm bg-neutral-6/10 px-0.5em py-0.3em transition-background-color -my-0.3em lg:w-sm hover:bg-neutral-6/15 focus-within:!bg-neutral-6/21">
-        <input aria-label="Search packages" bind:value={() => searchState.query, setQuery} onkeydown={({ key }) => key === "Enter" && search()} class="w-full bg-transparent text-neutral-4 outline-none placeholder-neutral-6" placeholder="search" type="text">
-        <button disabled={disableSearch} onclick={search} class="p-0.3em text-neutral-5 -m-0.3em hover:text-neutral-4" aria-label="Search packages">
+      <form action="/pypi" onsubmit={search} class="max-w-50vw w-xs flex flex-row items-center rounded-sm bg-neutral-6/10 px-0.5em py-0.3em transition-background-color -my-0.3em lg:w-sm hover:bg-neutral-6/15 focus-within:!bg-neutral-6/21">
+        <input name="q" aria-label="Search packages" bind:value={() => searchState.query, setQuery} class="w-full bg-transparent text-neutral-4 outline-none placeholder-neutral-6" placeholder="search" type="text">
+        <button type="submit" disabled={disableSearch} class="p-0.3em text-neutral-5 -m-0.3em hover:text-neutral-4" aria-label="Search packages">
           <div class="i-mingcute-search-line"></div>
         </button>
-      </div>
+      </form>
       <Button.Root aria-label="GitHub repository" href="https://github.com/promplate/pyth-on-line"><div class="i-mdi-github"></div></Button.Root>
     </nav>
 
