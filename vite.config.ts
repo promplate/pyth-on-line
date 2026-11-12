@@ -8,7 +8,7 @@ import { defineConfig } from "vite";
 
 // Only prerendering needs a build-time origin; request origins must remain dynamic for deployment aliases.
 const vercelHost = (process.env.VERCEL_ENV === "production" && process.env.VERCEL_PROJECT_PRODUCTION_URL) || process.env.VERCEL_URL;
-const prerenderOrigin = process.env.SITE_URL ?? (vercelHost ? `https://${vercelHost}` : process.env.DEPLOY_PRIME_URL);
+const prerenderOrigin = process.env.SITE_URL || (vercelHost ? `https://${vercelHost}` : process.env.DEPLOY_PRIME_URL);
 
 export default defineConfig({
   define: { __PRERENDER_ORIGIN__: JSON.stringify(prerenderOrigin ?? "") },
