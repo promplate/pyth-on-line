@@ -15,7 +15,6 @@ permissions:
   actions: write
   id-token: write
 
-
 jobs:
   agent:
     uses: promplate/code-review/.github/workflows/review.yml@main
