@@ -15,16 +15,10 @@ permissions:
   actions: write
   id-token: write
 
-concurrency:
-  group: code-review-${{ github.event.pull_request.number || github.event.issue.number || github.ref }}
-  queue: max
 
 jobs:
   agent:
-    cache-mode: write
-    runs-on: ubuntu-latest
-    steps:
-      - uses: promplate/code-review@main
-        with:
-          codex-config: ${{ secrets.CODEX_CONFIG }}
-          codex-auth: ${{ secrets.CODEX_AUTH }}
+    uses: promplate/code-review/.github/workflows/review.yml@main
+    secrets:
+      codex-config: ${{ secrets.CODEX_CONFIG }}
+      codex-auth: ${{ secrets.CODEX_AUTH }}
