@@ -13,15 +13,15 @@
   import { afterNavigate } from "$app/navigation";
   import { page } from "$app/state";
   import { Label, Separator, Switch, Tabs } from "bits-ui";
-  import { onDestroy } from "svelte";
+  import { onDestroy, untrack } from "svelte";
   import { fly } from "svelte/transition";
 
   updateMetadata({ ogTitle: "LLM-Friendly Docs for HMR", ogDescription: "HMR library documentation in llms.txt format for AI assistants" });
 
   const { data }: { data: PageData } = $props();
 
-  let content = $state("");
-  let loading = $state(true);
+  let content = $state(untrack(() => data.html));
+  let loading = $state(false);
   let viewMode = $state<"raw" | "rendered">("raw");
   let includeTests = $state(false);
   let xml = $state(false);
