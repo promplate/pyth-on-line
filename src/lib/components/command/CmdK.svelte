@@ -42,7 +42,7 @@
   {#if commandMenu.show}
     <Dialog.Content aria-label="Command menu" class="fixed left-1/2 top-1/2 -translate-1/2">
 
-      <Command.Root loop label="Command menu" class="pointer-events-auto max-w-80vw w-md flex flex-col b-(1 neutral-7) rounded-lg bg-neutral-8/70 p-2em pb-0 backdrop-blur-lg lg:w-lg <lg:text-sm">
+      <Command.Root loop shouldFilter={!items} label="Command menu" class="pointer-events-auto max-w-80vw w-md flex flex-col b-(1 neutral-7) rounded-lg bg-neutral-8/70 p-2em pb-0 backdrop-blur-lg lg:w-lg <lg:text-sm">
 
         {#if commandMenu.prefixes.length}
           <div class="mb-1 flex flex-row items-center gap-1.5 text-xs text-white/80 font-mono">
