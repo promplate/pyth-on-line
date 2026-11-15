@@ -12,6 +12,7 @@
   // @ts-ignore
   const originTrialToken = env.PUBLIC_ORIGIN_TRIAL_TOKEN;
 
+  const ogTitle = $derived(page.error ? `${page.status}: ${page.error.message}` : metadata.ogTitle);
   const ogImage = $derived(`${page.url.origin === "http://sveltekit-prerender" ? __PRERENDER_ORIGIN__ : page.url.origin}/og${page.url.pathname}`);
 </script>
 
@@ -23,9 +24,9 @@
     <meta http-equiv={"origin-trial" as any} content={originTrialToken} />
   {/if}
 
-  <title>{metadata.ogTitle}</title>
-  <meta property="og:title" content={metadata.ogTitle} />
-  <meta property="twitter:title" content={metadata.ogTitle} />
+  <title>{ogTitle}</title>
+  <meta property="og:title" content={ogTitle} />
+  <meta property="twitter:title" content={ogTitle} />
 
   <meta property="twitter:card" content="summary_large_image" />
 

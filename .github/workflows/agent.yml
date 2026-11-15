@@ -1,0 +1,23 @@
+name: agent invoke
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, ready_for_review, closed]
+  pull_request_review:
+  pull_request_review_comment:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  issues:
+  issue_comment:
+
+permissions:
+  actions: write
+  id-token: write
+
+jobs:
+  agent:
+    uses: promplate/code-review/.github/workflows/review.yml@main
+    secrets:
+      codex-config: ${{ secrets.CODEX_CONFIG }}
+      codex-auth: ${{ secrets.CODEX_AUTH }}

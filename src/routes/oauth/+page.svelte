@@ -27,7 +27,7 @@
   });
 </script>
 
-<div class="fixed inset-0 grid place-items-center">
+<main class="fixed inset-0 grid place-items-center">
   <div>
     {#if token}
       Login successful, redirecting...
@@ -36,4 +36,4 @@
       <button class="inline underline underline-(white offset-2) not-hover:underline-op-30" onclick={login}>retry</button>?
     {/if}
   </div>
-</div>
+</main>

@@ -8,7 +8,7 @@
 
 <a {href} class={["fancy-button group", { highlighted, first }]}>
   <span class="fancy-button-text">{text}</span>
-  <div class="fancy-button-overlay">
+  <div class="fancy-button-overlay" aria-hidden="true">
     <span>{text}</span>
     <div class="i-lucide-arrow-right size-4 -translate-y-0.1"></div>
   </div>

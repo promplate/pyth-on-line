@@ -16,10 +16,7 @@
 
     // Wait for Portal to attach before measuring; hide, retarget and unmount cancel stale work.
     let disposed = false;
-    tick().then(() => {
-      if (disposed)
-        return;
-
+    function measure() {
       const rect = currentTarget.getBoundingClientRect();
       const divWidth = div.offsetWidth;
       const top = rect.top - div.offsetHeight;
@@ -33,9 +30,17 @@
       div.style.top = `${top}px`;
       div.style.left = `${left}px`;
       showing = true;
+    }
+    const observer = new ResizeObserver(measure);
+    tick().then(() => {
+      if (disposed)
+        return;
+      measure();
+      observer.observe(div);
     });
     return () => {
       disposed = true;
+      observer.disconnect();
     };
   }
 </script>

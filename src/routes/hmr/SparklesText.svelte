@@ -2,7 +2,8 @@
   import type { HTMLAttributes } from "svelte/elements";
 
   import { cn } from "#lib/utils/clsx.js";
-  import { onMount } from "svelte";
+  import { untrack } from "svelte";
+  import { prefersReducedMotion } from "svelte/motion";
 
   const { text, class: additionalClasses = "", ...props }: Omit<HTMLAttributes<HTMLDivElement>, "children"> & { text: string } = $props();
 
@@ -81,8 +82,12 @@
     sparkles = sparkles.filter(star => star.id !== id);
   }
 
-  onMount(() => {
-    addNewStar();
+  $effect(() => {
+    if (prefersReducedMotion.current) {
+      sparkles = [];
+      return;
+    }
+    untrack(addNewStar);
     return clearTimeouts;
   });
 </script>

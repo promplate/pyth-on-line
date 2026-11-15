@@ -8,6 +8,7 @@
   import { commandMenu } from "./command/state.svelte";
   import { shikiToMonaco } from "@shikijs/monaco";
   import { getHighlighter } from "#lib/highlight.js";
+  import editorWorkerUrl from "monaco-editor-core/esm/vs/editor/common/services/editorWebWorkerMain.js?worker&url";
   import { getAbortSignal, untrack } from "svelte";
   import { fade } from "svelte/transition";
 
@@ -24,6 +25,7 @@
   }
 
   async function initializeEditor(container: HTMLDivElement, signal: AbortSignal) {
+    globalThis.MonacoEnvironment = { getWorkerUrl: () => editorWorkerUrl };
     [core] = await Promise.all([import("monaco-editor-core"), getHighlighter(lang)]);
     await loadLanguage(lang);
 

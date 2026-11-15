@@ -3,7 +3,7 @@
 
   import { getSearchState } from "./store";
   import { updateMetadata } from "#lib/seo.js";
-  import { afterNavigate, goto } from "$app/navigation";
+  import { afterNavigate } from "$app/navigation";
   import { page } from "$app/state";
   import { Button } from "bits-ui";
   import { tick } from "svelte";
@@ -82,11 +82,11 @@
   </h1>
 {:else}
   <div class="grid aspect-3/2 min-h-xs w-full place-items-center rounded bg-gradient-(from-neutral-8/50 via-neutral-8/25 to-neutral-8/0 to-b)">
-    <div class="m-4 flex flex-col gap-2">
+    <form action="/pypi" class="m-4 flex flex-col gap-2">
       <h1 class="text-lg text-neutral-3 font-275 lg:text-xl">Welcome to the PyPI Explorer</h1>
       <!-- svelte-ignore a11y_autofocus -->
-      <input aria-label="Search packages" autofocus onkeydown={({ key }) => key === "Enter" && goto(`/pypi?q=${encodeURIComponent(searchState.query)}`)} placeholder="search something ..." class="w-full b-b-(1 neutral-6) bg-transparent py-1 text-neutral-3 outline-none focus:b-b-neutral-5 lg:text-lg placeholder-neutral-6" bind:value={() => searchState.query, searchState.setQuery} type="text">
-    </div>
+      <input name="q" aria-label="Search packages" autofocus placeholder="search something ..." class="w-full b-b-(1 neutral-6) bg-transparent py-1 text-neutral-3 outline-none focus:b-b-neutral-5 lg:text-lg placeholder-neutral-6" bind:value={() => searchState.query, searchState.setQuery} type="text">
+    </form>
   </div>
 {/if}
 

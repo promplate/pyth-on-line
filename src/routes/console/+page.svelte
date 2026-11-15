@@ -9,7 +9,7 @@
   updateMetadata({ ogTitle: "A Clean Python Console", ogDescription: "Run Python 3.14 in a standard but interactive console directly in your browser without installation." });
 </script>
 
-<div class="m-4 w-auto flex flex-row gap-4 p-3 <lg:(m-3 gap-3 p-2 text-sm) <sm:(m-2 gap-2 p-1 text-xs)">
+<main class="m-4 w-auto flex flex-row gap-4 p-3 <lg:(m-3 gap-3 p-2 text-sm) <sm:(m-2 gap-2 p-1 text-xs)">
 
   <Console class="rounded bg-white/3 p-5 <lg:(p-4 text-sm) <sm:(p-3 text-xs)">
     {#snippet children({ ready })}
@@ -23,4 +23,4 @@
     {/snippet}
   </Console>
 
-</div>
+</main>

@@ -31,26 +31,29 @@
     </h3>
   {/if}
 
-  <main class="mt-4">
-    <BaseMarkdown text={readme} />
-  </main>
+  <section class="mt-4">
+    <BaseMarkdown text={readme} headingIds />
+  </section>
 
 </div>
 
 <style>
-  main :global(article) {
+  section :global(article) {
     --uno: sm:text-base;
   }
-  main :global(:where(h1, h2, h3)) {
+  section :global(:where(h1, h2, h3, h4, h5, h6)) {
+    --uno: scroll-mt-28;
+  }
+  section :global(:where(h1, h2, h3)) {
     --uno: mb-0.5em;
   }
-  main :global(h1) {
+  section :global(h1) {
     --uno: text-2.1em font-200;
   }
-  main :global(h2) {
+  section :global(h2) {
     --uno: text-1.7em font-250;
   }
-  main :global(h3) {
+  section :global(h3) {
     --uno: text-1.3em font-300;
   }
 </style>

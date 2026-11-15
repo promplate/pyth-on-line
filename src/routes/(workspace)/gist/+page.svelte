@@ -12,7 +12,7 @@
   updateMetadata({ ogTitle: "Open Your GitHub Gists", ogDescription: "Explore and run GitHub gists as interactive Python workspaces in your browser." });
 </script>
 
-<div class="m-4 flex flex-col gap-3 sm:m-3vw sm:gap-4">
+<main class="m-4 flex flex-col gap-3 sm:m-3vw sm:gap-4">
   <div class="flex flex-row items-center justify-between gap-2 ws-nowrap text-xl sm:(text-3xl font-250)">
     <h1>
       <span class="text-neutral-2">{total}</span>
@@ -46,4 +46,4 @@
       </li>
     {/each}
   </ul>
-</div>
+</main>
