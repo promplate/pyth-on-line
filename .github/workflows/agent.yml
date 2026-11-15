@@ -12,7 +12,7 @@ on:
   issue_comment:
 
 permissions:
-  actions: write
+  actions: read
   id-token: write
 
 jobs:
