@@ -256,14 +256,24 @@
   </div>
 </div>
 
-{#await import("./ErrorExplainer.svelte") then { default: ErrorExplainer }}
-  <Modal show={!!focusedError} cleanup={() => focusedError = undefined}>
-    {#snippet children(close)}
-      {#if pyConsole}
+<Modal show={!!focusedError} cleanup={() => focusedError = undefined}>
+  {#snippet children(close)}
+    {#if pyConsole}
+      {#await import("./ErrorExplainer.svelte")}
+        <div class="rounded bg-neutral-8 p-4">
+          <p role="status">Loading error explainer...</p>
+          <button class="mt-2 underline" onclick={close}>Cancel</button>
+        </div>
+      {:then { default: ErrorExplainer }}
         <ErrorExplainer errorInfo={focusedError} {close} {pushBlock} {pyConsole} />
-      {/if}
-    {/snippet}
-  </Modal>
-{/await}
+      {:catch}
+        <div class="rounded bg-neutral-8 p-4">
+          <p role="alert">Unable to load the error explainer. Reload the page to try again.</p>
+          <button class="mt-2 underline" onclick={close}>Close</button>
+        </div>
+      {/await}
+    {/if}
+  {/snippet}
+</Modal>
 
 {@render children?.({ ready })}
