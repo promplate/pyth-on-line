@@ -17,9 +17,7 @@
   <HeadlessNotebook>
     {#snippet children(pyNotebook)}
       <WithMarkdown>
-        {#snippet children(parse)}
-          <Router node={parse(data.text)} {OverrideCode} codeProps={{ pyNotebook, heuristics: true }} inlineCodeProps={{ watch: pyNotebook?.watch }} />
-        {/snippet}
+        <Router node={data.node} {OverrideCode} codeProps={{ pyNotebook, heuristics: true }} inlineCodeProps={{ watch: pyNotebook?.watch }} />
       </WithMarkdown>
     {/snippet}
   </HeadlessNotebook>
