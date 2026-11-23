@@ -12,7 +12,7 @@ class ClassTransformer(ast.NodeTransformer):
     @override
     def visit_ClassDef(self, node: ast.ClassDef):
         traverser = ClassBodyTransformer(self.skip_annotations)
-        has_docstring = node.body and isinstance(node.body[0], ast.Expr) and isinstance(node.body[0].value, ast.Constant) and isinstance(node.body[0].value.value, str)
+        has_docstring = bool(node.body) and isinstance(node.body[0], ast.Expr) and isinstance(node.body[0].value, ast.Constant) and isinstance(node.body[0].value.value, str)
         node.body[has_docstring:] = [
             *def_name_lookup().body,
             *map(traverser.visit, node.body[has_docstring:]),
