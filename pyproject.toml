@@ -69,6 +69,7 @@ ignore = [
 [tool.pyright]
 typeCheckingMode = "standard"
 reportMissingModuleSource = false
+reportPrivateImportUsage = false
 reportWildcardImportFromLibrary = false
 reportUnnecessaryTypeIgnoreComment = true
 
