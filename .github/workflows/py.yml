@@ -10,8 +10,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-        with:
-          ref: ${{ github.event_name == 'pull_request' && github.head_ref || github.ref }}
       - name: Set up python
         uses: astral-sh/setup-uv@v7
         with:
@@ -44,8 +42,6 @@ jobs:
     runs-on: ${{ matrix.os }}-latest
     steps:
       - uses: actions/checkout@v6
-        with:
-          ref: ${{ github.event_name == 'pull_request' && github.head_ref || github.ref }}
       - name: Set up python ${{ matrix.py }}
         uses: astral-sh/setup-uv@v7
         with:
@@ -57,6 +53,21 @@ jobs:
       - name: Run tests
         run: |
           pytest -v --color=yes ${{ matrix.os == 'windows' && '--reruns 500' || '' }}
+  package-hottest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Set up python
+        uses: astral-sh/setup-uv@v7
+        with:
+          python-version: 3.14
+      - name: Build hottest through its source distribution
+        run: uv build packages/hottest --out-dir "$RUNNER_TEMP/hottest-dist"
+      - name: Smoke test the installed wheel
+        run: |
+          uv venv --python 3.14 "$RUNNER_TEMP/hottest-venv"
+          uv pip install --python "$RUNNER_TEMP/hottest-venv/bin/python" "$RUNNER_TEMP"/hottest-dist/*.whl
+          "$RUNNER_TEMP/hottest-venv/bin/python" -I tests/smoke_hottest.py
   publish-hmr:
     needs: [test, check]
     runs-on: ubuntu-latest
