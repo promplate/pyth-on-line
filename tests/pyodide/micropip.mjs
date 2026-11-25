@@ -1,39 +1,40 @@
 import assert from "node:assert/strict";
-import { readFileSync, readdirSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { createServer } from "node:http";
 import { join } from "node:path";
-
+import { test } from "node:test";
 import { loadPyodide } from "pyodide";
 
-const wheelDir = process.argv[2];
-const wheel = readdirSync(wheelDir).find(name => name.startsWith("micropip-") && name.endsWith(".whl"));
-assert(wheel);
-const indexRequests = [];
-const server = createServer((req, res) => {
-  if (req.url === `/${wheel}`) {
-    res.end(readFileSync(join(wheelDir, wheel)));
-    return;
-  }
-  indexRequests.push(req.url);
-  res.writeHead(404).end();
-});
+test("micropip compatibility", async () => {
+  const wheelDir = process.argv[2];
+  const wheel = readdirSync(wheelDir).find(name => name.startsWith("micropip-") && name.endsWith(".whl"));
+  assert(wheel);
+  const indexRequests = [];
+  const server = createServer((req, res) => {
+    if (req.url === `/${wheel}`) {
+      res.end(readFileSync(join(wheelDir, wheel)));
+      return;
+    }
+    indexRequests.push(req.url);
+    res.writeHead(404).end();
+  });
 
-await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
-try {
-  const url = `http://127.0.0.1:${server.address().port}`;
-  const customIndex = process.argv.includes("--custom-index");
-  const py = await loadPyodide({ env: customIndex ? { PYPI_INDEX_URL: `${url}/simple` } : {} });
-  await py.loadPackage("packaging");
-  await py.loadPackage(`${url}/${wheel}`);
+  await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
+  try {
+    const url = `http://127.0.0.1:${server.address().port}`;
+    const customIndex = process.argv.includes("--custom-index");
+    const py = await loadPyodide({ env: customIndex ? { PYPI_INDEX_URL: `${url}/simple` } : {} });
+    await py.loadPackage("packaging");
+    await py.loadPackage(`${url}/${wheel}`);
 
-  // Only browser-specific UI plumbing is stubbed; all installs use real WASM Python.
-  globalThis.window = { prompt: () => "", close: () => {} };
-  for (const path of ["common/patches.py", "common/imports.py", "common/package.py", "common/toast.py", "chat/__init__.py"]) {
-    py.FS.mkdirTree(`/app/${path.split("/")[0]}`);
-    py.FS.writeFile(`/app/${path}`, readFileSync(`src/python/${path}`));
-  }
+    // Only browser-specific UI plumbing is stubbed; all installs use real WASM Python.
+    globalThis.window = { prompt: () => "", close: () => {} };
+    for (const path of ["common/patches.py", "common/imports.py", "common/package.py", "common/toast.py", "chat/__init__.py"]) {
+      py.FS.mkdirTree(`/app/${path.split("/")[0]}`);
+      py.FS.writeFile(`/app/${path}`, readFileSync(`src/python/${path}`));
+    }
 
-  await py.runPythonAsync(`
+    await py.runPythonAsync(`
 import sys
 from importlib import reload
 from types import ModuleType, SimpleNamespace
@@ -80,15 +81,16 @@ assert events == previous
 assert shim.patch_all.await_count == 2
 `);
 
-  if (customIndex) {
-    assert(!indexRequests.some(path => path.startsWith("/simple/pyyaml")), "Pyodide lockfile must be searched before the mirror");
-    assert(indexRequests.some(path => path.startsWith("/simple/promplate/")), "Custom mirror must be tried before PyPI");
+    if (customIndex) {
+      assert(!indexRequests.some(path => path.startsWith("/simple/pyyaml")), "Pyodide lockfile must be searched before the mirror");
+      assert(indexRequests.some(path => path.startsWith("/simple/promplate/")), "Custom mirror must be tried before PyPI");
+    }
+    else {
+      assert.equal(indexRequests.length, 0);
+    }
   }
-  else {
-    assert.equal(indexRequests.length, 0);
+  finally {
+    server.closeAllConnections();
+    server.close();
   }
-}
-finally {
-  server.closeAllConnections();
-  server.close();
-}
+});
