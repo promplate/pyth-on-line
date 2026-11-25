@@ -6,11 +6,11 @@ from operator import call
 @call
 async def install_requirements():
     from micropip import install
-    from micropip._compat import loadedPackages
+    from pyodide_js import loadedPackages
 
     requirements = []
 
-    loaded: dict = loadedPackages.to_py()  # type: ignore
+    loaded: dict = loadedPackages.to_py()
 
     if "promplate" not in loaded:
         requirements.append("promplate==0.3.4.9")
