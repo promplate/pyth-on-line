@@ -6,8 +6,8 @@ on:
       - "src/python/common/**"
       - "src/python/chat/**"
       - "tests/pyodide/**"
-      - ".github/workflows/micropip.yml"
-      - "package.json"
+      - .github/workflows/micropip.yml
+      - package.json
   workflow_dispatch:
 
 permissions:
