@@ -1,4 +1,5 @@
 import sys
+from functools import partial
 from pathlib import Path
 from typing import override
 
@@ -34,7 +35,7 @@ class Reloader(SyncReloader):
     def __init__(self):
         super().__init__("")
         self.collector = _collector()
-        self.modules = {func.__module__ for func in find_test_functions(rootdir)}
+        self.modules = dict.fromkeys(func.args[0].__module__ if isinstance(func, partial) else func.__module__ for func in find_test_functions(rootdir))
 
     @override
     def run_entry_file(self):
@@ -42,10 +43,15 @@ class Reloader(SyncReloader):
         def clear_terminal():
             print("\033c", end="", flush=True)
 
-        self.collector.update(ref for module in self.modules for ref in collect_module(module))
-        with HMR_CONTEXT.untrack():
-            for test in self.collector.tests.values():
+        for test in self.collector.update(ref for module in self.modules for ref in collect_module(module)):
+            with HMR_CONTEXT.untrack():
                 test()
+        for test in self.collector.tests.values():
+            if test.dirty:
+                with HMR_CONTEXT.untrack():
+                    test()
+            else:
+                test.track()
 
 
 def main():
