@@ -1,13 +1,13 @@
 import sys
-from functools import partial
 from pathlib import Path
 from typing import override
 
 from termcolor import colored
 
-from . import find_fixtures, find_test_functions, find_test_root, run_test
+from . import find_fixtures, find_test_root, run_test
 from ._vendored_reactivity.hmr.core import HMR_CONTEXT, SyncReloader
 from ._vendored_reactivity.hmr.hooks import pre_reload
+from .collect import find_test_modules
 from .reactive import ReactiveCollector, collect_module
 
 rootdir = find_test_root(Path.cwd())
@@ -35,7 +35,7 @@ class Reloader(SyncReloader):
     def __init__(self):
         super().__init__("")
         self.collector = _collector()
-        self.modules = dict.fromkeys(func.args[0].__module__ if isinstance(func, partial) else func.__module__ for func in find_test_functions(rootdir))
+        self.modules = sorted(set(find_test_modules(rootdir)))
 
     @override
     def run_entry_file(self):
@@ -50,8 +50,7 @@ class Reloader(SyncReloader):
             if test.dirty:
                 with HMR_CONTEXT.untrack():
                     test()
-            else:
-                test.track()
+            test.track()
 
 
 def main():

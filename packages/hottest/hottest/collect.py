@@ -15,14 +15,16 @@ def find_test_root(dir_path: Path):
     return dir_path
 
 
+def find_test_modules(root_dir: Path):
+    for file in *root_dir.rglob("test_*.py"), *root_dir.rglob("*_test.py"):
+        yield file.relative_to(root_dir).with_suffix("").as_posix().replace("/", ".")
+
+
 def find_test_functions(root_dir: Path):
     """Find all test functions in test files, mimicking pytest's discovery logic."""
     test_functions: list[Callable[..., Any]] = []
 
-    for file in *root_dir.rglob("test_*.py"), *root_dir.rglob("*_test.py"):
-        # Compute module name from relative path
-        module_name = file.relative_to(root_dir).with_suffix("").as_posix().replace("/", ".")
-
+    for module_name in find_test_modules(root_dir):
         # Execute the test file and get its globals namespace
         ns = import_module(module_name).__dict__
 

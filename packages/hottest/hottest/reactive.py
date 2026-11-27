@@ -1,12 +1,14 @@
 from collections.abc import Callable
 from dataclasses import dataclass
-from functools import partial, update_wrapper
+from functools import partial, update_wrapper, wraps
 from importlib import import_module
-from inspect import isclass
+from inspect import getattr_static, isclass, isfunction
+from types import MethodType
 from typing import Any
 
 from ._vendored_reactivity import derived
-from ._vendored_reactivity.hmr.core import HMR_CONTEXT
+from ._vendored_reactivity.hmr.core import HMR_CONTEXT, ReactiveModule
+from ._vendored_reactivity.hmr.utils import load
 from ._vendored_reactivity.primitives import Derived
 
 
@@ -22,19 +24,34 @@ class TestRef:
 
     def resolve(self):
         obj = getattr(import_module(self.module), self.name)
-        if self.method:
-            method = getattr(obj, self.method)
-            return update_wrapper(partial(lambda cls, method: method(cls()), obj, method), method)
+        if name := self.method:
+            method = getattr(obj, name)
+            if isfunction(getattr_static(obj, name)):
+                method = MethodType(method, obj)  # Expose the bound signature without constructing an instance until the test runs.
+
+            @wraps(method)
+            def run_method(*args, **kwargs):
+                return getattr(obj(), name)(*args, **kwargs)
+
+            return run_method
+        if not hasattr(obj, "__qualname__"):
+            func = update_wrapper(partial(obj), obj)
+            func.__module__, func.__qualname__ = self.module, self.name
+            return func
         return obj
 
 
 def collect_module(module_name: str):
     module = import_module(module_name)
-    for name in module.iter_namespace():
-        obj = getattr(module, name)
-        if name.startswith("test") and callable(obj):
+    if isinstance(module, ReactiveModule):
+        load(module)
+        names = ReactiveModule.__dir__(module)
+    else:
+        names = vars(module)
+    for name in names:
+        if name.startswith("test") and callable(getattr(module, name)):
             yield TestRef(module_name, name)
-        elif name.startswith("Test") and isclass(obj):
+        elif name.startswith("Test") and isclass(obj := getattr(module, name)):
             for method_name in dir(obj):
                 if method_name.startswith("test") and callable(getattr(obj, method_name)):
                     yield TestRef(module_name, name, method_name)

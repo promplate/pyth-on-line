@@ -123,9 +123,6 @@ class ReactiveModule(ModuleType):
     def __dir__(self):
         return iter(self.__namespace_proxy)
 
-    def iter_namespace(self):
-        return iter(self.__namespace_proxy)
-
     def __getattribute__(self, name: str):
         if name == "__dict__" and self.__is_initialized:
             return self.__namespace
