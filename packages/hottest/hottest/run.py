@@ -2,13 +2,19 @@ from asyncio import iscoroutine, run
 from collections.abc import Callable
 from contextlib import ExitStack
 from inspect import signature
+from sys import version_info
 from typing import Any
 
 from pytest import Mark
 
 
 def run_test(func: Callable[..., Any], fixtures: dict[str, Callable[[], Any]]):
-    sig = signature(func)
+    if version_info >= (3, 14):
+        from annotationlib import Format
+
+        sig = signature(func, annotation_format=Format.STRING)
+    else:
+        sig = signature(func)
     kwargs = {}
 
     try:
