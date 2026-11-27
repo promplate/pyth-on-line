@@ -6,7 +6,7 @@ from hottest._vendored_reactivity.hmr import fs, hooks
 from hottest._vendored_reactivity.hmr.core import HMR_CONTEXT as HOTTEST_CONTEXT
 from hottest._vendored_reactivity.hmr.core import ReactiveModule, SyncReloader
 from hottest.reactive import ReactiveCollector, collect_module
-from pytest import fixture
+from pytest import fixture, mark
 from utils import environment
 
 
@@ -24,15 +24,52 @@ def isolate_hottest(monkeypatch):
 
 def test_reloader_runs_an_added_definition():
     with environment() as env:
-        env["test_example.py"] = "def test_one(): pass"
+        original = "def test_one(): assert all(True for _ in range(2))"
+        env["test_example.py"] = original
         from hottest.__main__ import Reloader
 
         reloader = Reloader()
         with HOTTEST_CONTEXT.effect(reloader.run_entry_file):
             assert "test_example.test_one PASS" in env.stdout_delta
-            env["test_example.py"].replace("def test_one(): pass", "def test_one(): pass\ndef test_two(): pass")
+            env["test_example.py"] = "def test_two(): pass\n" + original
             reloader.on_changes({Path("test_example.py").resolve()})
             assert env.stdout_delta == "\033ctest_example.test_two PASS\n"
+
+
+@mark.parametrize(
+    ("source", "before", "after", "result"),
+    [
+        ("x = 1\nclass TestGroup:\n    def test_one(self): assert all(x == i for i in [1])", "x = 1", "x = 2", "TestGroup.test_one FAIL"),
+        ("def test_one(): assert missing == 1", "missing == 1", "missing == 1\nmissing = 1", "test_one PASS"),
+        ("from functools import partial\ndef check(n): assert n == 1\ntest_one = partial(check, n=1)", "n=1", "n=2", "test_one FAIL"),
+        ("from functools import wraps\ndef decorate(f):\n    @wraps(f)\n    def run(): return f()\n    return run\n@decorate\ndef test_one(): pass", "pass", "assert False", "test_one FAIL"),
+    ],
+)
+def test_reloader_detects_changed_test_inputs(source, before, after, result):
+    with environment() as env:
+        env["test_example.py"] = source
+        from hottest.__main__ import Reloader
+
+        reloader = Reloader()
+        with HOTTEST_CONTEXT.effect(reloader.run_entry_file):
+            assert "test_example." in env.stdout_delta
+            env["test_example.py"].replace(before, after)
+            reloader.on_changes({Path("test_example.py").resolve()})
+            assert env.stdout_delta == f"\033ctest_example.{result}\n"
+
+
+def test_default_comparison_cannot_interrupt_collection():
+    with environment() as env:
+        source = "class Options:\n    def __eq__(self, other): raise ValueError\ndef test_existing(value=Options()): pass"
+        env["test_example.py"] = source
+        from hottest.__main__ import Reloader
+
+        reloader = Reloader()
+        with HOTTEST_CONTEXT.effect(reloader.run_entry_file):
+            assert env.stdout_delta == "test_example.test_existing PASS\n"
+            env["test_example.py"] = source + "\ndef test_added(): pass"
+            reloader.on_changes({Path("test_example.py").resolve()})
+            assert "test_example.test_added PASS" in env.stdout_delta
 
 
 def test_reloader_reruns_only_a_modified_test():

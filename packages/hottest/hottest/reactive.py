@@ -1,16 +1,45 @@
 from collections.abc import Callable
 from dataclasses import dataclass
+from dis import get_instructions
 from functools import partial, update_wrapper, wraps
 from importlib import import_module
 from inspect import getattr_static, isclass, isfunction
 from pathlib import Path
-from types import FunctionType, MethodType
+from sys import version_info
+from types import CodeType, FunctionType, MethodType
 from typing import Any
 
 from ._vendored_reactivity import derived
 from ._vendored_reactivity.hmr.core import HMR_CONTEXT, ReactiveModule
-from ._vendored_reactivity.hmr.utils import load
+from ._vendored_reactivity.hmr.utils import load, track_global_names
 from ._vendored_reactivity.primitives import Derived
+
+
+def _callable_chain(obj):
+    seen = set()
+    while obj is not None and id(obj) not in seen:
+        seen.add(id(obj))
+        yield obj
+        if isinstance(obj, partial):
+            obj = obj.func
+        elif isinstance(obj, MethodType):
+            obj = obj.__func__
+        else:
+            obj = getattr(obj, "__wrapped__", None)
+
+
+def _code_signature(code: CodeType) -> CodeType:
+    constants = tuple(_code_signature(value) if isinstance(value, CodeType) else value for value in code.co_consts)
+    return code.replace(co_firstlineno=1, co_linetable=b"", co_consts=constants)
+
+
+def _global_names(code: CodeType):
+    for instruction in get_instructions(code):
+        if instruction.opname == "LOAD_GLOBAL":
+            yield instruction.argval
+    for value in code.co_consts:
+        if isinstance(value, CodeType):
+            yield from _global_names(value)
 
 
 @dataclass(frozen=True)
@@ -45,18 +74,24 @@ class TestRef:
         obj = getattr(import_module(self.module), self.name)
         if self.method:
             obj = getattr(obj, self.method)
-        while isinstance(obj, partial):
-            obj = obj.func
-        if not hasattr(obj, "__code__"):
-            return None
-        return obj.__code__, obj.__defaults__, obj.__kwdefaults__, repr(obj.__annotations__)
+        parts = []
+        for func in _callable_chain(obj):
+            if isinstance(func, partial):
+                parts.append((func.args, func.keywords.copy()))
+            elif isinstance(func, FunctionType):
+                if version_info >= (3, 14):
+                    from annotationlib import Format, get_annotations
+
+                    annotations = get_annotations(func, format=Format.STRING)
+                else:
+                    annotations = repr(func.__annotations__)
+                parts.append((_code_signature(func.__code__), func.__defaults__, func.__kwdefaults__, annotations))
+        return parts
 
     def track_globals(self, func):
-        if not isinstance(func, FunctionType) or not (module := ReactiveModule.instances.get(Path(func.__code__.co_filename).resolve())):
-            return
-        for name in func.__code__.co_names:
-            if name in module.__dict__:
-                getattr(module, name)
+        for target in _callable_chain(func):
+            if isinstance(target, FunctionType) and (module := ReactiveModule.instances.get(Path(target.__code__.co_filename).resolve())):
+                track_global_names(module, _global_names(target.__code__))
 
 
 def collect_module(module_name: str):
@@ -87,13 +122,19 @@ class ReactiveCollector:
             self.tests.pop(nodeid).dispose()
             self.signatures.pop(nodeid)
         for nodeid, ref in discovered.items():
-            signature = ref.signature()
-            if nodeid in self.tests and self.signatures[nodeid] != signature:
+            try:
+                signature = ref.signature()
+                changed = nodeid in self.tests and self.signatures[nodeid] != signature
+            except Exception:
+                # Reading annotations and comparing defaults can run user code. Rerun this test if comparison fails.
+                signature = object()
+                changed = nodeid in self.tests
+            if changed:
                 self.tests[nodeid].invalidate()
+            self.signatures[nodeid] = signature
             if nodeid not in self.tests:
                 self.tests[nodeid] = self.make_test(ref)
                 yield self.tests[nodeid]
-            self.signatures[nodeid] = signature
 
     def make_test(self, ref: TestRef):
         @derived(check_equality=False, context=HMR_CONTEXT)
