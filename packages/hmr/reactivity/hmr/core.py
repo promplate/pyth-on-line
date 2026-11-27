@@ -17,7 +17,7 @@ from weakref import WeakValueDictionary
 
 from .. import derived_method
 from ..context import Context
-from ..primitives import BaseDerived, Derived, Signal
+from ..primitives import BaseDerived, Derived, Signal, Subscribable
 from ._common import HMR_CONTEXT
 from .fs import add_filter, notify, setup_fs_audithook
 from .hooks import call_post_reload_hooks, call_pre_reload_hooks
@@ -40,6 +40,7 @@ class NamespaceProxy(Proxy):
     def __init__(self, initial: MutableMapping, module: "ReactiveModule", check_equality=True, *, context: Context | None = None):
         self.module = module
         super().__init__(initial, check_equality, context=context)
+        self._iter = Subscribable(context=self.context)
 
     def _signal(self, value=False):
         self.module.load.subscribers.add(signal := Name(value, self._check_equality, context=self.context))
@@ -121,6 +122,9 @@ class ReactiveModule(ModuleType):
         raise AttributeError("load")
 
     def __dir__(self):
+        return iter(self.__namespace_proxy)
+
+    def iter_namespace(self):
         return iter(self.__namespace_proxy)
 
     def __getattribute__(self, name: str):
