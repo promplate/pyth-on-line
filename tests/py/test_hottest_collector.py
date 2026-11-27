@@ -15,11 +15,16 @@ def isolate_hottest(monkeypatch):
     monkeypatch.setenv("NO_COLOR", "1")
     monkeypatch.delenv("FORCE_COLOR", raising=False)
     monkeypatch.setattr(hooks, "pre_reload_hooks", {})
+    monkeypatch.setattr(hooks, "post_reload_hooks", {})
     monkeypatch.setattr(fs, "fs_signals", fs.fs_signals.copy())
     monkeypatch.setattr(ReactiveModule, "instances", ReactiveModule.instances.copy())
     meta_path, filters = sys.meta_path[:], fs._filters[:]  # noqa: SLF001
+    computations = HOTTEST_CONTEXT.current_computations[:]
+    batches = HOTTEST_CONTEXT.batches[:]
     yield
     sys.meta_path[:], fs._filters[:] = meta_path, filters  # noqa: SLF001
+    HOTTEST_CONTEXT.current_computations[:] = computations
+    HOTTEST_CONTEXT.batches[:] = batches
 
 
 def test_reloader_runs_an_added_definition():
@@ -78,6 +83,307 @@ def test_default_comparison_cannot_interrupt_collection():
             env["test_example.py"] = source + "\ndef test_added(): pass"
             reloader.on_changes({Path("test_example.py").resolve()})
             assert "test_example.test_added PASS" in env.stdout_delta
+
+
+def test_reloader_tracks_class_attributes_used_by_nested_code():
+    with environment() as env:
+        env["test_example.py"] = "def make(): return 1\nclass TestGroup:\n    expected = make()\n    def test_one(self): assert all(self.expected == 1 for _ in range(1))"
+        from hottest.__main__ import Reloader
+
+        reloader = Reloader()
+        with HOTTEST_CONTEXT.effect(reloader.run_entry_file):
+            assert env.stdout_delta == "test_example.TestGroup.test_one PASS\n"
+            env["test_example.py"].replace("return 1", "return 2")
+            reloader.on_changes({Path("test_example.py").resolve()})
+            assert env.stdout_delta == "\033ctest_example.TestGroup.test_one FAIL\n"
+
+
+def test_reloader_ignores_globals_used_only_by_sibling_tests_and_locals():
+    with environment() as env:
+        source = "X = 1\nY = 1\nclass TestGroup:\n    def test_one(self): Y = 1; assert X == Y\n    def test_two(self): assert Y == 1"
+        env["test_example.py"] = source
+        from hottest.__main__ import Reloader
+
+        reloader = Reloader()
+        with HOTTEST_CONTEXT.effect(reloader.run_entry_file):
+            assert env.stdout_delta == "test_example.TestGroup.test_one PASS\ntest_example.TestGroup.test_two PASS\n"
+            env["test_example.py"] = source + "\ndef test_added(): pass"
+            reloader.on_changes({Path("test_example.py").resolve()})
+            assert env.stdout_delta == "\033ctest_example.test_added PASS\n"
+            env["test_example.py"].replace("Y = 1\nclass", "Y = 2\nclass")
+            reloader.on_changes({Path("test_example.py").resolve()})
+            assert env.stdout_delta == "\033ctest_example.TestGroup.test_two FAIL\n"
+
+
+def test_reloader_treats_builtin_class_attributes_as_stable():
+    with environment() as env:
+        source = "class TestGroup:\n    error = ValueError\n    def test_one(self): pass"
+        env["test_example.py"] = source
+        from hottest.__main__ import Reloader
+
+        reloader = Reloader()
+        with HOTTEST_CONTEXT.effect(reloader.run_entry_file):
+            assert env.stdout_delta == "test_example.TestGroup.test_one PASS\n"
+            env["test_example.py"] = source + "\ndef test_added(): pass"
+            reloader.on_changes({Path("test_example.py").resolve()})
+            assert env.stdout_delta == "\033ctest_example.test_added PASS\n"
+
+
+def test_reloader_tracks_globals_used_by_base_class_expressions():
+    with environment() as env:
+        env["test_example.py"] = (
+            "use_right = False\nclass Left:\n    expected = 1\nclass Right:\n    expected = 2\nclass TestGroup(Right if use_right else Left):\n    def test_one(self): assert self.expected == 1"
+        )
+        from hottest.__main__ import Reloader
+
+        reloader = Reloader()
+        with HOTTEST_CONTEXT.effect(reloader.run_entry_file):
+            assert env.stdout_delta == "test_example.TestGroup.test_one PASS\n"
+            env["test_example.py"].replace("use_right = False", "use_right = True")
+            reloader.on_changes({Path("test_example.py").resolve()})
+            assert env.stdout_delta == "\033ctest_example.TestGroup.test_one FAIL\n"
+
+
+@mark.parametrize(
+    ("method", "assertion"),
+    [
+        ("def __init__(self): self.value = X", "assert TestGroup().value == 1"),
+        ("def __new__(cls): instance = super().__new__(cls); instance.value = X; return instance", "assert TestGroup().value == 1"),
+        ("def __eq__(self, other): return self is not other and X == 1", "assert TestGroup() == TestGroup()"),
+        ("def __len__(self): return X", "assert len(TestGroup()) == 1"),
+        ("def __iter__(self): return iter([X])", "assert list(TestGroup()) == [1]"),
+        ("def __getitem__(self, key): return X", "assert TestGroup()[0] == 1"),
+        ("def __bool__(self): return X == 1", "assert TestGroup()"),
+        ("def __call__(self): return X", "assert TestGroup()() == 1"),
+    ],
+)
+def test_reloader_tracks_globals_used_by_implicit_dunders(method, assertion):
+    with environment() as env:
+        env["test_example.py"] = "X = 1\nclass TestGroup:\n    " + method + "\n    def test_one(self): " + assertion
+        from hottest.__main__ import Reloader
+
+        reloader = Reloader()
+        with HOTTEST_CONTEXT.effect(reloader.run_entry_file):
+            assert env.stdout_delta == "test_example.TestGroup.test_one PASS\n"
+            env["test_example.py"].replace("X = 1", "X = 2")
+            reloader.on_changes({Path("test_example.py").resolve()})
+            assert env.stdout_delta == "\033ctest_example.TestGroup.test_one FAIL\n"
+
+
+def test_reloader_detects_changed_constructor_source():
+    with environment() as env:
+        env["test_example.py"] = "class TestGroup:\n    def __init__(self): self.value = 1\n    def test_one(self): assert TestGroup().value == 1"
+        from hottest.__main__ import Reloader
+
+        reloader = Reloader()
+        with HOTTEST_CONTEXT.effect(reloader.run_entry_file):
+            assert env.stdout_delta == "test_example.TestGroup.test_one PASS\n"
+            env["test_example.py"].replace("self.value = 1", "self.value = 2")
+            reloader.on_changes({Path("test_example.py").resolve()})
+            assert env.stdout_delta == "\033ctest_example.TestGroup.test_one FAIL\n"
+
+
+@mark.parametrize(
+    "method",
+    ["@staticmethod\n    def test_one(): assert TestGroup.expected == 1", "def test_one(this): assert this.expected == 1", "def test_one(self): assert all(self.expected == 1 for _ in range(1))"],
+)
+def test_reloader_tracks_attributes_for_class_and_instance_receivers(method):
+    with environment() as env:
+        env["test_example.py"] = "X = 1\nclass TestGroup:\n    expected = X\n    " + method
+        from hottest.__main__ import Reloader
+
+        reloader = Reloader()
+        with HOTTEST_CONTEXT.effect(reloader.run_entry_file):
+            assert env.stdout_delta == "test_example.TestGroup.test_one PASS\n"
+            env["test_example.py"].replace("X = 1", "X = 2")
+            reloader.on_changes({Path("test_example.py").resolve()})
+            assert env.stdout_delta == "\033ctest_example.TestGroup.test_one FAIL\n"
+
+
+def test_reloader_ignores_unrelated_class_attributes_and_handles_annotations():
+    with environment() as env:
+        source = "from types import SimpleNamespace\nX = 1\nY = 1\nclass TestGroup:\n    value = X\n    annotated: int\n    def __init__(self): self.instance = SimpleNamespace(value=Y)\n    def test_one(self): assert self.instance.value == 1\n    def test_two(self): assert self.value == 1"
+        env["test_example.py"] = source
+        from hottest.__main__ import Reloader
+
+        reloader = Reloader()
+        with HOTTEST_CONTEXT.effect(reloader.run_entry_file):
+            assert env.stdout_delta == "test_example.TestGroup.test_one PASS\ntest_example.TestGroup.test_two PASS\n"
+            env["test_example.py"].replace("X = 1", "X = 2")
+            reloader.on_changes({Path("test_example.py").resolve()})
+            assert env.stdout_delta == "\033ctest_example.TestGroup.test_two FAIL\n"
+
+
+def test_reloader_treats_nested_class_attributes_as_stable():
+    with environment() as env:
+        source = "class Namespace:\n    class Value:\n        number = 1\nclass TestGroup:\n    Helper = Namespace.Value\n    def test_one(self): assert self.Helper.number == 1"
+        env["test_example.py"] = source
+        from hottest.__main__ import Reloader
+
+        reloader = Reloader()
+        with HOTTEST_CONTEXT.effect(reloader.run_entry_file):
+            assert env.stdout_delta == "test_example.TestGroup.test_one PASS\n"
+            env["test_example.py"] = source + "\ndef test_added(): pass"
+            reloader.on_changes({Path("test_example.py").resolve()})
+            assert env.stdout_delta == "\033ctest_example.test_added PASS\n"
+
+
+def test_reloader_ignores_shadowed_base_class_attributes():
+    with environment() as env:
+        source = "X = 1\nY = 1\nclass Base:\n    expected = X\nclass TestGroup(Base):\n    expected = Y\n    def test_one(self): assert self.expected == 1"
+        env["test_example.py"] = source
+        from hottest.__main__ import Reloader
+
+        reloader = Reloader()
+        with HOTTEST_CONTEXT.effect(reloader.run_entry_file):
+            assert env.stdout_delta == "test_example.TestGroup.test_one PASS\n"
+            env["test_example.py"] = source.replace("X = 1", "X = 2") + "\ndef test_added(): pass"
+            reloader.on_changes({Path("test_example.py").resolve()})
+            assert env.stdout_delta == "\033ctest_example.test_added PASS\n"
+
+
+def test_reloader_detects_changed_class_attribute_values():
+    with environment() as env:
+        source = "class Options:\n    __slots__ = ('value',)\n    def __init__(self, value): self.value = value\n    def __eq__(self, other): raise ValueError\n    def __repr__(self): raise ValueError\nclass TestGroup:\n    expected = Options(1)\n    @property\n    def answer(self): return self.expected.value\n    def test_one(self): assert self.answer == 1"
+        env["test_example.py"] = source
+        from hottest.__main__ import Reloader
+
+        reloader = Reloader()
+        with HOTTEST_CONTEXT.effect(reloader.run_entry_file):
+            assert env.stdout_delta == "test_example.TestGroup.test_one PASS\n"
+            env["test_example.py"] = source + "\ndef test_added(): pass"
+            reloader.on_changes({Path("test_example.py").resolve()})
+            assert env.stdout_delta == "\033ctest_example.test_added PASS\n"
+            env["test_example.py"].replace("Options(1)", "Options(2)")
+            reloader.on_changes({Path("test_example.py").resolve()})
+            assert env.stdout_delta == "\033ctest_example.TestGroup.test_one FAIL\n"
+
+
+def test_reloader_tracks_globals_used_by_class_helpers():
+    with environment() as env:
+        env["test_example.py"] = "x = 1\nclass TestGroup:\n    def helper(self): return x\n    def test_one(self): assert self.helper() == 1"
+        from hottest.__main__ import Reloader
+
+        reloader = Reloader()
+        with HOTTEST_CONTEXT.effect(reloader.run_entry_file):
+            assert env.stdout_delta == "test_example.TestGroup.test_one PASS\n"
+            env["test_example.py"].replace("x = 1", "x = 2")
+            reloader.on_changes({Path("test_example.py").resolve()})
+            assert env.stdout_delta == "\033ctest_example.TestGroup.test_one FAIL\n"
+
+
+@mark.parametrize(
+    "method",
+    [
+        "@property\n    def helper(self): return x\n    def test_one(self): assert self.helper == 1",
+        "@staticmethod\n    def helper(): return x\n    def test_one(self): assert self.helper() == 1",
+        "@classmethod\n    def helper(cls): return x\n    def test_one(self): assert self.helper() == 1",
+        "from functools import cached_property\n    @cached_property\n    def helper(self): return x\n    def test_one(self): assert self.helper == 1",
+    ],
+)
+def test_reloader_tracks_globals_used_by_class_descriptors(method):
+    with environment() as env:
+        env["test_example.py"] = "x = 1\nclass TestGroup:\n    " + method
+        from hottest.__main__ import Reloader
+
+        reloader = Reloader()
+        with HOTTEST_CONTEXT.effect(reloader.run_entry_file):
+            assert env.stdout_delta == "test_example.TestGroup.test_one PASS\n"
+            env["test_example.py"].replace("x = 1", "x = 2")
+            reloader.on_changes({Path("test_example.py").resolve()})
+            assert env.stdout_delta == "\033ctest_example.TestGroup.test_one FAIL\n"
+
+
+def test_reloader_tracks_globals_used_by_inherited_helpers():
+    with environment() as env:
+        env["test_example.py"] = "x = 1\nclass Helpers:\n    def helper(self): return x\nclass TestGroup(Helpers):\n    def test_one(self): assert self.helper() == 1"
+        from hottest.__main__ import Reloader
+
+        reloader = Reloader()
+        with HOTTEST_CONTEXT.effect(reloader.run_entry_file):
+            assert env.stdout_delta == "test_example.TestGroup.test_one PASS\n"
+            env["test_example.py"].replace("x = 1", "x = 2")
+            reloader.on_changes({Path("test_example.py").resolve()})
+            assert env.stdout_delta == "\033ctest_example.TestGroup.test_one FAIL\n"
+
+
+def test_reloader_does_not_rerun_sibling_methods_for_method_only_edits():
+    with environment() as env:
+        env["test_example.py"] = "class TestGroup:\n    def test_one(self): pass\n    def test_two(self): pass"
+        from hottest.__main__ import Reloader
+
+        reloader = Reloader()
+        with HOTTEST_CONTEXT.effect(reloader.run_entry_file):
+            assert env.stdout_delta == "test_example.TestGroup.test_one PASS\ntest_example.TestGroup.test_two PASS\n"
+            env["test_example.py"].replace("def test_one(self): pass", "def test_one(self): assert False")
+            reloader.on_changes({Path("test_example.py").resolve()})
+            assert env.stdout_delta == "\033ctest_example.TestGroup.test_one FAIL\n"
+
+
+def test_reloader_tracks_class_attribute_dependencies_and_inherited_source():
+    with environment() as env:
+        env["test_example.py"] = "x = 1\ndef make(): return x\nclass Helpers:\n    expected = make()\nclass TestGroup(Helpers):\n    def test_one(self): assert self.expected == 1"
+        from hottest.__main__ import Reloader
+
+        reloader = Reloader()
+        with HOTTEST_CONTEXT.effect(reloader.run_entry_file):
+            assert env.stdout_delta == "test_example.TestGroup.test_one PASS\n"
+            env["test_example.py"].replace("x = 1", "x = 2")
+            reloader.on_changes({Path("test_example.py").resolve()})
+            assert env.stdout_delta == "\033ctest_example.TestGroup.test_one FAIL\n"
+            env["test_example.py"].replace("return x", "return 1")
+            reloader.on_changes({Path("test_example.py").resolve()})
+            assert env.stdout_delta == "\033ctest_example.TestGroup.test_one PASS\n"
+
+
+def test_reloader_tracks_inherited_class_attributes_and_methods():
+    with environment() as env:
+        env["test_example.py"] = "class Helpers:\n    expected = 1\n    def helper(self): return self.expected\nclass TestGroup(Helpers):\n    def test_one(self): assert self.helper() == 1"
+        from hottest.__main__ import Reloader
+
+        reloader = Reloader()
+        with HOTTEST_CONTEXT.effect(reloader.run_entry_file):
+            assert env.stdout_delta == "test_example.TestGroup.test_one PASS\n"
+            env["test_example.py"].replace("expected = 1", "expected = 2")
+            reloader.on_changes({Path("test_example.py").resolve()})
+            assert env.stdout_delta == "\033ctest_example.TestGroup.test_one FAIL\n"
+            env["test_example.py"].replace("return self.expected", "return 1")
+            reloader.on_changes({Path("test_example.py").resolve()})
+            assert env.stdout_delta == "\033ctest_example.TestGroup.test_one PASS\n"
+
+
+def test_reloader_keeps_async_sibling_method_signatures_independent():
+    with environment() as env:
+        env["test_example.py"] = "class TestGroup:\n    async def test_one(self): pass\n    def test_two(self): pass"
+        from hottest.__main__ import Reloader
+
+        reloader = Reloader()
+        with HOTTEST_CONTEXT.effect(reloader.run_entry_file):
+            assert env.stdout_delta == "test_example.TestGroup.test_one PASS\ntest_example.TestGroup.test_two PASS\n"
+            env["test_example.py"].replace("async def test_one(self): pass", "async def test_one(self): assert False")
+            reloader.on_changes({Path("test_example.py").resolve()})
+            assert env.stdout_delta == "\033ctest_example.TestGroup.test_one FAIL\n"
+
+
+def test_reloader_tracks_class_valued_attributes_and_inherited_slots():
+    with environment() as env:
+        source = "class Base:\n    __slots__ = ('value',)\n    def __init__(self, value): self.value = value\nclass Child(Base):\n    __slots__ = ()\nclass A:\n    value = 1\nclass B:\n    value = 2\nX = A\ndef make(): return Child(1)\nclass TestGroup:\n    Helper = X\n    expected = make()\n    allowed = {1, 2}\n    def test_one(self): assert self.Helper.value == 1\n    def test_two(self): assert self.expected.value == 1 and self.allowed == {1, 2}"
+        env["test_example.py"] = source
+        from hottest.__main__ import Reloader
+
+        reloader = Reloader()
+        with HOTTEST_CONTEXT.effect(reloader.run_entry_file):
+            assert env.stdout_delta == "test_example.TestGroup.test_one PASS\ntest_example.TestGroup.test_two PASS\n"
+            env["test_example.py"] = source + "\ndef test_added(): pass"
+            reloader.on_changes({Path("test_example.py").resolve()})
+            assert env.stdout_delta == "\033ctest_example.test_added PASS\n"
+            env["test_example.py"].replace("Child(1)", "Child(2)")
+            reloader.on_changes({Path("test_example.py").resolve()})
+            assert env.stdout_delta == "\033ctest_example.TestGroup.test_two FAIL\n"
+            env["test_example.py"].replace("Child(2)", "Child(1)")
+            env["test_example.py"].replace("X = A", "X = B")
+            reloader.on_changes({Path("test_example.py").resolve()})
+            assert set(env.stdout_delta.removeprefix("\033c").splitlines()) == {"test_example.TestGroup.test_two PASS", "test_example.TestGroup.test_one FAIL"}
 
 
 def test_reloader_reruns_only_a_modified_test():
