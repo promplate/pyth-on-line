@@ -17,12 +17,10 @@ if str(rootdir) not in sys.path:
 
 
 def _collector():
-    fixtures = find_fixtures(rootdir)
-
     def run(func):
         print(colored(f"{func.__module__}.", attrs=["dark"]) + str(func.__qualname__), end=" ", flush=True)
         try:
-            run_test(func, fixtures)
+            run_test(func, find_fixtures(rootdir))
         except Exception:
             print(colored("FAIL", "red"))
         else:

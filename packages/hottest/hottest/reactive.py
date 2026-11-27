@@ -3,7 +3,8 @@ from dataclasses import dataclass
 from functools import partial, update_wrapper, wraps
 from importlib import import_module
 from inspect import getattr_static, isclass, isfunction
-from types import MethodType
+from pathlib import Path
+from types import FunctionType, MethodType
 from typing import Any
 
 from ._vendored_reactivity import derived
@@ -40,6 +41,23 @@ class TestRef:
             return func
         return obj
 
+    def signature(self):
+        obj = getattr(import_module(self.module), self.name)
+        if self.method:
+            obj = getattr(obj, self.method)
+        while isinstance(obj, partial):
+            obj = obj.func
+        if not hasattr(obj, "__code__"):
+            return None
+        return obj.__code__, obj.__defaults__, obj.__kwdefaults__, repr(obj.__annotations__)
+
+    def track_globals(self, func):
+        if not isinstance(func, FunctionType) or not (module := ReactiveModule.instances.get(Path(func.__code__.co_filename).resolve())):
+            return
+        for name in func.__code__.co_names:
+            if name in module.__dict__:
+                getattr(module, name)
+
 
 def collect_module(module_name: str):
     module = import_module(module_name)
@@ -61,21 +79,28 @@ class ReactiveCollector:
     def __init__(self, run: Callable[[Callable[[], Any]], Any]):
         self.run = run
         self.tests: dict[str, Derived] = {}
+        self.signatures = {}
 
     def update(self, refs):
         discovered = {ref.nodeid: ref for ref in refs}
         for nodeid in self.tests.keys() - discovered.keys():
             self.tests.pop(nodeid).dispose()
+            self.signatures.pop(nodeid)
         for nodeid, ref in discovered.items():
+            signature = ref.signature()
+            if nodeid in self.tests and self.signatures[nodeid] != signature:
+                self.tests[nodeid].invalidate()
             if nodeid not in self.tests:
                 self.tests[nodeid] = self.make_test(ref)
                 yield self.tests[nodeid]
+            self.signatures[nodeid] = signature
 
     def make_test(self, ref: TestRef):
         @derived(check_equality=False, context=HMR_CONTEXT)
         def test():
             with HMR_CONTEXT.untrack():  # Replacing a test's function object must not rerun it; only its reactive dependencies should.
                 func = ref.resolve()
+            ref.track_globals(func)
             self.run(func)
 
         test.reactivity_loss_strategy = "ignore"  # Tests without reactive globals still have a valid dependency-free body.

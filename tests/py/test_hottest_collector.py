@@ -35,6 +35,44 @@ def test_reloader_runs_an_added_definition():
             assert env.stdout_delta == "\033ctest_example.test_two PASS\n"
 
 
+def test_reloader_reruns_only_a_modified_test():
+    with environment() as env:
+        env["test_example.py"] = "def test_one(): pass\ndef test_two(): pass"
+        from hottest.__main__ import Reloader
+
+        reloader = Reloader()
+        with HOTTEST_CONTEXT.effect(reloader.run_entry_file):
+            assert env.stdout_delta == "test_example.test_one PASS\ntest_example.test_two PASS\n"
+            env["test_example.py"].replace("def test_two(): pass", "def test_two(): assert False\ndef test_three(): pass")
+            reloader.on_changes({Path("test_example.py").resolve()})
+            assert env.stdout_delta == "\033ctest_example.test_three PASS\ntest_example.test_two FAIL\n"
+
+
+def test_reloader_reruns_when_a_module_global_changes():
+    with environment() as env:
+        env["test_example.py"] = "x = 1\ndef test_one(): assert x == 1"
+        from hottest.__main__ import Reloader
+
+        reloader = Reloader()
+        with HOTTEST_CONTEXT.effect(reloader.run_entry_file):
+            assert env.stdout_delta == "test_example.test_one PASS\n"
+            env["test_example.py"].replace("x = 1", "x = 2")
+            reloader.on_changes({Path("test_example.py").resolve()})
+            assert env.stdout_delta == "\033ctest_example.test_one FAIL\n"
+
+
+def test_reloader_discovers_fixtures_added_with_a_test():
+    with environment() as env:
+        env["test_example.py"] = ""
+        from hottest.__main__ import Reloader
+
+        reloader = Reloader()
+        with HOTTEST_CONTEXT.effect(reloader.run_entry_file):
+            env["test_example.py"] = "from pytest import fixture\n@fixture\ndef value(): return 42\ndef test_added(value): assert value == 42"
+            reloader.on_changes({Path("test_example.py").resolve()})
+            assert env.stdout_delta == "\033ctest_example.test_added PASS\n"
+
+
 def test_reloader_collects_added_class_methods():
     with environment() as env:
         env["test_example.py"] = "class TestGroup:\n    def test_one(self): pass"
@@ -43,9 +81,12 @@ def test_reloader_collects_added_class_methods():
         reloader = Reloader()
         with HOTTEST_CONTEXT.effect(reloader.run_entry_file):
             assert env.stdout_delta == "test_example.TestGroup.test_one PASS\n"
-            env["test_example.py"].replace("    def test_one(self): pass", "    def test_one(self): pass\n    def test_two(self, monkeypatch): assert monkeypatch is not None")
+            env["test_example.py"].replace("    def test_one(self): pass", "    def test_one(self): assert False")
             reloader.on_changes({Path("test_example.py").resolve()})
-            assert env.stdout_delta == "\033ctest_example.TestGroup.test_two PASS\n"
+            assert env.stdout_delta == "\033ctest_example.TestGroup.test_one FAIL\n"
+            env["test_example.py"].replace("    def test_one(self): assert False", "    def test_one(self): pass\n    def test_two(self, monkeypatch): assert monkeypatch is not None")
+            reloader.on_changes({Path("test_example.py").resolve()})
+            assert env.stdout_delta == "\033ctest_example.TestGroup.test_two PASS\ntest_example.TestGroup.test_one PASS\n"
 
 
 def test_reloader_collects_from_test_files():
