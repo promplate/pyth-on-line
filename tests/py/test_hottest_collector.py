@@ -43,6 +43,14 @@ def test_reloader_runs_an_added_definition():
         ("def test_one(): assert missing == 1", "missing == 1", "missing == 1\nmissing = 1", "test_one PASS"),
         ("from functools import partial\ndef check(n): assert n == 1\ntest_one = partial(check, n=1)", "n=1", "n=2", "test_one FAIL"),
         ("from functools import wraps\ndef decorate(f):\n    @wraps(f)\n    def run(): return f()\n    return run\n@decorate\ndef test_one(): pass", "pass", "assert False", "test_one FAIL"),
+        (
+            "from functools import wraps\ndef guard(flag):\n    def decorate(func):\n        @wraps(func)\n        def run():\n            assert flag\n            return func()\n        return run\n    return decorate\n@guard(True)\ndef test_guarded(): pass",
+            "guard(True)",
+            "guard(False)",
+            "test_guarded FAIL",
+        ),
+        ("class TestValues:\n    expected = 1\n    def test_value(self): assert self.expected == 1", "expected = 1", "expected = 2", "TestValues.test_value FAIL"),
+        ("from pytest import fixture\n@fixture\ndef value(): return 1\ndef test_one(value): assert value == 1", "return 1", "return 2", "test_one FAIL"),
     ],
 )
 def test_reloader_detects_changed_test_inputs(source, before, after, result):
@@ -85,6 +93,22 @@ def test_reloader_reruns_only_a_modified_test():
             assert env.stdout_delta == "\033ctest_example.test_three PASS\ntest_example.test_two FAIL\n"
 
 
+def test_reloader_tracks_helpers_without_rerunning_on_unrelated_additions():
+    with environment() as env:
+        env["test_example.py"] = "def helper(): return 1\ndef test_one(): assert helper() == 1"
+        from hottest.__main__ import Reloader
+
+        reloader = Reloader()
+        with HOTTEST_CONTEXT.effect(reloader.run_entry_file):
+            assert env.stdout_delta == "test_example.test_one PASS\n"
+            env["test_example.py"].replace("assert helper() == 1", "assert helper() == 1\ndef test_two(): pass")
+            reloader.on_changes({Path("test_example.py").resolve()})
+            assert env.stdout_delta == "\033ctest_example.test_two PASS\n"
+            env["test_example.py"].replace("return 1", "return 2")
+            reloader.on_changes({Path("test_example.py").resolve()})
+            assert env.stdout_delta == "\033ctest_example.test_one FAIL\n"
+
+
 def test_reloader_reruns_when_a_module_global_changes():
     with environment() as env:
         env["test_example.py"] = "x = 1\ndef test_one(): assert x == 1"
@@ -98,6 +122,20 @@ def test_reloader_reruns_when_a_module_global_changes():
             assert env.stdout_delta == "\033ctest_example.test_one FAIL\n"
 
 
+def test_reloader_tracks_helper_source_in_another_module():
+    with environment() as env:
+        env["helpers.py"] = "def value(): return 1"
+        env["test_example.py"] = "from helpers import value\ndef test_one(): assert value() == 1"
+        from hottest.__main__ import Reloader
+
+        reloader = Reloader()
+        with HOTTEST_CONTEXT.effect(reloader.run_entry_file):
+            assert env.stdout_delta == "test_example.test_one PASS\n"
+            env["helpers.py"].replace("return 1", "return 2")
+            reloader.on_changes({Path("helpers.py").resolve()})
+            assert env.stdout_delta == "\033ctest_example.test_one FAIL\n"
+
+
 def test_reloader_discovers_fixtures_added_with_a_test():
     with environment() as env:
         env["test_example.py"] = ""
@@ -108,6 +146,38 @@ def test_reloader_discovers_fixtures_added_with_a_test():
             env["test_example.py"] = "from pytest import fixture\n@fixture\ndef value(): return 42\ndef test_added(value): assert value == 42"
             reloader.on_changes({Path("test_example.py").resolve()})
             assert env.stdout_delta == "\033ctest_example.test_added PASS\n"
+
+
+def test_reloader_reloads_conftest_fixtures_repeatedly():
+    with environment() as env:
+        env["conftest.py"] = "from pytest import fixture\n@fixture\ndef value(): return 1"
+        env["test_example.py"] = "def test_one(value): assert value == 1"
+        from hottest.__main__ import Reloader
+
+        reloader = Reloader()
+        with HOTTEST_CONTEXT.effect(reloader.run_entry_file):
+            assert env.stdout_delta == "test_example.test_one PASS\n"
+            for expected in (2, 3):
+                env["conftest.py"].replace(f"return {expected - 1}", f"return {expected}")
+                reloader.on_changes({Path("conftest.py").resolve()})
+                assert env.stdout_delta == "\033ctest_example.test_one FAIL\n"
+
+
+def test_reloader_tracks_globals_used_by_fixtures():
+    with environment() as env:
+        env["conftest.py"] = "from pytest import fixture\nx = 1\n@fixture\ndef value(): return x"
+        env["test_example.py"] = "def test_one(value): assert value == 1"
+        from hottest.__main__ import Reloader
+
+        reloader = Reloader()
+        with HOTTEST_CONTEXT.effect(reloader.run_entry_file):
+            assert env.stdout_delta == "test_example.test_one PASS\n"
+            env["conftest.py"].replace("x = 1", "x = 2")
+            reloader.on_changes({Path("conftest.py").resolve()})
+            assert env.stdout_delta == "\033ctest_example.test_one FAIL\n"
+            env["conftest.py"].replace("return x", "return 1")
+            reloader.on_changes({Path("conftest.py").resolve()})
+            assert env.stdout_delta == "\033ctest_example.test_one PASS\n"
 
 
 def test_reloader_collects_added_class_methods():
