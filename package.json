@@ -50,7 +50,7 @@
     "mdast-util-from-markdown": "^2.1.0",
     "mdast-util-gfm": "^3.1.0",
     "mdast-util-to-hast": "^13.2.2",
-    "mdast-util-to-markdown": "^2.2.4",
+    "mdast-util-to-markdown": "^2.2.5",
     "mdast-util-to-string": "^4.0.0",
     "micromark-extension-gfm": "^3.0.0",
     "monaco-editor-core": "^0.57.0",
@@ -82,10 +82,10 @@
     "@types/node": "^26.6.11",
     "@types/turndown": "^5.0.6",
     "@unocss/eslint-config": "~66.13.0",
-    "eslint": "^10.15.0",
+    "eslint": "^10.16.0",
     "eslint-plugin-format": "^2.0.1",
     "eslint-plugin-svelte": "^3.24.1",
-    "rollup": "^4.68.8",
+    "rollup": "^4.68.9",
     "svelte-check": "^4.7.8",
     "typescript": "^6.0.3"
   }
