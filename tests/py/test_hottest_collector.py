@@ -142,7 +142,13 @@ def test_reloader_tracks_class_method_globals_from_reachable_helpers(source):
             assert env.stdout_delta.endswith(" FAIL\n")
 
 
-@mark.parametrize("method", ["def run(self): return self.helper().method()\n    def test_one(self): assert self.run() == 1", "def __init__(self): self.value = self.helper().method()\n    def test_one(self): assert self.value == 1"])
+@mark.parametrize(
+    "method",
+    [
+        "def run(self): return self.helper().method()\n    def test_one(self): assert self.run() == 1",
+        "def __init__(self): self.value = self.helper().method()\n    def test_one(self): assert self.value == 1",
+    ],
+)
 def test_reloader_tracks_class_valued_attributes_from_class_helpers(method):
     with environment() as env:
         env["test_example.py"] = "X = 1\nclass Value:\n    def method(self): return X\nclass TestGroup:\n    helper = Value\n    " + method
@@ -156,7 +162,9 @@ def test_reloader_tracks_class_valued_attributes_from_class_helpers(method):
             assert env.stdout_delta == "\033ctest_example.TestGroup.test_one FAIL\n"
 
 
-@mark.parametrize(("container", "access"), [("[Value]", "self.helpers[0]"), ("{'value': Value}", "self.helpers['value']"), ("{Value}", "next(iter(self.helpers))"), ("{Value: 'value'}", "next(iter(self.helpers))")])
+@mark.parametrize(
+    ("container", "access"), [("[Value]", "self.helpers[0]"), ("{'value': Value}", "self.helpers['value']"), ("{Value}", "next(iter(self.helpers))"), ("{Value: 'value'}", "next(iter(self.helpers))")]
+)
 def test_reloader_tracks_class_valued_attribute_containers(container, access):
     with environment() as env:
         env["test_example.py"] = f"X = 1\nclass Value:\n    def method(self): return X\nclass TestGroup:\n    helpers = {container}\n    def test_one(self): assert {access}().method() == 1"
@@ -173,7 +181,9 @@ def test_reloader_tracks_class_valued_attribute_containers(container, access):
 @mark.parametrize(("helper", "expression"), [("Helper()", "self.helper.method()"), ("[Helper()]", "self.helper[0].method()"), ("Helper()", "self.helper()")])
 def test_reloader_tracks_object_valued_class_attributes(helper, expression):
     with environment() as env:
-        env["test_example.py"] = f"X = 1\nclass Helper:\n    def method(self): return X\n    def __call__(self): return X\nclass TestGroup:\n    helper = {helper}\n    def test_one(self): assert {expression} == 1"
+        env["test_example.py"] = (
+            f"X = 1\nclass Helper:\n    def method(self): return X\n    def __call__(self): return X\nclass TestGroup:\n    helper = {helper}\n    def test_one(self): assert {expression} == 1"
+        )
         from hottest.__main__ import Reloader
 
         reloader = Reloader()
@@ -200,7 +210,9 @@ def test_reloader_detects_object_valued_class_helper_source_changes():
 @mark.parametrize("attributes", ["", "    def __init__(self): self.value = 1", "    __slots__ = 'value'\n    def __init__(self): self.value = 1"])
 def test_reloader_detects_object_helper_method_and_class_attribute_changes(attributes):
     with environment() as env:
-        source = f"class Helper:\n    factor = 1\n{attributes}\n    def method(self): return self.factor\nclass TestGroup:\n    helper = Helper()\n    def test_one(self): assert self.helper.method() == 1"
+        source = (
+            f"class Helper:\n    factor = 1\n{attributes}\n    def method(self): return self.factor\nclass TestGroup:\n    helper = Helper()\n    def test_one(self): assert self.helper.method() == 1"
+        )
         env["test_example.py"] = source
         from hottest.__main__ import Reloader
 

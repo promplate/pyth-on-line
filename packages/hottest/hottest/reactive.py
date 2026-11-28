@@ -258,12 +258,20 @@ def _class_attribute_names(code: CodeType, cls, instance=None):
         if instruction.opname.startswith("STORE_") and previous is not None and previous.opname == "LOAD_CONST" and isinstance(previous.argval, str):
             for name in instruction.argval if isinstance(instruction.argval, tuple) else (instruction.argval,):
                 constants[name] = previous.argval
-        names = (instruction.argval,) if instruction.opname == "LOAD_CONST" and isinstance(instruction.argval, str) else tuple(constants.get(name) for name in instruction.argval) if isinstance(instruction.argval, tuple) else (constants.get(instruction.argval),)
+        names = (
+            (instruction.argval,)
+            if instruction.opname == "LOAD_CONST" and isinstance(instruction.argval, str)
+            else tuple(constants.get(name) for name in instruction.argval)
+            if isinstance(instruction.argval, tuple)
+            else (constants.get(instruction.argval),)
+        )
         for name in names:
             if name is None or not (instruction.opname == "LOAD_CONST" or instruction.opname.startswith("LOAD_FAST") or instruction.opname == "LOAD_DEREF"):
                 continue
             previous_instructions = instructions[max(0, index - 3) : index]
-            if any(item.opname in {"LOAD_GLOBAL", "LOAD_NAME"} and item.argval in {"getattr", "vars", "getattribute"} for item in previous_instructions) or (previous.opname == "LOAD_ATTR" and previous.argval == "__dict__"):
+            if any(item.opname in {"LOAD_GLOBAL", "LOAD_NAME"} and item.argval in {"getattr", "vars", "getattribute"} for item in previous_instructions) or (
+                previous.opname == "LOAD_ATTR" and previous.argval == "__dict__"
+            ):
                 yield name
         if instruction.opname.startswith("STORE_") and any(item.opname in {"LOAD_GLOBAL", "LOAD_NAME"} and item.argval == cls.__name__ for item in instructions[max(0, index - 4) : index]):
             instances.update(instruction.argval if isinstance(instruction.argval, tuple) else (instruction.argval,))
@@ -271,7 +279,7 @@ def _class_attribute_names(code: CodeType, cls, instance=None):
             instruction.opname in {"LOAD_ATTR", "LOAD_METHOD"}
             and previous is not None
             and (
-                (previous.opname.startswith("LOAD_FAST") or previous.opname.startswith("STORE_FAST") or previous.opname == "LOAD_DEREF") and previous.argval in instances
+                ((previous.opname.startswith("LOAD_FAST") or previous.opname.startswith("STORE_FAST") or previous.opname == "LOAD_DEREF") and previous.argval in instances)
                 or (previous.opname in {"LOAD_GLOBAL", "LOAD_NAME"} and previous.argval in class_names)
                 or (previous.opname == "LOAD_ATTR" and previous.argval == "__class__")
                 or (previous.opname == "CALL" and any(item.opname in {"LOAD_GLOBAL", "LOAD_NAME"} and item.argval == "type" for item in instructions[max(0, index - 3) : index]))
