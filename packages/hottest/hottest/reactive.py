@@ -203,6 +203,8 @@ def _reachable_classes(obj, cls=None, seen=None):
                     yield from _reachable_classes(value, cls, seen)
                 elif _is_callable(value):
                     yield from _reachable_classes(value, cls, seen)
+                elif value is not None and _class_module(type(value)) is not None:
+                    yield type(value)
     if isinstance(obj, type):
         for base in obj.__mro__:
             for member in vars(base).values() if base is not object else ():
@@ -279,13 +281,18 @@ def _class_attribute_names(code: CodeType, cls, instance=None):
                 previous is not None and (previous.opname == "LOAD_ATTR" and previous.argval == "__dict__")
             ):
                 yield name
-        if instruction.opname.startswith("STORE_") and any(item.opname in {"LOAD_GLOBAL", "LOAD_NAME"} and item.argval == cls.__name__ for item in instructions[max(0, index - 4) : index]):
+        if instruction.opname.startswith("STORE_") and any(
+            (item.opname in {"LOAD_GLOBAL", "LOAD_NAME"} and item.argval == cls.__name__) or (item.opname.startswith("LOAD_FAST") and item.argval in instances)
+            for item in instructions[max(0, index - 4) : index]
+        ):
             instances.update(instruction.argval if isinstance(instruction.argval, tuple) else (instruction.argval,))
         if (
             instruction.opname in {"LOAD_ATTR", "LOAD_METHOD"}
             and previous is not None
             and (
                 ((previous.opname.startswith("LOAD_FAST") or previous.opname.startswith("STORE_FAST") or previous.opname == "LOAD_DEREF") and previous.argval in instances)
+                or (previous.opname == "LOAD_FAST" and previous.argval in instances)
+                or (previous.opname.startswith("STORE_FAST") and set(previous.argval if isinstance(previous.argval, tuple) else (previous.argval,)) & instances)
                 or (previous.opname in {"LOAD_GLOBAL", "LOAD_NAME"} and previous.argval in class_names)
                 or (previous.opname == "LOAD_ATTR" and previous.argval == "__class__")
                 or (previous.opname == "CALL" and any(item.opname in {"LOAD_GLOBAL", "LOAD_NAME"} and item.argval == "type" for item in instructions[max(0, index - 3) : index]))

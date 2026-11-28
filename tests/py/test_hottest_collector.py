@@ -84,6 +84,34 @@ def test_reloader_detects_changed_class_valued_globals():
             assert env.stdout_delta == "\033ctest_example.test_one FAIL\n"
 
 
+def test_reloader_tracks_instance_valued_global_types():
+    with environment() as env:
+        env["test_example.py"] = (
+            "from typing import NamedTuple\nclass Value(NamedTuple):\n    value: int = 0\n    def expected(self): return 1\nvalue = Value()\ndef test_one(): assert value.expected() == 1"
+        )
+        from hottest.__main__ import Reloader
+
+        reloader = Reloader()
+        with HOTTEST_CONTEXT.effect(reloader.run_entry_file):
+            assert env.stdout_delta == "test_example.test_one PASS\n"
+            env["test_example.py"].replace("return 1", "return 2")
+            reloader.on_changes({Path("test_example.py").resolve()})
+            assert env.stdout_delta == "\033ctest_example.test_one FAIL\n"
+
+
+def test_reloader_tracks_test_instance_aliases():
+    with environment() as env:
+        env["test_example.py"] = "class TestGroup:\n    expected = 1\n    def test_one(self): other = self; assert other.expected == 1"
+        from hottest.__main__ import Reloader
+
+        reloader = Reloader()
+        with HOTTEST_CONTEXT.effect(reloader.run_entry_file):
+            assert env.stdout_delta == "test_example.TestGroup.test_one PASS\n"
+            env["test_example.py"].replace("expected = 1", "expected = 2")
+            reloader.on_changes({Path("test_example.py").resolve()})
+            assert env.stdout_delta == "\033ctest_example.TestGroup.test_one FAIL\n"
+
+
 @mark.parametrize(
     "source",
     [
