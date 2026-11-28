@@ -65,10 +65,12 @@ def _class_module(cls):
 def _class_ast(module: ReactiveModule, name: str):
     with HMR_CONTEXT.untrack():
         source = Path(module.__dict__["__file__"]).read_text()
-    body = parse(source).body
+    tree = parse(source)
+    body = tree.body
+    node = None
     for part in name.split("."):
         if part == "<locals>":
-            return next((node for node in walk(body) if isinstance(node, ClassDef) and node.name == name.rsplit(".", 1)[-1]), None)
+            return next((node for node in walk(tree) if isinstance(node, ClassDef) and node.name == name.rsplit(".", 1)[-1]), None)
         if (node := next((node for node in body if isinstance(node, ClassDef) and node.name == part), None)) is None:
             return None
         body = node.body
@@ -254,7 +256,10 @@ def _class_attribute_names(code: CodeType, cls, instance=None):
     instructions = list(get_instructions(code))
     for index, instruction in enumerate(instructions):
         if instruction.opname == "LOAD_SUPER_ATTR":
-            yield instruction.argval
+            if isinstance(instruction.argval, str):
+                yield instruction.argval
+            else:
+                yield from (name for name in instruction.argval if isinstance(name, str))
         if instruction.opname.startswith("STORE_") and previous is not None and previous.opname == "LOAD_CONST" and isinstance(previous.argval, str):
             for name in instruction.argval if isinstance(instruction.argval, tuple) else (instruction.argval,):
                 constants[name] = previous.argval
@@ -265,11 +270,13 @@ def _class_attribute_names(code: CodeType, cls, instance=None):
         else:
             names = (constants.get(instruction.argval),)
         for name in names:
+            if not isinstance(name, str):
+                continue
             if name is None or not (instruction.opname == "LOAD_CONST" or instruction.opname.startswith("LOAD_FAST") or instruction.opname == "LOAD_DEREF"):
                 continue
             previous_instructions = instructions[max(0, index - 3) : index]
             if any(item.opname in {"LOAD_GLOBAL", "LOAD_NAME"} and item.argval in {"getattr", "vars", "getattribute"} for item in previous_instructions) or (
-                previous.opname == "LOAD_ATTR" and previous.argval == "__dict__"
+                previous is not None and (previous.opname == "LOAD_ATTR" and previous.argval == "__dict__")
             ):
                 yield name
         if instruction.opname.startswith("STORE_") and any(item.opname in {"LOAD_GLOBAL", "LOAD_NAME"} and item.argval == cls.__name__ for item in instructions[max(0, index - 4) : index]):
@@ -349,6 +356,7 @@ def _reachable_class_members(cls, obj):
             names = attributes_found | set(_implicit_dunder_names(func.__code__))
             if attributes_found:
                 names |= {"__getattr__", "__getattribute__"}
+            names = {name for name in names if isinstance(name, str)}
             for name in names:
                 if name.startswith("test"):
                     continue
@@ -422,6 +430,7 @@ class TestRef:
         with HMR_CONTEXT.untrack():
             cls = getattr(import_module(self.module), self.name)
             obj = cls
+            attributes = None
             if self.method:
                 obj = getattr(obj, self.method)
                 attributes, _ = _reachable_class_members(cls, obj)
@@ -439,6 +448,7 @@ class TestRef:
             cls = module.__dict__[self.name] if isinstance(module, ReactiveModule) else getattr(module, self.name)
         track_callable_globals(func, exclude=cls)
         if self.method:
+            assert cls is not None
             _, helpers = _reachable_class_members(cls, func)
             for helper in helpers:
                 track_callable_globals(helper, exclude=cls)
