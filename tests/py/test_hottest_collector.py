@@ -113,6 +113,40 @@ def test_reloader_tracks_test_instance_aliases():
 
 
 @mark.parametrize(
+    ("declaration", "test"),
+    [
+        ("value = Value()", "def test_one(): assert value.expected() == 1"),
+        ("values = [Value()]", "def test_one(): assert values[0].expected() == 1"),
+        ("", "def test_one(value=Value()): assert value.expected() == 1"),
+    ],
+)
+def test_reloader_tracks_reachable_instance_types(declaration, test):
+    with environment() as env:
+        env["test_example.py"] = f"from typing import NamedTuple\nclass Value(NamedTuple):\n    value: int = 0\n    def expected(self): return 1\n{declaration}\n{test}"
+        from hottest.__main__ import Reloader
+
+        reloader = Reloader()
+        with HOTTEST_CONTEXT.effect(reloader.run_entry_file):
+            assert env.stdout_delta == "test_example.test_one PASS\n"
+            env["test_example.py"].replace("return 1", "return 2")
+            reloader.on_changes({Path("test_example.py").resolve()})
+            assert env.stdout_delta == "\033ctest_example.test_one FAIL\n"
+
+
+def test_reloader_tracks_dynamic_class_attribute_names():
+    with environment() as env:
+        env["test_example.py"] = "ATTR = 'expected'\nclass TestGroup:\n    expected = 1\n    def test_one(self): assert getattr(self, ATTR) == 1"
+        from hottest.__main__ import Reloader
+
+        reloader = Reloader()
+        with HOTTEST_CONTEXT.effect(reloader.run_entry_file):
+            assert env.stdout_delta == "test_example.TestGroup.test_one PASS\n"
+            env["test_example.py"].replace("expected = 1", "expected = 2")
+            reloader.on_changes({Path("test_example.py").resolve()})
+            assert env.stdout_delta == "\033ctest_example.TestGroup.test_one FAIL\n"
+
+
+@mark.parametrize(
     "source",
     [
         "from pytest import fixture\nclass Value:\n    expected = 1\n@fixture\ndef value(): return Value.expected\ndef test_one(value): assert value == 1",

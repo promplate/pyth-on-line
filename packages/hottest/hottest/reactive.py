@@ -86,13 +86,13 @@ def _unwrap_descriptor(value):
 
 
 def _class_values(value, seen=None):
-    if isinstance(value, type) or hasattr(value, "__dict__") or any(hasattr(base, "__slots__") for base in type(value).__mro__):
-        yield value if isinstance(value, type) else type(value)
-        return
     seen = set() if seen is None else seen
     if id(value) in seen:
         return
     seen.add(id(value))
+    if isinstance(value, type) or hasattr(value, "__dict__") or any(hasattr(base, "__slots__") for base in type(value).__mro__):
+        yield value if isinstance(value, type) else type(value)
+        return
     if isinstance(value, dict):
         value = [*value.keys(), *value.values()]
     if isinstance(value, (list, tuple, set, frozenset)):
@@ -142,7 +142,7 @@ def _class_dependencies(cls, attributes=None, seen=None):
     names = set()
     for base in cls.__mro__:
         for name, value in vars(base).items():
-            if name in names or name.startswith("test") or (attributes is not None and name not in attributes):
+            if name in names or name.startswith("test") or (attributes is not None and "*" not in attributes and name not in attributes):
                 continue
             names.add(name)
             callable_value = _unwrap_descriptor(value)
@@ -150,7 +150,7 @@ def _class_dependencies(cls, attributes=None, seen=None):
                 yield name, callable_signature(callable_value)
             elif type(value).__name__ in {"member_descriptor", "getset_descriptor", "wrapper_descriptor"} or name in {"__dict__", "__weakref__"}:
                 yield name, type(value).__qualname__
-            elif callable_value is value and not name.startswith("__"):
+            elif callable_value is value and not name.startswith("__") and (attributes is None or "*" in attributes or name in attributes):
                 yield name, _snapshot(value, seen)
 
 
@@ -194,6 +194,8 @@ def _reachable_classes(obj, cls=None, seen=None):
                     yield value
                 elif _is_callable(value):
                     yield from _reachable_classes(value, cls, seen)
+            for default in [*(func.__defaults__ or ()), *(func.__kwdefaults__ or {}).values()]:
+                yield from (class_value for class_value in _class_values(default) if _class_module(class_value) is not None)
             if not (module := ReactiveModule.instances.get(Path(func.__code__.co_filename).resolve())):
                 continue
             for name in set(_global_names(func.__code__)) - set(func.__code__.co_freevars):
@@ -203,8 +205,8 @@ def _reachable_classes(obj, cls=None, seen=None):
                     yield from _reachable_classes(value, cls, seen)
                 elif _is_callable(value):
                     yield from _reachable_classes(value, cls, seen)
-                elif value is not None and _class_module(type(value)) is not None:
-                    yield type(value)
+                elif value is not None:
+                    yield from (class_value for class_value in _class_values(value) if _class_module(class_value) is not None)
     if isinstance(obj, type):
         for base in obj.__mro__:
             for member in vars(base).values() if base is not object else ():
@@ -270,11 +272,16 @@ def _class_attribute_names(code: CodeType, cls, instance=None):
         elif isinstance(instruction.argval, tuple):
             names = tuple(constants.get(name) for name in instruction.argval)
         else:
-            names = (constants.get(instruction.argval),)
+            names = (
+                (constants.get(instruction.argval),)
+                if instruction.opname != "LOAD_GLOBAL"
+                or not any(item.opname in {"LOAD_GLOBAL", "LOAD_NAME"} and item.argval in {"getattr", "vars", "getattribute"} for item in instructions[max(0, index - 3) : index])
+                else (constants.get(instruction.argval, "*"),)
+            )
         for name in names:
             if not isinstance(name, str):
                 continue
-            if name is None or not (instruction.opname == "LOAD_CONST" or instruction.opname.startswith("LOAD_FAST") or instruction.opname == "LOAD_DEREF"):
+            if not (instruction.opname == "LOAD_CONST" or instruction.opname.startswith("LOAD_FAST") or instruction.opname == "LOAD_DEREF" or instruction.opname in {"LOAD_GLOBAL", "LOAD_NAME"}):
                 continue
             previous_instructions = instructions[max(0, index - 3) : index]
             if any(item.opname in {"LOAD_GLOBAL", "LOAD_NAME"} and item.argval in {"getattr", "vars", "getattribute"} for item in previous_instructions) or (
@@ -365,7 +372,7 @@ def _reachable_class_members(cls, obj):
                 names |= {"__getattr__", "__getattribute__"}
             names = {name for name in names if isinstance(name, str)}
             for name in names:
-                if name.startswith("test"):
+                if name != "*" and name.startswith("test"):
                     continue
                 attributes.add(name)
                 if (base := next((base for base in cls.__mro__ if name in vars(base)), None)) is not None and _is_callable(helper := _unwrap_descriptor(vars(base)[name])):
