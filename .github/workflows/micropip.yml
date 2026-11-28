@@ -1,0 +1,46 @@
+name: micropip compatibility
+
+on:
+  pull_request:
+    paths:
+      - "src/python/common/**"
+      - "src/python/chat/**"
+      - "tests/pyodide/**"
+      - .github/workflows/micropip.yml
+      - package.json
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  runtime:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - version: released
+            requirement: micropip==0.11.1
+          - version: upcoming
+            requirement: git+https://github.com/pyodide/micropip@f43b76aed598da5096598abe8ed7cfc433772a22
+    name: runtime (${{ matrix.version }})
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+      - name: Install the actual Pyodide runtime and build micropip
+        env:
+          MICROPIP_REQUIREMENT: ${{ matrix.requirement }}
+        run: |
+          npm install --prefix "$RUNNER_TEMP/pyodide" --no-save "pyodide@$(node -p 'require("./package.json").dependencies.pyodide')"
+          python -m pip wheel --no-deps -w "$RUNNER_TEMP/wheels" "$MICROPIP_REQUIREMENT"
+          cp tests/pyodide/micropip.mjs "$RUNNER_TEMP/pyodide/"
+      - name: Check the default index and custom index
+        run: |
+          node "$RUNNER_TEMP/pyodide/micropip.mjs" "$RUNNER_TEMP/wheels"
+          node "$RUNNER_TEMP/pyodide/micropip.mjs" "$RUNNER_TEMP/wheels" --custom-index

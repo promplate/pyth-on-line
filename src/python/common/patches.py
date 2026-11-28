@@ -13,12 +13,18 @@ from .toast import loading
 
 @cache
 def patch_install():
-    from micropip import _package_manager_singleton, install
-    from micropip.package_index import DEFAULT_INDEX_URLS
+    from micropip import install
 
     if index_url := getenv("PYPI_INDEX_URL"):
-        DEFAULT_INDEX_URLS.insert(0, index_url)
-        _package_manager_singleton.index_urls.insert(0, index_url)
+        if client := getattr(micropip, "default_client", None):
+            micropip.set_index_urls(["PYODIDE", index_url, *client.index_urls])
+        else:
+            # Older micropip compares the configured indexes to its internal defaults
+            # to decide whether the Pyodide lock file should be searched first.
+            from micropip.package_index import DEFAULT_INDEX_URLS
+
+            DEFAULT_INDEX_URLS.insert(0, index_url)
+            micropip.set_index_urls(DEFAULT_INDEX_URLS)
 
     @wraps(install)
     async def install_with_toast(*args, **kwargs):
