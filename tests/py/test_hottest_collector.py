@@ -125,6 +125,22 @@ def test_reloader_detects_changed_test_inputs(source, before, after, result):
             assert env.stdout_delta == f"\033ctest_example.{result}\n"
 
 
+def test_reloader_handles_empty_closure_cells():
+    with environment() as env:
+        env["test_example.py"] = (
+            "def make():\n    try: raise ValueError('example')\n    except ValueError as exc:\n"
+            "        def check(): assert str(exc) == 'example'\n        return check\ntest_error = make()\ndef test_next(): pass"
+        )
+        from hottest.__main__ import Reloader
+
+        reloader = Reloader()
+        with HOTTEST_CONTEXT.effect(reloader.run_entry_file):
+            assert env.stdout_delta == "test_example.make.<locals>.check FAIL\ntest_example.test_next PASS\n"
+            env["test_example.py"].replace("except ValueError as exc:", "except ValueError as error:\n        exc = error")
+            reloader.on_changes({Path("test_example.py").resolve()})
+            assert env.stdout_delta == "\033ctest_example.make.<locals>.check PASS\n"
+
+
 def test_reloader_detects_changed_class_valued_globals():
     with environment() as env:
         env["test_example.py"] = "class Value:\n    expected = 1\ndef test_one(): assert Value.expected == 1"

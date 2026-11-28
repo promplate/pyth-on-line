@@ -102,6 +102,15 @@ def _class_values(value, seen=None):
             yield from _class_values(item, seen)
 
 
+def _closure_items(func: FunctionType):
+    for name, cell in zip(func.__code__.co_freevars, func.__closure__ or (), strict=True):
+        try:
+            value = cell.cell_contents
+        except ValueError:  # A deleted variable leaves its cell empty.
+            continue
+        yield name, value
+
+
 def callable_signature(obj, seen=None):
     seen = set() if seen is None else seen
     if id(obj) in seen:
@@ -121,9 +130,9 @@ def callable_signature(obj, seen=None):
             else:
                 annotations = repr(func.__annotations__)
             closure = []
-            for cell in func.__closure__ or ():
-                value = cell.cell_contents
-                closure.append(value if isinstance(value, (str, int, float, bool, bytes, type(None))) else callable_signature(value, seen) if _is_callable(value) else repr(value))
+            for name, value in _closure_items(func):
+                captured = value if isinstance(value, (str, int, float, bool, bytes, type(None))) else callable_signature(value, seen) if _is_callable(value) else repr(value)
+                closure.append((name, captured))
             closure = tuple(closure)
             parts.append((_code_signature(func.__code__), func.__defaults__, func.__kwdefaults__, annotations, closure))
             if module := ReactiveModule.instances.get(Path(func.__code__.co_filename).resolve()):
@@ -190,8 +199,7 @@ def _reachable_classes(obj, cls=None, seen=None):
                 for name in names:
                     if isinstance(value := func.__globals__.get(name), type):
                         yield value
-            for cell in func.__closure__ or ():
-                value = cell.cell_contents
+            for _, value in _closure_items(func):
                 if isinstance(value, type):
                     yield value
                 elif _is_callable(value):
@@ -408,8 +416,8 @@ def track_callable_globals(obj, seen=None, exclude=None):
         for name in names:
             if _is_callable(value := vars(module).get(name)):
                 track_callable_globals(value, seen, exclude)
-        for cell in target.__closure__ or ():
-            if _is_callable(value := cell.cell_contents):
+        for _, value in _closure_items(target):
+            if _is_callable(value):
                 track_callable_globals(value, seen, exclude)
 
 
