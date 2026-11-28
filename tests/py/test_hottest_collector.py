@@ -1,4 +1,5 @@
 import sys
+from asyncio import to_thread
 from importlib import import_module
 from pathlib import Path
 
@@ -55,6 +56,39 @@ def test_reloader_runs_an_added_definition():
             "test_guarded FAIL",
         ),
         ("class TestValues:\n    expected = 1\n    def test_value(self): assert self.expected == 1", "expected = 1", "expected = 2", "TestValues.test_value FAIL"),
+        ("class TestValues:\n    test_data = 1\n    def test_value(self): assert self.test_data == 1", "test_data = 1", "test_data = 2", "TestValues.test_value FAIL"),
+        ("class TestValues:\n    @staticmethod\n    def test_value(value=1): assert value == 1", "    @staticmethod\n", "", "TestValues.test_value FAIL"),
+        ("def test_one(): pass\ntest_one.__signature__ = 'invalid'", "'invalid'", "None", "test_one PASS"),
+        (
+            "from typing import NamedTuple\nclass Value(NamedTuple):\n    n: int\n    def answer(self): return 1\ndef make(values):\n    def check(): assert values[0].answer() == 1\n    return check\ntest_one = make([Value(0)])",
+            "return 1",
+            "return 2",
+            "make.<locals>.check FAIL",
+        ),
+        (
+            "from pytest import fixture\n@fixture\ndef value(): return 1\ndef test_one(value=True): assert value",
+            "return 1",
+            "return 2\ndef test_added(): pass",
+            "test_added PASS",
+        ),
+        (
+            "class TestValues:\n    values = {'a': 1, 'b': 2}\n    def test_first(self): assert next(iter(self.values)) == 'a'",
+            "'a': 1, 'b': 2",
+            "'b': 2, 'a': 1",
+            "TestValues.test_first FAIL",
+        ),
+        (
+            "class Row(dict):\n    __slots__ = ()\n    __getattr__ = dict.__getitem__\nrows = [Row(value=1)]\ndef test_row(): assert rows[0].value == 1",
+            "rows[0].value == 1",
+            "rows[0].value == 2",
+            "test_row FAIL",
+        ),
+        (
+            "class Row(dict): pass\nrow = Row(value=1)\ndef test_row(): assert row['value'] == 1",
+            "row['value'] == 1",
+            "row['value'] == 1\ndef test_added(): pass",
+            "test_added PASS",
+        ),
         ("from pytest import fixture\n@fixture\ndef value(): return 1\ndef test_one(value): assert value == 1", "return 1", "return 2", "test_one FAIL"),
     ],
 )
@@ -670,9 +704,15 @@ def test_reloader_treats_classes_used_as_dict_keys_as_stable():
             assert env.stdout_delta == "\033ctest_example.test_added PASS\n"
 
 
-def test_reloader_handles_cyclic_class_attributes():
+@mark.parametrize(
+    "source",
+    [
+        "class A: pass\nclass B:\n    a = A\nA.b = B\nclass TestGroup:\n    helper = A\n    def test_one(self): assert self.helper.b.a is A",
+        "class Helper: pass\nHelper.singleton = Helper()\nclass TestGroup:\n    def test_one(self): assert Helper.singleton is not None",
+    ],
+)
+def test_reloader_handles_cyclic_class_attributes(source):
     with environment() as env:
-        source = "class A: pass\nclass B:\n    a = A\nA.b = B\nclass TestGroup:\n    helper = A\n    def test_one(self): assert self.helper.b.a is A"
         env["test_example.py"] = source
         from hottest.__main__ import Reloader
 
@@ -791,17 +831,20 @@ def test_reloader_tracks_inherited_class_attributes_and_methods():
             assert env.stdout_delta == "\033ctest_example.TestGroup.test_one PASS\n"
 
 
-def test_reloader_keeps_async_sibling_method_signatures_independent():
-    with environment() as env:
-        env["test_example.py"] = "class TestGroup:\n    async def test_one(self): pass\n    def test_two(self): pass"
-        from hottest.__main__ import Reloader
+async def test_reloader_keeps_async_sibling_method_signatures_independent():
+    def watch():
+        with environment() as env:
+            env["test_example.py"] = "class TestGroup:\n    async def test_one(self): pass\n    def test_two(self): pass"
+            from hottest.__main__ import Reloader
 
-        reloader = Reloader()
-        with HOTTEST_CONTEXT.effect(reloader.run_entry_file):
-            assert env.stdout_delta == "test_example.TestGroup.test_one PASS\ntest_example.TestGroup.test_two PASS\n"
-            env["test_example.py"].replace("async def test_one(self): pass", "async def test_one(self): assert False")
-            reloader.on_changes({Path("test_example.py").resolve()})
-            assert env.stdout_delta == "\033ctest_example.TestGroup.test_one FAIL\n"
+            reloader = Reloader()
+            with HOTTEST_CONTEXT.effect(reloader.run_entry_file):
+                assert env.stdout_delta == "test_example.TestGroup.test_one PASS\ntest_example.TestGroup.test_two PASS\n"
+                env["test_example.py"].replace("async def test_one(self): pass", "async def test_one(self): assert False")
+                reloader.on_changes({Path("test_example.py").resolve()})
+                assert env.stdout_delta == "\033ctest_example.TestGroup.test_one FAIL\n"
+
+    await to_thread(watch)  # hottest calls asyncio.run() and owns the event loop in its thread.
 
 
 def test_reloader_tracks_class_valued_attributes_and_inherited_slots():

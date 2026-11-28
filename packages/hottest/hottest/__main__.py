@@ -32,7 +32,7 @@ def _collector():
             parameters = signature(func, annotation_format=Format.STRING).parameters
         else:
             parameters = signature(func).parameters
-        return {name: fixtures[name] for name in parameters.keys() & fixtures.keys()}
+        return {name: fixtures[name] for name, param in parameters.items() if param.default is param.empty and name in fixtures}
 
     def run(func):
         print(colored(f"{func.__module__}.", attrs=["dark"]) + str(func.__qualname__), end=" ", flush=True)

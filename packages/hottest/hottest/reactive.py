@@ -7,7 +7,7 @@ from importlib import import_module
 from inspect import getattr_static, isclass, isfunction
 from pathlib import Path
 from sys import version_info
-from types import CodeType, FunctionType, MethodType
+from types import ClassMethodDescriptorType, CodeType, FunctionType, MethodDescriptorType, MethodType
 from typing import Any
 
 from ._vendored_reactivity import derived
@@ -90,7 +90,7 @@ def _class_values(value, seen=None):
     if id(value) in seen:
         return
     seen.add(id(value))
-    if isinstance(value, type) or hasattr(value, "__dict__") or any(hasattr(base, "__slots__") for base in type(value).__mro__):
+    if isinstance(value, type) or any("__dict__" in vars(base) or "__slots__" in vars(base) for base in type(value).__mro__):
         yield value if isinstance(value, type) else type(value)
         return
     if isinstance(value, dict):
@@ -142,15 +142,16 @@ def _class_dependencies(cls, attributes=None, seen=None):
     names = set()
     for base in cls.__mro__:
         for name, value in vars(base).items():
-            if name in names or name.startswith("test") or (attributes is not None and "*" not in attributes and name not in attributes):
+            if name in names or (attributes is not None and "*" not in attributes and name not in attributes):
                 continue
             names.add(name)
             callable_value = _unwrap_descriptor(value)
             if _is_callable(callable_value):
-                yield name, callable_signature(callable_value)
+                if not name.startswith("test") or (attributes is not None and name in attributes):
+                    yield name, callable_signature(callable_value)
             elif type(value).__name__ in {"member_descriptor", "getset_descriptor", "wrapper_descriptor"} or name in {"__dict__", "__weakref__"}:
                 yield name, type(value).__qualname__
-            elif callable_value is value and not name.startswith("__") and (attributes is None or "*" in attributes or name in attributes):
+            elif callable_value is value and not name.startswith("__"):
                 yield name, _snapshot(value, seen)
 
 
@@ -166,8 +167,7 @@ def _class_snapshot(cls, seen=None):
         return _class_signature(module, cls.__qualname__), tuple((base.__qualname__, tuple(_class_dependencies(base, seen=seen))) for base in cls.__mro__)
 
 
-def _instance_type_snapshot(cls):
-    seen = set()
+def _instance_type_snapshot(cls, seen):
     return tuple(_class_snapshot(base, seen) for base in cls.__mro__ if base is not object)
 
 
@@ -194,6 +194,8 @@ def _reachable_classes(obj, cls=None, seen=None):
                     yield value
                 elif _is_callable(value):
                     yield from _reachable_classes(value, cls, seen)
+                else:
+                    yield from (class_value for class_value in _class_values(value) if _class_module(class_value) is not None)
             for default in [*(func.__defaults__ or ()), *(func.__kwdefaults__ or {}).values()]:
                 yield from (class_value for class_value in _class_values(default) if _class_module(class_value) is not None)
             if not (module := ReactiveModule.instances.get(Path(func.__code__.co_filename).resolve())):
@@ -221,7 +223,7 @@ def _mark_signature(marks):
 
 
 def _snapshot(value, seen=None):
-    if isinstance(value, (str, int, float, bool, bytes, type(None))):
+    if isinstance(value, (str, int, float, bool, bytes, type(None), MethodDescriptorType, ClassMethodDescriptorType)):
         return value
     if isinstance(value, (FunctionType, MethodType, partial)):
         return callable_signature(value)
@@ -232,7 +234,7 @@ def _snapshot(value, seen=None):
         return type(value).__qualname__, "<cycle>"
     seen.add(id(value))
     if isinstance(value, dict):
-        return type(value).__name__, tuple(sorted(((_snapshot(key, seen), _snapshot(item, seen)) for key, item in value.items()), key=repr))
+        return type(value).__name__, tuple((_snapshot(key, seen), _snapshot(item, seen)) for key, item in value.items())
     if isinstance(value, (list, tuple)):
         return type(value).__name__, tuple(_snapshot(item, seen) for item in value)
     if isinstance(value, (set, frozenset)):
@@ -244,7 +246,7 @@ def _snapshot(value, seen=None):
             if name not in {"__dict__", "__weakref__"} and hasattr(value, name):
                 attributes[name] = getattr(value, name)
     if _class_module(type(value)) is not None:
-        return _instance_type_snapshot(type(value)), tuple(sorted((name, _snapshot(item, seen)) for name, item in attributes.items()))
+        return _instance_type_snapshot(type(value), seen), tuple(sorted((name, _snapshot(item, seen)) for name, item in attributes.items()))
     if attributes:
         return type(value).__qualname__, tuple(sorted((name, _snapshot(item, seen)) for name, item in attributes.items()))
     return object()  # Unknown values must not silently compare equal after reload.
@@ -372,8 +374,6 @@ def _reachable_class_members(cls, obj):
                 names |= {"__getattr__", "__getattribute__"}
             names = {name for name in names if isinstance(name, str)}
             for name in names:
-                if name != "*" and name.startswith("test"):
-                    continue
                 attributes.add(name)
                 if (base := next((base for base in cls.__mro__ if name in vars(base)), None)) is not None and _is_callable(helper := _unwrap_descriptor(vars(base)[name])):
                     pending.append(helper)
@@ -453,7 +453,8 @@ class TestRef:
             helpers = _reachable_class_members(cls, obj)[1] if self.method else []
             dependencies = [obj, *helpers, *self.fixture_values(obj).values()]
             classes = tuple(_referenced_class_signatures(dependency, cls) for dependency in dependencies)
-            return callable_signature(obj), fixtures, marks, classes, (tuple(_class_dependencies(cls, attributes)),) if self.method else ()
+            method = (type(getattr_static(cls, self.method)), tuple(_class_dependencies(cls, attributes))) if self.method else ()
+            return callable_signature(obj), fixtures, marks, classes, method
 
     def track_globals(self, func):
         cls = None
@@ -473,7 +474,12 @@ class TestRef:
                             if (base := next((base for base in cls.__mro__ if name in vars(base)), None)) is not None:
                                 for value in _class_values(vars(base)[name]):
                                     track_callable_globals(value, set(), cls)
-        for fixture in self.fixture_values(func).values():
+        try:
+            fixtures = self.fixture_values(func)
+        except Exception:
+            # Signature inspection failed during collection. Let the runner report the error for this test.
+            return
+        for fixture in fixtures.values():
             track_callable_globals(fixture)
 
 
