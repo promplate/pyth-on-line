@@ -79,15 +79,15 @@ resources when it fails or is cancelled.
 A generation pins a callable and its resource lifetime, **not a Python module
 snapshot**. The current HMR loader re-executes modules in the same globals mapping:
 
-| Access from an existing scope | After module reload |
-| --- | --- |
-| Running coroutine's code object and local values | Retained |
-| Immutable value captured by a factory closure or default argument | Retained |
-| Captured mutable object | Same object; other code can still mutate it |
-| Module global, including globals used by a captured helper function | May immediately see new values |
-| Reactive module attribute lookup or runtime import | May resolve the updated module |
-| Third-party module, monkey patch, registry, or `sys.modules` | Shared process-wide |
-| Existing instance after its class is redefined | Still belongs to the old class |
+| Access from an existing scope                                       | After module reload                         |
+| ------------------------------------------------------------------- | ------------------------------------------- |
+| Running coroutine's code object and local values                    | Retained                                    |
+| Immutable value captured by a factory closure or default argument   | Retained                                    |
+| Captured mutable object                                             | Same object; other code can still mutate it |
+| Module global, including globals used by a captured helper function | May immediately see new values              |
+| Reactive module attribute lookup or runtime import                  | May resolve the updated module              |
+| Third-party module, monkey patch, registry, or `sys.modules`        | Shared process-wide                         |
+| Existing instance after its class is redefined                      | Still belongs to the old class              |
 
 Module-level installers run again and must be idempotent. Module `on_dispose`
 hooks run when the module is reloaded, **before generation drain**. Do not use
