@@ -31,4 +31,8 @@ If you are running your entry file with `python foo.py bar baz ...`, you can jus
 
 You can also run modules with `hmr -m <module>`, just like `python -m <module>`.
 
+For ASGI servers, the experimental [generation wrapper](ASGI.md) can publish a new
+application while existing WebSocket and streaming scopes drain on their original
+callable. Shared and per-generation lifespan resources have explicit lifetimes.
+
 Try it with `uvx` or `pipx`. If you are using a virtual environment, it is recommended to install `hmr` in the virtual environment instead of globally.
