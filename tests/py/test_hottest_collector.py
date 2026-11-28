@@ -60,6 +60,26 @@ def test_reloader_runs_an_added_definition():
         ("class TestValues:\n    @staticmethod\n    def test_value(value=1): assert value == 1", "    @staticmethod\n", "", "TestValues.test_value FAIL"),
         ("def test_one(): pass\ntest_one.__signature__ = 'invalid'", "'invalid'", "None", "test_one PASS"),
         (
+            "def limit(n):\n    class Limit:\n        def read(self): return n\n    return Limit()\n"
+            "class TestLimits:\n    limits = [limit(1), limit(1)]\n    def test_one(self): assert self.limits[1].read() == 1",
+            "[limit(1), limit(1)]",
+            "[limit(1), limit(2)]",
+            "TestLimits.test_one FAIL",
+        ),
+        (
+            "from collections import namedtuple\ndef make():\n    Point = namedtuple('Point', 'x', module='virtual_model')\n"
+            "    point = Point(1)\n    def check(): assert point.x == 1\n    return check\ntest_one = make()",
+            "Point(1)",
+            "Point(2)",
+            "make.<locals>.check FAIL",
+        ),
+        (
+            "class TestGroup:\n    __module__ = 'virtual_model'\n    value = 1\n    def test_one(self): assert self.value == 1",
+            "value = 1",
+            "value = 2",
+            "TestGroup.test_one FAIL",
+        ),
+        (
             "from typing import NamedTuple\nclass Value(NamedTuple):\n    n: int\n    def answer(self): return 1\ndef make(values):\n    def check(): assert values[0].answer() == 1\n    return check\ntest_one = make([Value(0)])",
             "return 1",
             "return 2",

@@ -6,7 +6,7 @@ from functools import cached_property, partial, update_wrapper, wraps
 from importlib import import_module
 from inspect import getattr_static, isclass, isfunction
 from pathlib import Path
-from sys import version_info
+from sys import modules, version_info
 from types import ClassMethodDescriptorType, CodeType, FunctionType, MethodDescriptorType, MethodType
 from typing import Any
 
@@ -53,12 +53,14 @@ def _attribute_names(code: CodeType):
             yield from _attribute_names(value)
 
 
+def _class_namespace(cls):
+    module = modules.get(cls.__module__) if isinstance(cls.__module__, str) else None
+    return vars(module) if module is not None else {}
+
+
 def _class_module(cls):
-    if not isinstance(cls.__module__, str):
-        return None
     with HMR_CONTEXT.untrack():
-        module = import_module(cls.__module__)
-        file = vars(module).get("__file__")
+        file = _class_namespace(cls).get("__file__")
     return ReactiveModule.instances.get(Path(file).resolve()) if file else None
 
 
@@ -156,7 +158,7 @@ def _class_dependencies(cls, attributes=None, seen=None):
 
 
 def _class_snapshot(cls, seen=None):
-    identity = cls.__module__, cls.__qualname__
+    identity = id(cls)
     seen = set() if seen is None else seen
     if identity in seen:
         return cls.__module__, cls.__qualname__
@@ -257,7 +259,7 @@ def _class_attribute_names(code: CodeType, cls, instance=None):
     instances = {instance}
     constants = {}
     with HMR_CONTEXT.untrack():
-        class_names = {name for name, value in vars(import_module(cls.__module__)).items() if value is cls}
+        class_names = {name for name, value in _class_namespace(cls).items() if value is cls}
     previous = None
     instructions = list(get_instructions(code))
     for index, instruction in enumerate(instructions):
