@@ -26,7 +26,13 @@ def _collector():
         fixtures = find_fixtures(rootdir)
 
     def fixture_values(func):
-        return {name: fixtures[name] for name in signature(func).parameters.keys() & fixtures.keys()}
+        if sys.version_info >= (3, 14):
+            from annotationlib import Format
+
+            parameters = signature(func, annotation_format=Format.STRING).parameters
+        else:
+            parameters = signature(func).parameters
+        return {name: fixtures[name] for name in parameters.keys() & fixtures.keys()}
 
     def run(func):
         print(colored(f"{func.__module__}.", attrs=["dark"]) + str(func.__qualname__), end=" ", flush=True)
