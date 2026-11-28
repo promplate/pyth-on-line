@@ -1,6 +1,6 @@
 from ast import parse
 from collections import UserDict
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from functools import wraps
 from inspect import getsource, getsourcefile
 from pathlib import Path
@@ -100,3 +100,9 @@ class DictProxy(UserDict, dict):  # type: ignore
 
 def load(module: ReactiveModule):
     return module.load()
+
+
+def track_global_names(module: ReactiveModule, names: Iterable[str]):
+    proxy: NamespaceProxy = module._ReactiveModule__namespace_proxy  # type: ignore  # noqa: SLF001
+    for name in names:
+        proxy.get(name)

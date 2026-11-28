@@ -16,7 +16,7 @@ class ReactiveMappingProxy[K, V](MutableMapping[K, V]):
         self._check_equality = check_equality
         self._data = initial
         self._keys = defaultdict(self._signal, {k: self._signal(True) for k in tuple(initial)})  # in subclasses, self._signal() may mutate `initial`
-        self._iter = Subscribable()
+        self._iter = Subscribable(context=self.context)
 
     def __getitem__(self, key: K):
         if self._keys[key].get():

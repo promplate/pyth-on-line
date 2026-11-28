@@ -2,7 +2,7 @@ from collections import UserList
 from typing import TypedDict
 
 from pytest import raises
-from reactivity import effect
+from reactivity import effect, new_context
 from reactivity.collections import ReactiveMappingProxy, ReactiveSequenceProxy, ReactiveSetProxy, reactive, reactive_object_proxy
 from reactivity.primitives import Derived
 from utils import capture_stdout
@@ -28,6 +28,14 @@ def test_reactive_mapping_no_equality_check():
         assert stdout.delta == "1\n"
         proxy["key"] = 1  # same value, still notifies
         assert stdout.delta == "1\n"
+
+
+def test_reactive_mapping_iteration_uses_its_context():
+    context = new_context()
+    proxy = ReactiveMappingProxy({}, context=context)
+    with capture_stdout() as stdout, context.effect(lambda: print([*proxy])):
+        proxy["key"] = 1
+        assert stdout.delta == "[]\n['key']\n"
 
 
 def test_reactive_set_proxy():

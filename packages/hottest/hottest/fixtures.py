@@ -39,9 +39,16 @@ def find_fixtures(path: Path) -> dict[str, Callable[[], Any]]:
         rel_path = file_path.relative_to(path)
         module_name = rel_path.with_suffix("").as_posix().replace("/", ".")
 
-        ns = import_module(module_name).__dict__
+        from ._vendored_reactivity.hmr.core import ReactiveModule
+        from ._vendored_reactivity.hmr.fs import track
+        from ._vendored_reactivity.hmr.utils import load
 
-        for name, obj in ns.items():
+        if file_path.name == "conftest.py":
+            track(file_path.resolve())
+        module = import_module(module_name)
+        if isinstance(module, ReactiveModule):
+            load(module)
+        for name, obj in vars(module).items():
             if hasattr(obj, "_fixture_function_marker"):  # @pytest.fixture marker
                 function = unwrap(obj)
                 if isgeneratorfunction(function):
