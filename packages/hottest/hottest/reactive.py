@@ -258,13 +258,12 @@ def _class_attribute_names(code: CodeType, cls, instance=None):
         if instruction.opname.startswith("STORE_") and previous is not None and previous.opname == "LOAD_CONST" and isinstance(previous.argval, str):
             for name in instruction.argval if isinstance(instruction.argval, tuple) else (instruction.argval,):
                 constants[name] = previous.argval
-        names = (
-            (instruction.argval,)
-            if instruction.opname == "LOAD_CONST" and isinstance(instruction.argval, str)
-            else tuple(constants.get(name) for name in instruction.argval)
-            if isinstance(instruction.argval, tuple)
-            else (constants.get(instruction.argval),)
-        )
+        if instruction.opname == "LOAD_CONST" and isinstance(instruction.argval, str):
+            names = (instruction.argval,)
+        elif isinstance(instruction.argval, tuple):
+            names = tuple(constants.get(name) for name in instruction.argval)
+        else:
+            names = (constants.get(instruction.argval),)
         for name in names:
             if name is None or not (instruction.opname == "LOAD_CONST" or instruction.opname.startswith("LOAD_FAST") or instruction.opname == "LOAD_DEREF"):
                 continue
