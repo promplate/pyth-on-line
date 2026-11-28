@@ -104,26 +104,36 @@ class AsyncDerived[T](BaseDerived[Awaitable[T]]):
             self._value = value
             self.notify()
 
-    async def __sync_dirty_deps(self, *_syncing: BaseComputation):
+    async def __sync_dirty_deps(self, _syncing: set[BaseComputation] | None = None):
+        if _syncing is None:
+            _syncing = set()
+        _syncing.add(self)
         try:
+            if not self._needs_sync:
+                return
+            self._needs_sync = False
             current_computations = self.context.leaf.current_computations
             for dep in tuple(self.dependencies):  # note: I don't know why but `self.dependencies` may shrink during iteration
                 if isinstance(dep, BaseDerived) and dep not in current_computations and dep not in _syncing:
                     if isinstance(dep, AsyncDerived):
-                        await dep._sync_dirty_deps(*_syncing, self)  # noqa: SLF001
+                        await dep._sync_dirty_deps(_syncing)  # noqa: SLF001
                         if dep.dirty:
                             await dep()
                     else:
-                        await __class__.__sync_dirty_deps(dep, *_syncing, self)  # noqa: SLF001  # type: ignore
+                        await __class__.__sync_dirty_deps(dep, _syncing)  # noqa: SLF001  # type: ignore
                         if dep.dirty:
                             dep()
+        except BaseException:
+            self._invalidate_sync()
+            raise
         finally:
+            _syncing.remove(self)
             self._sync_dirty_deps_task = None
 
-    def _sync_dirty_deps(self, *_syncing: BaseComputation):
+    def _sync_dirty_deps(self, _syncing: set[BaseComputation] | None = None):
         if self._sync_dirty_deps_task is not None:
             return self._sync_dirty_deps_task
-        task = self._sync_dirty_deps_task = self.start(lambda: self.__sync_dirty_deps(*_syncing))
+        task = self._sync_dirty_deps_task = self.start(lambda: self.__sync_dirty_deps(_syncing))
         return task
 
     async def _call_async(self):
@@ -144,6 +154,7 @@ class AsyncDerived[T](BaseDerived[Awaitable[T]]):
         return self.start(self._call_async)
 
     def trigger(self):
+        self._invalidate_sync()
         self.dirty = True
         self._call_task = None
         if _pulled(self):
